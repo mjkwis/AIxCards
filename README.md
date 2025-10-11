@@ -18,12 +18,12 @@
 
 The project is built with a modern, scalable, and efficient technology stack:
 
-| Category      | Technology                                                                                                  |
-|---------------|-------------------------------------------------------------------------------------------------------------|
-| **Frontend**  | **Astro 5** (with **React 19** for interactive components), **TypeScript 5**, **Tailwind 4**, **Shadcn/ui**         |
-| **Backend**   | **Supabase** (PostgreSQL, Authentication, BaaS)                                                             |
-| **AI**        | **OpenRouter.ai** (for access to a wide range of LLM models)                                                |
-| **CI/CD & Hosting** | **GitHub Actions** (CI/CD), **DigitalOcean** (Docker-based hosting)                                       |
+| Category            | Technology                                                                                                  |
+| ------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Frontend**        | **Astro 5** (with **React 19** for interactive components), **TypeScript 5**, **Tailwind 4**, **Shadcn/ui** |
+| **Backend**         | **Supabase** (PostgreSQL, Authentication, BaaS)                                                             |
+| **AI**              | **OpenRouter.ai** (for access to a wide range of LLM models)                                                |
+| **CI/CD & Hosting** | **GitHub Actions** (CI/CD), **DigitalOcean** (Docker-based hosting)                                         |
 
 ## Getting Started Locally
 
@@ -37,18 +37,21 @@ To set up and run the project on your local machine, follow these steps.
 ### Installation & Setup
 
 1.  **Clone the repository:**
+
     ```bash
     git clone <your-repository-url>
     cd 10xdevs-cards
     ```
 
 2.  **Install dependencies:**
+
     ```bash
     npm install
     ```
 
 3.  **Set up environment variables:**
     Create a `.env` file in the project root and add the necessary API keys and URLs. These are required for connecting to the backend services.
+
     ```env
     # Example .env file
     PUBLIC_SUPABASE_URL="your_supabase_project_url"
@@ -66,14 +69,14 @@ To set up and run the project on your local machine, follow these steps.
 
 The `package.json` file includes the following scripts for managing the application:
 
-| Script           | Description                                      |
-|------------------|--------------------------------------------------|
-| `npm run dev`    | Starts the development server with hot-reloading. |
-| `npm run build`  | Builds the application for production.           |
-| `npm run preview`| Previews the production build locally.           |
-| `npm run lint`   | Lints the codebase using ESLint.                 |
-| `npm run lint:fix`| Automatically fixes linting issues.            |
-| `npm run format` | Formats the code using Prettier.                 |
+| Script             | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| `npm run dev`      | Starts the development server with hot-reloading. |
+| `npm run build`    | Builds the application for production.            |
+| `npm run preview`  | Previews the production build locally.            |
+| `npm run lint`     | Lints the codebase using ESLint.                  |
+| `npm run lint:fix` | Automatically fixes linting issues.               |
+| `npm run format`   | Formats the code using Prettier.                  |
 
 ## Project Scope
 
