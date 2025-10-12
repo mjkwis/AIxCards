@@ -62,7 +62,7 @@ export async function POST(context: APIContext): Promise<Response> {
     let requestBody: unknown;
     try {
       requestBody = await context.request.json();
-    } catch (error) {
+    } catch {
       return errorResponse(400, "VALIDATION_ERROR", "Invalid JSON in request body");
     }
 
