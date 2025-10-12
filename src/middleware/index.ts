@@ -1,6 +1,6 @@
 /**
  * Astro Middleware
- * 
+ *
  * Handles:
  * - Supabase client initialization with SSR support
  * - Authentication for API routes (JWT validation)
@@ -18,21 +18,17 @@ import { RateLimitError } from "../lib/errors/rate-limit.error";
 export const onRequest = defineMiddleware(async (context, next) => {
   // 1. Initialize Supabase client with SSR support
   // This creates a client that properly handles cookies for server-side rendering
-  const supabase = createServerClient<Database>(
-    import.meta.env.SUPABASE_URL,
-    import.meta.env.SUPABASE_KEY,
-    {
-      cookies: {
-        get: (key) => context.cookies.get(key)?.value,
-        set: (key, value, options) => {
-          context.cookies.set(key, value, options);
-        },
-        remove: (key, options) => {
-          context.cookies.delete(key, options);
-        },
+  const supabase = createServerClient<Database>(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_KEY, {
+    cookies: {
+      get: (key) => context.cookies.get(key)?.value,
+      set: (key, value, options) => {
+        context.cookies.set(key, value, options);
       },
-    }
-  );
+      remove: (key, options) => {
+        context.cookies.delete(key, options);
+      },
+    },
+  });
 
   context.locals.supabase = supabase;
 
@@ -97,13 +93,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (context.locals.rateLimitRemaining !== undefined) {
     response.headers.set("X-RateLimit-Limit", "10");
     response.headers.set("X-RateLimit-Remaining", context.locals.rateLimitRemaining.toString());
-    
+
     if (context.locals.rateLimitReset) {
       // Convert to Unix timestamp (seconds since epoch)
-      response.headers.set(
-        "X-RateLimit-Reset",
-        Math.floor(context.locals.rateLimitReset.getTime() / 1000).toString()
-      );
+      response.headers.set("X-RateLimit-Reset", Math.floor(context.locals.rateLimitReset.getTime() / 1000).toString());
     }
   }
 

@@ -1,12 +1,12 @@
 /**
  * Authentication Service
- * 
+ *
  * Handles user authentication operations through Supabase Auth:
  * - User registration (sign up)
  * - User login (sign in)
  * - User logout (sign out)
  * - Account deletion
- * 
+ *
  * This service acts as a facade over Supabase Auth,
  * providing a clean interface and proper error handling.
  */
@@ -21,7 +21,7 @@ import type { AuthResponse, UserDTO, SessionDTO } from "../../types";
 export class AuthServiceError extends Error {
   constructor(
     message: string,
-    public readonly code: string = "AUTH_ERROR",
+    public readonly code = "AUTH_ERROR",
     public readonly details?: unknown
   ) {
     super(message);
@@ -45,7 +45,7 @@ export class InvalidCredentialsError extends AuthServiceError {
 
 /**
  * Authentication Service
- * 
+ *
  * Provides methods for user authentication operations
  * using Supabase Auth as the underlying provider.
  */
@@ -54,20 +54,20 @@ export class AuthService {
 
   /**
    * Register a new user account
-   * 
+   *
    * Creates a new user in Supabase Auth with the provided email and password.
    * Upon successful registration:
    * - User record is created in auth.users table
    * - Password is automatically hashed using bcrypt
    * - JWT tokens (access_token and refresh_token) are generated
    * - Optional email verification can be sent (configured in Supabase)
-   * 
+   *
    * @param email - User's email address (normalized to lowercase)
    * @param password - User's password (will be hashed by Supabase)
    * @returns AuthResponse with user data and session tokens
    * @throws EmailAlreadyRegisteredError if email is already in use
    * @throws AuthServiceError for other registration failures
-   * 
+   *
    * @example
    * ```ts
    * const result = await authService.register(
@@ -95,18 +95,11 @@ export class AuthService {
           throw new EmailAlreadyRegisteredError();
         }
 
-        throw new AuthServiceError(
-          "Registration failed",
-          "REGISTRATION_FAILED",
-          error.message
-        );
+        throw new AuthServiceError("Registration failed", "REGISTRATION_FAILED", error.message);
       }
 
       if (!data.user || !data.session) {
-        throw new AuthServiceError(
-          "Registration failed: No user or session returned",
-          "REGISTRATION_FAILED"
-        );
+        throw new AuthServiceError("Registration failed: No user or session returned", "REGISTRATION_FAILED");
       }
 
       // Map Supabase types to our DTOs
@@ -121,29 +114,25 @@ export class AuthService {
       }
 
       // Wrap unexpected errors
-      throw new AuthServiceError(
-        "Unexpected error during registration",
-        "INTERNAL_ERROR",
-        error
-      );
+      throw new AuthServiceError("Unexpected error during registration", "INTERNAL_ERROR", error);
     }
   }
 
   /**
    * Authenticate an existing user
-   * 
+   *
    * Validates user credentials and creates a new session.
    * Upon successful login:
    * - Credentials are validated against hashed password
    * - New JWT tokens are generated
    * - Session is created
-   * 
+   *
    * @param email - User's email address
    * @param password - User's password
    * @returns AuthResponse with user data and session tokens
    * @throws InvalidCredentialsError if credentials are invalid
    * @throws AuthServiceError for other authentication failures
-   * 
+   *
    * @example
    * ```ts
    * const result = await authService.login(
@@ -162,18 +151,11 @@ export class AuthService {
 
       if (error) {
         // Generic error for security (don't reveal if email exists)
-        if (
-          error.message.includes("Invalid login credentials") ||
-          error.status === 400
-        ) {
+        if (error.message.includes("Invalid login credentials") || error.status === 400) {
           throw new InvalidCredentialsError();
         }
 
-        throw new AuthServiceError(
-          "Login failed",
-          "LOGIN_FAILED",
-          error.message
-        );
+        throw new AuthServiceError("Login failed", "LOGIN_FAILED", error.message);
       }
 
       if (!data.user || !data.session) {
@@ -189,22 +171,18 @@ export class AuthService {
         throw error;
       }
 
-      throw new AuthServiceError(
-        "Unexpected error during login",
-        "INTERNAL_ERROR",
-        error
-      );
+      throw new AuthServiceError("Unexpected error during login", "INTERNAL_ERROR", error);
     }
   }
 
   /**
    * Log out the current user
-   * 
+   *
    * Invalidates the current session and clears tokens.
    * This operation is idempotent - calling it multiple times is safe.
-   * 
+   *
    * @throws AuthServiceError if logout fails
-   * 
+   *
    * @example
    * ```ts
    * await authService.logout();
@@ -215,40 +193,32 @@ export class AuthService {
       const { error } = await this.supabase.auth.signOut();
 
       if (error) {
-        throw new AuthServiceError(
-          "Logout failed",
-          "LOGOUT_FAILED",
-          error.message
-        );
+        throw new AuthServiceError("Logout failed", "LOGOUT_FAILED", error.message);
       }
     } catch (error) {
       if (error instanceof AuthServiceError) {
         throw error;
       }
 
-      throw new AuthServiceError(
-        "Unexpected error during logout",
-        "INTERNAL_ERROR",
-        error
-      );
+      throw new AuthServiceError("Unexpected error during logout", "INTERNAL_ERROR", error);
     }
   }
 
   /**
    * Delete the current user's account
-   * 
+   *
    * Permanently deletes the user account and all associated data.
    * This operation:
    * - Deletes the user from auth.users
    * - Triggers CASCADE deletion of user data (via database constraints)
    * - Cannot be undone
-   * 
+   *
    * Note: This requires a Supabase client with appropriate permissions.
    * For complete deletion, use a service role client.
-   * 
+   *
    * @param userId - ID of the user to delete
    * @throws AuthServiceError if deletion fails
-   * 
+   *
    * @example
    * ```ts
    * await authService.deleteAccount(user.id);
@@ -261,52 +231,39 @@ export class AuthService {
       const { error } = await this.supabase.auth.admin.deleteUser(userId);
 
       if (error) {
-        throw new AuthServiceError(
-          "Account deletion failed",
-          "DELETION_FAILED",
-          error.message
-        );
+        throw new AuthServiceError("Account deletion failed", "DELETION_FAILED", error.message);
       }
     } catch (error) {
       if (error instanceof AuthServiceError) {
         throw error;
       }
 
-      throw new AuthServiceError(
-        "Unexpected error during account deletion",
-        "INTERNAL_ERROR",
-        error
-      );
+      throw new AuthServiceError("Unexpected error during account deletion", "INTERNAL_ERROR", error);
     }
   }
 
   /**
    * Maps Supabase User object to our UserDTO
-   * 
+   *
    * @private
    */
-  private mapUserToDTO(user: {
-    id: string;
-    email?: string;
-    created_at: string;
-  }): UserDTO {
+  private mapUserToDTO(user: { id: string; email?: string; created_at: string }): UserDTO {
+    if (!user.email) {
+      throw new DatabaseError("User email is required but not found", "MISSING_EMAIL");
+    }
     return {
       id: user.id,
-      email: user.email!,
+      email: user.email,
       created_at: user.created_at,
     };
   }
 
   /**
    * Maps Supabase Session object to our SessionDTO
-   * 
+   *
    * @private
    */
-  private mapSessionToDTO(session: {
-    access_token: string;
-    refresh_token: string;
-    expires_at?: number;
-  }): SessionDTO {
+  private mapSessionToDTO(session: { access_token: string; refresh_token: string; expires_at?: number }): SessionDTO {
     return {
       access_token: session.access_token,
       refresh_token: session.refresh_token,
@@ -316,4 +273,3 @@ export class AuthService {
     };
   }
 }
-

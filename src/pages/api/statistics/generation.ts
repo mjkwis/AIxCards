@@ -1,21 +1,21 @@
 /**
  * GET /api/statistics/generation
- * 
+ *
  * Get detailed statistics about AI flashcard generation
- * 
+ *
  * This endpoint provides in-depth metrics about the AI flashcard generation
  * performance, including approval rates, averages, and historical data.
  * It's designed to help users understand how well the AI is performing.
- * 
+ *
  * Metrics included:
  * - Total AI-generated flashcards
  * - Total approved and rejected
  * - Approval rate (approved / evaluated)
  * - Average flashcards per generation request
  * - Recent requests history (last 30 days with daily breakdown)
- * 
+ *
  * Authentication: Required (JWT Bearer token)
- * 
+ *
  * Performance: Uses aggregation queries and may be cached in production.
  */
 
@@ -34,16 +34,16 @@ export const prerender = false;
 
 /**
  * GET handler for generation statistics
- * 
+ *
  * Request:
  * - Headers: Authorization: Bearer {token}
  * - Query: None
- * 
+ *
  * Response:
  * - 200: Success with generation statistics
  * - 401: Authentication required or invalid
  * - 500: Internal server error
- * 
+ *
  * @param context - Astro API context with locals
  * @returns Response with GenerationStatisticsResponse or ErrorResponse
  */
@@ -82,26 +82,18 @@ export async function GET(context: APIContext): Promise<Response> {
     });
 
     // 3. Return success response with 200 OK
-    return new Response(
-      JSON.stringify({ statistics }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return new Response(JSON.stringify({ statistics }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error) {
     // Catch-all for unexpected errors
     logger.critical("Unexpected error in GET handler", error as Error, {
       userId: context.locals.user?.id,
     });
 
-    return errorResponse(
-      500,
-      "INTERNAL_ERROR",
-      "An unexpected error occurred. Please try again later."
-    );
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 }
-

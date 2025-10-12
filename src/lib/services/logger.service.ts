@@ -1,13 +1,13 @@
 /**
  * Structured logging service
- * 
+ *
  * Provides consistent logging across the application with context
  * and different severity levels.
  */
 
 /**
  * Logger class for structured logging
- * 
+ *
  * Usage:
  * ```ts
  * const logger = new Logger("MyService");
@@ -20,7 +20,7 @@ export class Logger {
 
   /**
    * Creates a new logger instance
-   * 
+   *
    * @param context - Context name (e.g., service name, endpoint name)
    */
   constructor(context: string) {
@@ -30,7 +30,7 @@ export class Logger {
   /**
    * Logs informational message
    * For normal operations and successful completions
-   * 
+   *
    * @param message - Log message
    * @param data - Optional additional data
    */
@@ -41,7 +41,7 @@ export class Logger {
   /**
    * Logs warning message
    * For potentially problematic situations that aren't errors
-   * 
+   *
    * @param message - Log message
    * @param data - Optional additional data
    */
@@ -52,7 +52,7 @@ export class Logger {
   /**
    * Logs error message
    * For errors that are handled but should be tracked
-   * 
+   *
    * @param message - Log message
    * @param error - Error object
    * @param data - Optional additional context data
@@ -72,7 +72,7 @@ export class Logger {
    * Logs critical error message
    * For critical errors that require immediate attention
    * In production, this should trigger alerts to monitoring services
-   * 
+   *
    * @param message - Log message
    * @param error - Error object
    * @param data - Optional additional context data
@@ -86,8 +86,7 @@ export class Logger {
       },
       ...(data ? (data as object) : {}),
     });
-    
+
     // TODO: In production, send alert to external monitoring service (Sentry, etc.)
   }
 }
-

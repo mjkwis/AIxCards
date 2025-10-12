@@ -1,19 +1,19 @@
 /**
  * POST /api/auth/login
- * 
+ *
  * Authenticate an existing user
- * 
+ *
  * This endpoint allows existing users to log in by providing
  * their email and password. Upon successful authentication, the user
  * receives JWT tokens for accessing protected resources.
- * 
+ *
  * Features:
  * - Email format validation and normalization
  * - Credential verification through Supabase Auth
  * - Rate limiting (10 requests per 15 minutes per IP+email combo)
  * - Generic error messages (prevents email enumeration)
  * - Automatic session creation
- * 
+ *
  * Security:
  * - Public endpoint (no authentication required)
  * - Aggressive rate limiting to prevent brute force attacks
@@ -36,21 +36,21 @@ const loginRateLimiter = new RateLimitService(10, 900000); // 15 minutes in mill
 
 /**
  * POST handler for user login
- * 
+ *
  * Request Body:
  * - email: string (valid email format)
  * - password: string (non-empty, no strength validation)
- * 
+ *
  * Success Response (200 OK):
  * - user: UserDTO (id, email, created_at)
  * - session: SessionDTO (access_token, refresh_token, expires_at)
- * 
+ *
  * Error Responses:
  * - 400: Validation error (invalid email format or empty password)
  * - 401: Invalid credentials (generic message for security)
  * - 429: Rate limit exceeded (too many login attempts)
  * - 500: Internal server error
- * 
+ *
  * Security Notes:
  * - Rate limiting is per IP+email to prevent distributed brute force
  * - Error messages are generic to prevent email enumeration
@@ -64,15 +64,11 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
     try {
       body = await request.json();
     } catch {
-      return errorResponse(
-        400,
-        "INVALID_JSON",
-        "Request body must be valid JSON"
-      );
+      return errorResponse(400, "INVALID_JSON", "Request body must be valid JSON");
     }
 
     const validation = LoginSchema.safeParse(body);
-    
+
     if (!validation.success) {
       // Extract validation errors
       const errors = validation.error.errors.map((err) => ({
@@ -80,12 +76,7 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
         message: err.message,
       }));
 
-      return errorResponse(
-        400,
-        "VALIDATION_ERROR",
-        "Invalid login data",
-        { validation_errors: errors }
-      );
+      return errorResponse(400, "VALIDATION_ERROR", "Invalid login data", { validation_errors: errors });
     }
 
     const { email, password } = validation.data;
@@ -99,22 +90,17 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
       await loginRateLimiter.check(rateLimitKey, "auth:login");
     } catch (error) {
       if (error instanceof RateLimitError) {
-        return errorResponse(
-          429,
-          "RATE_LIMIT_EXCEEDED",
-          "Too many login attempts. Please try again later.",
-          {
-            limit: 10,
-            reset_at: error.resetAt.toISOString(),
-          }
-        );
+        return errorResponse(429, "RATE_LIMIT_EXCEEDED", "Too many login attempts. Please try again later.", {
+          limit: 10,
+          reset_at: error.resetAt.toISOString(),
+        });
       }
       throw error;
     }
 
     // 3. Authenticate user through AuthService
     const authService = new AuthService(locals.supabase);
-    
+
     let authResult: AuthResponse;
     try {
       authResult = await authService.login(email, password);
@@ -122,22 +108,14 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
       if (error instanceof InvalidCredentialsError) {
         // Generic error message for security
         // Don't reveal whether email exists or password is wrong
-        return errorResponse(
-          401,
-          "INVALID_CREDENTIALS",
-          "Invalid email or password"
-        );
+        return errorResponse(401, "INVALID_CREDENTIALS", "Invalid email or password");
       }
 
       if (error instanceof AuthServiceError) {
         // Log the error for debugging (but don't expose to user)
         console.error("Login error:", error.code, error.details);
-        
-        return errorResponse(
-          500,
-          "LOGIN_FAILED",
-          "Failed to log in. Please try again later."
-        );
+
+        return errorResponse(500, "LOGIN_FAILED", "Failed to log in. Please try again later.");
       }
 
       throw error;
@@ -146,7 +124,7 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
     // 4. Set refresh token as httpOnly cookie for security
     // This prevents XSS attacks from stealing the refresh token
     const refreshToken = authResult.session.refresh_token;
-    
+
     // Calculate cookie expiry (7 days)
     const cookieMaxAge = 60 * 60 * 24 * 7; // 7 days in seconds
 
@@ -155,21 +133,17 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
     const isProduction = import.meta.env.PROD;
 
     // Create response with auth data
-    const response = new Response(
-      JSON.stringify(authResult),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          // Add rate limit headers for transparency
-          "X-RateLimit-Limit": "10",
-          "X-RateLimit-Remaining": loginRateLimiter.getRemaining(rateLimitKey, "auth:login").toString(),
-          "X-RateLimit-Reset": loginRateLimiter.getResetAt(rateLimitKey, "auth:login")
-            ? Math.floor(loginRateLimiter.getResetAt(rateLimitKey, "auth:login")!.getTime() / 1000).toString()
-            : "",
-        },
-      }
-    );
+    const resetAt = loginRateLimiter.getResetAt(rateLimitKey, "auth:login");
+    const response = new Response(JSON.stringify(authResult), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        // Add rate limit headers for transparency
+        "X-RateLimit-Limit": "10",
+        "X-RateLimit-Remaining": loginRateLimiter.getRemaining(rateLimitKey, "auth:login").toString(),
+        "X-RateLimit-Reset": resetAt ? Math.floor(resetAt.getTime() / 1000).toString() : "",
+      },
+    });
 
     // Set refresh token cookie
     // httpOnly: true - prevents JavaScript access (XSS protection)
@@ -182,22 +156,18 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
       `Path=/`,
       `HttpOnly`,
       `SameSite=Lax`,
-      isProduction ? `Secure` : '',
-    ].filter(Boolean).join('; ');
+      isProduction ? `Secure` : "",
+    ]
+      .filter(Boolean)
+      .join("; ");
 
-    response.headers.append('Set-Cookie', cookieHeader);
+    response.headers.append("Set-Cookie", cookieHeader);
 
     return response;
-
   } catch (error) {
     // Catch-all for unexpected errors
     console.error("Unexpected error in login endpoint:", error);
-    
-    return errorResponse(
-      500,
-      "INTERNAL_ERROR",
-      "An unexpected error occurred. Please try again later."
-    );
+
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 };
-

@@ -1,10 +1,12 @@
 # API Endpoint Implementation Plan: POST /api/flashcards
 
 ## 1. Przegląd
+
 **Endpoint:** `POST /api/flashcards`  
 **Cel:** Ręczne utworzenie fiszki przez użytkownika (manual source)
 
 ## 2. Request
+
 ```json
 POST /api/flashcards
 Authorization: Bearer {access_token}
@@ -16,6 +18,7 @@ Authorization: Bearer {access_token}
 ```
 
 ## 3. Types
+
 ```typescript
 CreateFlashcardCommand {
   front: string;
@@ -24,14 +27,16 @@ CreateFlashcardCommand {
 ```
 
 ### Validation (Zod)
+
 ```typescript
 export const CreateFlashcardSchema = z.object({
   front: z.string().min(1).max(1000).trim(),
-  back: z.string().min(1).max(2000).trim()
+  back: z.string().min(1).max(2000).trim(),
 });
 ```
 
 ## 4. Response (201 Created)
+
 ```json
 {
   "flashcard": {
@@ -54,6 +59,7 @@ export const CreateFlashcardSchema = z.object({
 ## 5. Implementation
 
 ### Service
+
 ```typescript
 async create(userId: string, command: CreateFlashcardCommand): Promise<FlashcardDTO> {
   const { data, error } = await this.supabase
@@ -71,43 +77,45 @@ async create(userId: string, command: CreateFlashcardCommand): Promise<Flashcard
     })
     .select()
     .single();
-  
+
   if (error || !data) {
     throw new DatabaseError('Failed to create flashcard', error);
   }
-  
+
   return this.mapToDTO(data);
 }
 ```
 
 ### Route Handler
+
 ```typescript
 export async function POST(context: APIContext) {
   const user = context.locals.user;
   const supabase = context.locals.supabase;
-  
+
   if (!user || !supabase) {
-    return errorResponse(401, 'AUTH_REQUIRED', 'Authentication required');
+    return errorResponse(401, "AUTH_REQUIRED", "Authentication required");
   }
-  
+
   const body = await context.request.json();
   const validationResult = CreateFlashcardSchema.safeParse(body);
-  
+
   if (!validationResult.success) {
-    return errorResponse(400, 'VALIDATION_ERROR', validationResult.error.errors[0].message);
+    return errorResponse(400, "VALIDATION_ERROR", validationResult.error.errors[0].message);
   }
-  
+
   const service = new FlashcardService(supabase);
   const flashcard = await service.create(user.id, validationResult.data);
-  
+
   return new Response(JSON.stringify({ flashcard }), {
     status: 201,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { "Content-Type": "application/json" },
   });
 }
 ```
 
 ## 6. Key Points
+
 - **source:** Always 'manual' for this endpoint
 - **status:** Always 'active' (no review needed)
 - **next_review_at:** Set to NOW (due immediately for first review)
@@ -116,4 +124,3 @@ export async function POST(context: APIContext) {
 - **generation_request_id:** NULL (not from AI)
 
 **Status:** Ready for Implementation
-

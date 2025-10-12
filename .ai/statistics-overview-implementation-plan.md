@@ -1,16 +1,19 @@
 # API Endpoint Implementation Plan: GET /api/statistics/overview
 
 ## 1. Przegląd
+
 **Endpoint:** `GET /api/statistics/overview`  
 **Cel:** Ogólne statystyki użytkownika (dashboard overview)
 
 ## 2. Request
+
 ```
 GET /api/statistics/overview
 Authorization: Bearer {access_token}
 ```
 
 ## 3. Response (200 OK)
+
 ```json
 {
   "statistics": {
@@ -31,6 +34,7 @@ Authorization: Bearer {access_token}
 ## 4. Implementation
 
 ### Service
+
 ```typescript
 async getOverview(userId: string): Promise<StatisticsOverview> {
   // Query all counts in parallel
@@ -55,14 +59,14 @@ async getOverview(userId: string): Promise<StatisticsOverview> {
     this.countDueFlashcards(userId),
     this.countGenerationRequests(userId)
   ]);
-  
+
   // Calculate AI acceptance rate
-  const aiTotal = aiGeneratedFlashcards - this.countFlashcards(userId, { 
-    source: 'ai_generated', 
-    status: 'pending_review' 
+  const aiTotal = aiGeneratedFlashcards - this.countFlashcards(userId, {
+    source: 'ai_generated',
+    status: 'pending_review'
   });
   const aiAcceptanceRate = aiTotal > 0 ? aiApproved / aiTotal : 0;
-  
+
   return {
     total_flashcards: totalFlashcards,
     active_flashcards: activeFlashcards,
@@ -85,10 +89,10 @@ private async countFlashcards(
     .from('flashcards')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId);
-  
+
   if (filters?.status) query = query.eq('status', filters.status);
   if (filters?.source) query = query.eq('source', filters.source);
-  
+
   const { count } = await query;
   return count || 0;
 }
@@ -101,7 +105,7 @@ private async countDueFlashcards(userId: string): Promise<number> {
     .eq('user_id', userId)
     .eq('status', 'active')
     .lte('next_review_at', now);
-  
+
   return count || 0;
 }
 
@@ -110,29 +114,30 @@ private async countGenerationRequests(userId: string): Promise<number> {
     .from('generation_requests')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId);
-  
+
   return count || 0;
 }
 ```
 
 ### Route Handler
+
 ```typescript
 export async function GET(context: APIContext) {
   const user = context.locals.user;
-  
+
   if (!user) {
-    return errorResponse(401, 'AUTH_REQUIRED', 'Authentication required');
+    return errorResponse(401, "AUTH_REQUIRED", "Authentication required");
   }
-  
+
   const service = new StatisticsService(context.locals.supabase);
   const statistics = await service.getOverview(user.id);
-  
+
   return new Response(JSON.stringify({ statistics }), {
     status: 200,
     headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'private, max-age=300' // Cache 5 minutes
-    }
+      "Content-Type": "application/json",
+      "Cache-Control": "private, max-age=300", // Cache 5 minutes
+    },
   });
 }
 ```
@@ -151,9 +156,9 @@ export async function GET(context: APIContext) {
 - **total_reviews_completed:** Placeholder (needs review history)
 
 ## 6. Performance
+
 - Parallel queries for speed
 - Caching (5 min) recommended
 - Consider materialized view for large datasets
 
 **Status:** Ready for Implementation
-

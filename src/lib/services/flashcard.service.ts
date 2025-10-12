@@ -1,12 +1,12 @@
 /**
  * Flashcard Service
- * 
+ *
  * Handles all flashcard-related operations:
  * - CRUD operations (create, read, update, delete)
  * - Flashcard approval/rejection workflow
  * - Batch approval operations
  * - List with pagination and filtering
- * 
+ *
  * This service manages both manual and AI-generated flashcards,
  * with proper state management for the review workflow.
  */
@@ -15,7 +15,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../db/database.types";
 import type {
   FlashcardDTO,
-  FlashcardResponse,
   FlashcardsListResponse,
   Pagination,
   BatchApproveResponse,
@@ -30,7 +29,7 @@ const logger = new Logger("FlashcardService");
 
 /**
  * Service class for managing flashcards
- * 
+ *
  * Handles database operations for flashcard CRUD operations,
  * approval workflows, and batch operations.
  */
@@ -39,13 +38,13 @@ export class FlashcardService {
 
   /**
    * Creates a new manual flashcard
-   * 
+   *
    * Manual flashcards are created directly by users and:
    * - Have source: "manual"
    * - Have status: "active" (no review needed)
    * - Have next_review_at: NOW (due immediately for first study session)
    * - Have interval: 0, ease_factor: 2.5 (SM-2 defaults)
-   * 
+   *
    * @param userId - ID of the user creating the flashcard
    * @param command - Flashcard data (front, back)
    * @returns Created flashcard DTO
@@ -90,13 +89,13 @@ export class FlashcardService {
 
   /**
    * Lists flashcards for a user with pagination and filtering
-   * 
+   *
    * Features:
    * - Pagination (page, limit)
    * - Filtering (status, source)
    * - Sorting (created_at, updated_at, next_review_at)
    * - RLS ensures user can only see their own flashcards
-   * 
+   *
    * @param userId - ID of the user
    * @param page - Page number (1-indexed)
    * @param limit - Items per page
@@ -147,10 +146,7 @@ export class FlashcardService {
       const total_pages = Math.ceil(total / limit);
 
       // Build data query with same filters
-      let dataQuery = this.supabase
-        .from("flashcards")
-        .select()
-        .eq("user_id", userId);
+      let dataQuery = this.supabase.from("flashcards").select().eq("user_id", userId);
 
       if (status) {
         dataQuery = dataQuery.eq("status", status);
@@ -192,11 +188,11 @@ export class FlashcardService {
 
   /**
    * Gets a specific flashcard by ID
-   * 
+   *
    * Features:
    * - Fetches single flashcard
    * - RLS ensures user can only see their own flashcards
-   * 
+   *
    * @param userId - ID of the user (for ownership verification)
    * @param flashcardId - ID of the flashcard
    * @returns Flashcard DTO
@@ -231,25 +227,21 @@ export class FlashcardService {
 
   /**
    * Updates a flashcard
-   * 
+   *
    * Allows updating:
    * - front: Question text
    * - back: Answer text
    * - status: Flashcard status
-   * 
+   *
    * Note: Cannot update source, SM-2 fields, or generation_request_id
-   * 
+   *
    * @param userId - ID of the user (for ownership verification)
    * @param flashcardId - ID of the flashcard to update
    * @param command - Update data
    * @returns Updated flashcard DTO
    * @throws DatabaseError if not found or database error
    */
-  async update(
-    userId: string,
-    flashcardId: string,
-    command: UpdateFlashcardCommand
-  ): Promise<FlashcardDTO> {
+  async update(userId: string, flashcardId: string, command: UpdateFlashcardCommand): Promise<FlashcardDTO> {
     try {
       logger.info("Updating flashcard", { userId, flashcardId, command });
 
@@ -280,7 +272,7 @@ export class FlashcardService {
 
   /**
    * Deletes a flashcard permanently
-   * 
+   *
    * @param userId - ID of the user (for ownership verification)
    * @param flashcardId - ID of the flashcard to delete
    * @throws DatabaseError if not found or database error
@@ -289,11 +281,7 @@ export class FlashcardService {
     try {
       logger.info("Deleting flashcard", { userId, flashcardId });
 
-      const { error } = await this.supabase
-        .from("flashcards")
-        .delete()
-        .eq("id", flashcardId)
-        .eq("user_id", userId);
+      const { error } = await this.supabase.from("flashcards").delete().eq("id", flashcardId).eq("user_id", userId);
 
       if (error) {
         logger.error("Failed to delete flashcard", error as Error);
@@ -313,10 +301,10 @@ export class FlashcardService {
 
   /**
    * Approves an AI-generated flashcard
-   * 
+   *
    * Changes status from 'pending_review' to 'active' and sets next_review_at to NOW.
    * Only works on flashcards with status 'pending_review'.
-   * 
+   *
    * @param userId - ID of the user (for ownership verification)
    * @param flashcardId - ID of the flashcard to approve
    * @returns Approved flashcard DTO
@@ -379,10 +367,10 @@ export class FlashcardService {
 
   /**
    * Rejects an AI-generated flashcard
-   * 
+   *
    * Changes status from 'pending_review' to 'rejected' and sets next_review_at to NULL.
    * Only works on flashcards with status 'pending_review'.
-   * 
+   *
    * @param userId - ID of the user (for ownership verification)
    * @param flashcardId - ID of the flashcard to reject
    * @returns Rejected flashcard DTO
@@ -445,10 +433,10 @@ export class FlashcardService {
 
   /**
    * Batch approves multiple flashcards
-   * 
+   *
    * Approves up to 50 flashcards in a single operation.
    * Returns both successful and failed approvals.
-   * 
+   *
    * @param userId - ID of the user (for ownership verification)
    * @param flashcardIds - Array of flashcard IDs to approve
    * @returns Batch approval result with approved and failed IDs
@@ -470,9 +458,7 @@ export class FlashcardService {
         } catch (error) {
           failed.push({
             id: flashcardId,
-            reason: error instanceof DatabaseError 
-              ? error.message 
-              : "Flashcard not found or cannot be approved",
+            reason: error instanceof DatabaseError ? error.message : "Flashcard not found or cannot be approved",
           });
         }
       }
@@ -493,7 +479,7 @@ export class FlashcardService {
 
   /**
    * Maps database entity to FlashcardDTO
-   * 
+   *
    * @private
    */
   private mapToDTO(entity: Database["public"]["Tables"]["flashcards"]["Row"]): FlashcardDTO {
@@ -513,4 +499,3 @@ export class FlashcardService {
     };
   }
 }
-

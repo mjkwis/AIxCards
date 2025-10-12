@@ -1,16 +1,19 @@
 # API Endpoint Implementation Plan: GET /api/flashcards/:id
 
 ## 1. Przegląd
+
 **Endpoint:** `GET /api/flashcards/:id`  
 **Cel:** Szczegóły konkretnej fiszki
 
 ## 2. Request
+
 ```
 GET /api/flashcards/{uuid}
 Authorization: Bearer {access_token}
 ```
 
 ## 3. Response (200 OK)
+
 ```json
 {
   "flashcard": {
@@ -33,6 +36,7 @@ Authorization: Bearer {access_token}
 ## 4. Implementation
 
 ### Service
+
 ```typescript
 async getById(userId: string, flashcardId: string): Promise<FlashcardDTO> {
   const { data, error } = await this.supabase
@@ -41,41 +45,42 @@ async getById(userId: string, flashcardId: string): Promise<FlashcardDTO> {
     .eq('id', flashcardId)
     .eq('user_id', userId)
     .single();
-  
+
   if (error || !data) {
     if (error?.code === 'PGRST116') {
       throw new NotFoundError('Flashcard not found');
     }
     throw new DatabaseError('Failed to fetch flashcard', error);
   }
-  
+
   return this.mapToDTO(data);
 }
 ```
 
 ### Route Handler
+
 ```typescript
 export async function GET(context: APIContext) {
   const user = context.locals.user;
   const flashcardId = context.params.id;
-  
+
   if (!user) {
-    return errorResponse(401, 'AUTH_REQUIRED', 'Authentication required');
+    return errorResponse(401, "AUTH_REQUIRED", "Authentication required");
   }
-  
+
   const service = new FlashcardService(context.locals.supabase);
   const flashcard = await service.getById(user.id, flashcardId);
-  
+
   return new Response(JSON.stringify({ flashcard }), {
     status: 200,
-    headers: { 'Content-Type': 'application/json' }
+    headers: { "Content-Type": "application/json" },
   });
 }
 ```
 
 ## 5. Errors
+
 - **404:** Flashcard not found or belongs to other user
 - **401:** Not authenticated
 
 **Status:** Ready for Implementation
-

@@ -1,17 +1,17 @@
 /**
  * POST /api/flashcards/:id/approve
- * 
+ *
  * Approve an AI-generated flashcard
- * 
+ *
  * This endpoint changes the status of a flashcard from 'pending_review' to 'active'
  * and schedules it for immediate review by setting next_review_at to NOW.
- * 
+ *
  * Workflow:
  * - Only works on flashcards with status 'pending_review'
  * - Changes status to 'active'
  * - Sets next_review_at to NOW (due immediately)
  * - Keeps interval and ease_factor at their default values (0, 2.5)
- * 
+ *
  * Authentication: Required (JWT Bearer token)
  * Ownership: User can only approve their own flashcards
  */
@@ -31,19 +31,19 @@ export const prerender = false;
 
 /**
  * POST handler for approving a flashcard
- * 
+ *
  * Request:
  * - Headers: Authorization: Bearer {token}
  * - Params: id (UUID of flashcard)
  * - Body: None
- * 
+ *
  * Response:
  * - 200: Success with approved flashcard
  * - 400: Flashcard is not in pending_review status
  * - 401: Authentication required or invalid
  * - 404: Flashcard not found or doesn't belong to user
  * - 500: Internal server error
- * 
+ *
  * @param context - Astro API context with locals and params
  * @returns Response with FlashcardResponse or ErrorResponse
  */
@@ -82,11 +82,7 @@ export async function POST(context: APIContext): Promise<Response> {
             userId: user.id,
             flashcardId,
           });
-          return errorResponse(
-            400,
-            "INVALID_STATUS",
-            "Flashcard is not in pending_review status"
-          );
+          return errorResponse(400, "INVALID_STATUS", "Flashcard is not in pending_review status");
         }
 
         // Otherwise, it's a not found error
@@ -105,15 +101,12 @@ export async function POST(context: APIContext): Promise<Response> {
     });
 
     // 3. Return success response with 200 OK
-    return new Response(
-      JSON.stringify({ flashcard }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return new Response(JSON.stringify({ flashcard }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error) {
     // Catch-all for unexpected errors
     logger.critical("Unexpected error in POST handler", error as Error, {
@@ -121,11 +114,6 @@ export async function POST(context: APIContext): Promise<Response> {
       flashcardId: context.params.id,
     });
 
-    return errorResponse(
-      500,
-      "INTERNAL_ERROR",
-      "An unexpected error occurred. Please try again later."
-    );
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 }
-

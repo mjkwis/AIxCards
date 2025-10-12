@@ -1,21 +1,17 @@
 /**
  * Statistics Service
- * 
+ *
  * Handles calculation of various statistics for the dashboard and analytics:
  * - Overview statistics (total flashcards, active, due, etc.)
  * - Generation statistics (AI performance, approval rates, etc.)
- * 
+ *
  * This service performs aggregation queries to provide insights into
  * user's learning progress and AI flashcard generation effectiveness.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../db/database.types";
-import type {
-  StatisticsOverview,
-  GenerationStatistics,
-  RecentRequest,
-} from "../../types";
+import type { StatisticsOverview, GenerationStatistics, RecentRequest } from "../../types";
 import { DatabaseError } from "../errors/database.error";
 import { Logger } from "./logger.service";
 
@@ -23,7 +19,7 @@ const logger = new Logger("StatisticsService");
 
 /**
  * Statistics Service
- * 
+ *
  * Provides various statistical calculations and aggregations
  * for user dashboard and analytics.
  */
@@ -32,16 +28,16 @@ export class StatisticsService {
 
   /**
    * Gets overview statistics for the user's dashboard
-   * 
+   *
    * Calculates:
    * - Total flashcards and breakdowns by status
    * - Manual vs AI-generated flashcards
    * - AI acceptance rate
    * - Flashcards due today
    * - Total generation requests
-   * 
+   *
    * Uses parallel queries for better performance.
-   * 
+   *
    * @param userId - ID of the user
    * @returns Overview statistics
    * @throws DatabaseError if database operations fail
@@ -77,9 +73,7 @@ export class StatisticsService {
       // Only count flashcards that have been evaluated (active or rejected)
       // Exclude pending_review from the calculation
       const aiProcessedFlashcards = aiApprovedFlashcards + rejectedFlashcards;
-      const aiAcceptanceRate = aiProcessedFlashcards > 0 
-        ? aiApprovedFlashcards / aiProcessedFlashcards 
-        : 0;
+      const aiAcceptanceRate = aiProcessedFlashcards > 0 ? aiApprovedFlashcards / aiProcessedFlashcards : 0;
 
       // Note: total_reviews_completed would require a review_history table
       // For now, we set it to 0 as a placeholder
@@ -109,14 +103,14 @@ export class StatisticsService {
 
   /**
    * Gets detailed generation statistics (AI performance metrics)
-   * 
+   *
    * Calculates:
    * - Total AI-generated flashcards
    * - Approved and rejected counts
    * - Approval rate
    * - Average flashcards per generation request
    * - Recent requests history (last 30 days)
-   * 
+   *
    * @param userId - ID of the user
    * @returns Generation statistics
    * @throws DatabaseError if database operations fail
@@ -138,9 +132,7 @@ export class StatisticsService {
       const approvalRate = evaluated > 0 ? totalApproved / evaluated : 0;
 
       // Calculate average flashcards per request
-      const averageFlashcardsPerRequest = totalRequests > 0 
-        ? totalGenerated / totalRequests 
-        : 0;
+      const averageFlashcardsPerRequest = totalRequests > 0 ? totalGenerated / totalRequests : 0;
 
       // Get recent requests history (last 30 days)
       const recentRequests = await this.getRecentRequestsHistory(userId, 30);
@@ -165,21 +157,15 @@ export class StatisticsService {
 
   /**
    * Counts flashcards with optional filters
-   * 
+   *
    * @param userId - ID of the user
    * @param filters - Optional status and/or source filters
    * @returns Count of matching flashcards
    * @private
    */
-  private async countFlashcards(
-    userId: string,
-    filters?: { status?: string; source?: string }
-  ): Promise<number> {
+  private async countFlashcards(userId: string, filters?: { status?: string; source?: string }): Promise<number> {
     try {
-      let query = this.supabase
-        .from("flashcards")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId);
+      let query = this.supabase.from("flashcards").select("*", { count: "exact", head: true }).eq("user_id", userId);
 
       if (filters?.status) {
         query = query.eq("status", filters.status);
@@ -203,7 +189,7 @@ export class StatisticsService {
 
   /**
    * Counts flashcards that are due for review today
-   * 
+   *
    * @param userId - ID of the user
    * @returns Count of due flashcards
    * @private
@@ -232,7 +218,7 @@ export class StatisticsService {
 
   /**
    * Counts total generation requests for the user
-   * 
+   *
    * @param userId - ID of the user
    * @returns Count of generation requests
    * @private
@@ -257,18 +243,18 @@ export class StatisticsService {
 
   /**
    * Gets recent generation requests history with daily aggregation
-   * 
+   *
    * Returns data for the last N days with:
    * - Number of generation requests per day
    * - Total flashcards generated per day
    * - Total flashcards approved per day
-   * 
+   *
    * @param userId - ID of the user
    * @param days - Number of days to look back (default: 30)
    * @returns Array of recent request data points
    * @private
    */
-  private async getRecentRequestsHistory(userId: string, days: number = 30): Promise<RecentRequest[]> {
+  private async getRecentRequestsHistory(userId: string, days = 30): Promise<RecentRequest[]> {
     try {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
@@ -277,14 +263,16 @@ export class StatisticsService {
       // Get all generation requests from the last N days with their flashcards
       const { data: requests, error } = await this.supabase
         .from("generation_requests")
-        .select(`
+        .select(
+          `
           id,
           created_at,
           flashcards (
             id,
             status
           )
-        `)
+        `
+        )
         .eq("user_id", userId)
         .gte("created_at", startDateStr)
         .order("created_at", { ascending: false });
@@ -308,18 +296,23 @@ export class StatisticsService {
           });
         }
 
-        const dayData = dailyMap.get(date)!;
+        const dayData = dailyMap.get(date);
+        if (!dayData) {
+          throw new DatabaseError("Unexpected error: day data not found after initialization", "DATA_INCONSISTENCY");
+        }
         dayData.requests += 1;
 
         // Count flashcards
         const flashcards = Array.isArray(request.flashcards) ? request.flashcards : [];
         dayData.flashcards_generated += flashcards.length;
-        dayData.flashcards_approved += flashcards.filter((fc: any) => fc.status === "active").length;
+        dayData.flashcards_approved += flashcards.filter(
+          (fc): fc is { id: string; status: string } =>
+            typeof fc === "object" && fc !== null && "status" in fc && fc.status === "active"
+        ).length;
       }
 
       // Convert map to array and sort by date descending
-      const recentRequests = Array.from(dailyMap.values())
-        .sort((a, b) => b.date.localeCompare(a.date));
+      const recentRequests = Array.from(dailyMap.values()).sort((a, b) => b.date.localeCompare(a.date));
 
       return recentRequests;
     } catch (error) {
@@ -328,4 +321,3 @@ export class StatisticsService {
     }
   }
 }
-

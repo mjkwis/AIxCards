@@ -1,10 +1,10 @@
 /**
  * Validation schemas for authentication endpoints
- * 
+ *
  * Includes Zod schemas for:
  * - User registration
  * - User login
- * 
+ *
  * All schemas enforce strict validation rules to ensure
  * data integrity and security.
  */
@@ -13,14 +13,14 @@ import { z } from "zod";
 
 /**
  * Password validation schema
- * 
+ *
  * Requirements:
  * - At least 8 characters
  * - At least one uppercase letter (A-Z)
  * - At least one lowercase letter (a-z)
  * - At least one number (0-9)
  * - Maximum 128 characters (prevents DoS attacks)
- * 
+ *
  * Future considerations:
  * - Special character requirement
  * - Password strength checking (common passwords)
@@ -36,13 +36,13 @@ const passwordSchema = z
 
 /**
  * Email validation schema
- * 
+ *
  * Features:
  * - RFC 5322 compliant email format
  * - Automatic lowercase normalization
  * - Whitespace trimming
  * - Maximum length: 255 characters
- * 
+ *
  * Normalization ensures that:
  * - user@example.com === USER@EXAMPLE.COM
  * - " user@example.com " === "user@example.com"
@@ -56,9 +56,9 @@ const emailSchema = z
 
 /**
  * Register command validation schema
- * 
+ *
  * Used for: POST /api/auth/register
- * 
+ *
  * Validates user registration data including:
  * - Email address (with normalization)
  * - Password (with strength requirements)
@@ -70,13 +70,13 @@ export const RegisterSchema = z.object({
 
 /**
  * Login command validation schema
- * 
+ *
  * Used for: POST /api/auth/login
- * 
+ *
  * Validates user login credentials:
  * - Email address (with normalization)
  * - Password (basic presence check, no strength validation for login)
- * 
+ *
  * Note: For login, we don't validate password strength
  * (user already has an account with that password)
  */
@@ -91,4 +91,3 @@ export const LoginSchema = z.object({
  */
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
-

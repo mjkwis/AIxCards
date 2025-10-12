@@ -1,15 +1,18 @@
 /**
  * Generation Requests API Endpoint
- * 
+ *
  * POST /api/generation-requests
  * Creates a new AI flashcard generation request
- * 
+ *
  * Authentication: Required (JWT Bearer token)
  * Rate Limit: 10 requests per hour per user
  */
 
 import type { APIContext } from "astro";
-import { CreateGenerationRequestSchema, GenerationRequestListQuerySchema } from "../../../lib/validation/generation-requests";
+import {
+  CreateGenerationRequestSchema,
+  GenerationRequestListQuerySchema,
+} from "../../../lib/validation/generation-requests";
 import { errorResponse } from "../../../lib/helpers/error-response";
 import { aiService } from "../../../lib/services/ai.service";
 import { GenerationRequestService } from "../../../lib/services/generation-request.service";
@@ -28,11 +31,11 @@ export const prerender = false;
 
 /**
  * POST handler for creating generation requests
- * 
+ *
  * Request:
  * - Headers: Authorization: Bearer {token}
  * - Body: { source_text: string } (1000-10000 characters)
- * 
+ *
  * Response:
  * - 201: Success with generation_request and flashcards
  * - 400: Validation error
@@ -40,7 +43,7 @@ export const prerender = false;
  * - 422: AI service error
  * - 429: Rate limit exceeded
  * - 500: Internal server error
- * 
+ *
  * @param context - Astro API context with locals set by middleware
  * @returns Response with CreateGenerationRequestResponse or ErrorResponse
  */
@@ -59,7 +62,7 @@ export async function POST(context: APIContext): Promise<Response> {
     let requestBody: unknown;
     try {
       requestBody = await context.request.json();
-    } catch (error) {
+    } catch {
       return errorResponse(400, "VALIDATION_ERROR", "Invalid JSON in request body");
     }
 
@@ -87,9 +90,9 @@ export async function POST(context: APIContext): Promise<Response> {
       flashcardsData = await aiService.generateFlashcards(source_text);
     } catch (error) {
       if (error instanceof AIServiceError) {
-        postLogger.warning("AI service error", { 
-          error: error.message, 
-          reason: error.reason 
+        postLogger.warning("AI service error", {
+          error: error.message,
+          reason: error.reason,
         });
         return errorResponse(422, "AI_SERVICE_ERROR", error.message, {
           reason: error.reason,
@@ -132,27 +135,23 @@ export async function POST(context: APIContext): Promise<Response> {
       userId: context.locals.user?.id,
     });
 
-    return errorResponse(
-      500,
-      "INTERNAL_ERROR",
-      "An unexpected error occurred. Please try again later."
-    );
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 }
 
 /**
  * GET handler for listing generation requests
- * 
+ *
  * Request:
  * - Headers: Authorization: Bearer {token}
  * - Query: ?page=1&limit=20&sort=created_at&order=desc
- * 
+ *
  * Response:
  * - 200: Success with generation_requests list and pagination
  * - 400: Invalid query parameters
  * - 401: Authentication required or invalid
  * - 500: Internal server error
- * 
+ *
  * @param context - Astro API context with locals set by middleware
  * @returns Response with GenerationRequestListResponse or ErrorResponse
  */
@@ -228,11 +227,6 @@ export async function GET(context: APIContext): Promise<Response> {
       userId: context.locals.user?.id,
     });
 
-    return errorResponse(
-      500,
-      "INTERNAL_ERROR",
-      "An unexpected error occurred. Please try again later."
-    );
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 }
-

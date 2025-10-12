@@ -1,15 +1,15 @@
 /**
  * Study Session Service
- * 
+ *
  * Handles study session operations and implements the SM-2 (SuperMemo 2)
  * spaced repetition algorithm for flashcard scheduling.
- * 
+ *
  * SM-2 Algorithm Overview:
  * - Quality ratings: 0-5 (0 = total failure, 5 = perfect recall)
  * - Quality < 3: Failure, reset interval to 0 (review today)
  * - Quality >= 3: Success, increase interval based on ease factor
  * - Ease factor adjusts based on quality (easier/harder over time)
- * 
+ *
  * Interval progression (for successful reviews):
  * - First review: 1 day
  * - Second review: 6 days
@@ -18,11 +18,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../db/database.types";
-import type {
-  FlashcardDTO,
-  StudySessionResponse,
-  StudySessionInfo,
-} from "../../types";
+import type { FlashcardDTO, StudySessionResponse, StudySessionInfo } from "../../types";
 import { DatabaseError } from "../errors/database.error";
 import { Logger } from "./logger.service";
 
@@ -39,7 +35,7 @@ interface SM2Result {
 
 /**
  * Study Session Service
- * 
+ *
  * Manages study sessions and implements the SM-2 spaced repetition algorithm
  */
 export class StudySessionService {
@@ -47,19 +43,19 @@ export class StudySessionService {
 
   /**
    * Gets current study session (flashcards due for review)
-   * 
+   *
    * Returns flashcards that:
    * - Have status 'active'
    * - Have next_review_at <= current time (due now or overdue)
    * - Are ordered by next_review_at ASC (oldest first)
    * - Are limited by the specified limit parameter
-   * 
+   *
    * @param userId - ID of the user
    * @param limit - Maximum number of flashcards to return (default: 20, max: 50)
    * @returns Study session info and list of due flashcards
    * @throws DatabaseError if database operations fail
    */
-  async getCurrentSession(userId: string, limit: number = 20): Promise<StudySessionResponse> {
+  async getCurrentSession(userId: string, limit = 20): Promise<StudySessionResponse> {
     try {
       logger.info("Getting current study session", { userId, limit });
 
@@ -124,12 +120,12 @@ export class StudySessionService {
 
   /**
    * Records a flashcard review and calculates next review date using SM-2
-   * 
+   *
    * The SM-2 algorithm:
    * 1. If quality < 3 (failure):
    *    - Reset interval to 0 (review today)
    *    - Keep ease factor unchanged
-   * 
+   *
    * 2. If quality >= 3 (success):
    *    - Calculate new interval:
    *      - If interval = 0: new interval = 1 day
@@ -138,9 +134,9 @@ export class StudySessionService {
    *    - Adjust ease factor:
    *      - EF' = EF + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
    *      - Minimum EF = 1.3
-   * 
+   *
    * 3. Calculate next review date: current_date + interval
-   * 
+   *
    * @param userId - ID of the user (for ownership verification)
    * @param flashcardId - ID of the flashcard being reviewed
    * @param quality - Quality rating (0-5)
@@ -216,18 +212,14 @@ export class StudySessionService {
 
   /**
    * Calculates next review parameters using SM-2 algorithm
-   * 
+   *
    * @param currentInterval - Current interval in days
    * @param currentEaseFactor - Current ease factor (typically 1.3-2.5)
    * @param quality - Quality rating (0-5)
    * @returns New interval, ease factor, and next review date
    * @private
    */
-  private calculateSM2(
-    currentInterval: number,
-    currentEaseFactor: number,
-    quality: number
-  ): SM2Result {
+  private calculateSM2(currentInterval: number, currentEaseFactor: number, quality: number): SM2Result {
     let newInterval: number;
     let newEaseFactor = currentEaseFactor;
 
@@ -273,7 +265,7 @@ export class StudySessionService {
 
   /**
    * Maps database entity to FlashcardDTO
-   * 
+   *
    * @private
    */
   private mapToDTO(entity: Database["public"]["Tables"]["flashcards"]["Row"]): FlashcardDTO {
@@ -293,4 +285,3 @@ export class StudySessionService {
     };
   }
 }
-

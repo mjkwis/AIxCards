@@ -7,6 +7,7 @@
 **Cel:** Uwierzytelnienie istniejącego użytkownika w systemie 10x-cards. Endpoint pozwala zalogowanym użytkownikom na uzyskanie dostępu do aplikacji poprzez podanie adresu email i hasła. Po pomyślnym uwierzytelnieniu użytkownik otrzymuje tokeny JWT umożliwiające dostęp do chronionych zasobów.
 
 **Funkcjonalność:**
+
 - Walidacja formatu email i obecności hasła
 - Uwierzytelnienie użytkownika przez Supabase Auth
 - Weryfikacja credentials (email + password)
@@ -24,14 +25,17 @@
 ## 2. Szczegóły żądania
 
 ### HTTP Method
+
 `POST`
 
 ### URL Structure
+
 ```
 /api/auth/login
 ```
 
 ### Headers (Required)
+
 ```http
 Content-Type: application/json
 ```
@@ -39,6 +43,7 @@ Content-Type: application/json
 **Uwaga:** Brak wymagania Authorization header (endpoint publiczny)
 
 ### Request Body
+
 ```typescript
 {
   "email": string,      // Valid email address
@@ -49,6 +54,7 @@ Content-Type: application/json
 **Typ:** `LoginCommand`
 
 **Przykład:**
+
 ```json
 {
   "email": "user@example.com",
@@ -59,10 +65,11 @@ Content-Type: application/json
 ### Parametry
 
 #### Z Request Body
-| Parametr | Typ | Wymagany | Walidacja | Opis |
-|----------|-----|----------|-----------|------|
-| `email` | string | Tak | Valid email format | Adres email użytkownika |
-| `password` | string | Tak | Not empty | Hasło użytkownika (bez walidacji siły) |
+
+| Parametr   | Typ    | Wymagany | Walidacja          | Opis                                   |
+| ---------- | ------ | -------- | ------------------ | -------------------------------------- |
+| `email`    | string | Tak      | Valid email format | Adres email użytkownika                |
+| `password` | string | Tak      | Not empty          | Hasło użytkownika (bez walidacji siły) |
 
 **Uwaga:** Dla login NIE walidujemy siły hasła (tylko czy nie jest puste), ponieważ użytkownik może mieć stare hasło lub hasło z innych wymagań.
 
@@ -112,14 +119,8 @@ ErrorResponse {
 ```typescript
 // Użyjemy już istniejący LoginSchema z auth.ts
 export const LoginSchema = z.object({
-  email: z
-    .string({ required_error: "Email is required" })
-    .email("Invalid email format")
-    .toLowerCase()
-    .trim(),
-  password: z
-    .string({ required_error: "Password is required" })
-    .min(1, "Password cannot be empty")
+  email: z.string({ required_error: "Email is required" }).email("Invalid email format").toLowerCase().trim(),
+  password: z.string({ required_error: "Password is required" }).min(1, "Password cannot be empty"),
 });
 
 export type LoginInput = z.infer<typeof LoginSchema>;
@@ -134,6 +135,7 @@ export type LoginInput = z.infer<typeof LoginSchema>;
 ### Success Response (200 OK)
 
 **Headers:**
+
 ```http
 Content-Type: application/json
 X-RateLimit-Limit: 10
@@ -143,6 +145,7 @@ Set-Cookie: sb-refresh-token=...; HttpOnly; Secure; SameSite=Lax; Path=/
 ```
 
 **Body:**
+
 ```json
 {
   "user": {
@@ -161,13 +164,16 @@ Set-Cookie: sb-refresh-token=...; HttpOnly; Secure; SameSite=Lax; Path=/
 ### Error Responses
 
 #### 400 Bad Request - VALIDATION_ERROR
+
 **Scenariusze:**
+
 - Brak pola `email` lub `password`
 - Invalid email format
 - Empty password
 - Invalid JSON w body
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -181,12 +187,15 @@ Set-Cookie: sb-refresh-token=...; HttpOnly; Secure; SameSite=Lax; Path=/
 ```
 
 #### 401 Unauthorized - INVALID_CREDENTIALS
+
 **Scenariusze:**
+
 - Email nie istnieje w systemie
 - Hasło nieprawidłowe
 - Konto nieaktywne (jeśli email verification włączone)
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -200,10 +209,13 @@ Set-Cookie: sb-refresh-token=...; HttpOnly; Secure; SameSite=Lax; Path=/
 **Security Note:** Generyczny komunikat "Invalid email or password" zapobiega email enumeration - nie ujawniamy czy email istnieje w systemie.
 
 #### 429 Too Many Requests - RATE_LIMIT_EXCEEDED
+
 **Scenariusze:**
+
 - Przekroczony limit 10 prób logowania/15 min per IP+email combo
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -219,12 +231,15 @@ Set-Cookie: sb-refresh-token=...; HttpOnly; Secure; SameSite=Lax; Path=/
 ```
 
 #### 500 Internal Server Error - INTERNAL_ERROR
+
 **Scenariusze:**
+
 - Błąd Supabase Auth service
 - Database unavailable
 - Nieoczekiwany exception
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -270,6 +285,7 @@ Client Response (200)
 ### Szczegółowy przepływ krok po kroku
 
 #### Krok 1: Middleware (src/middleware/index.ts)
+
 - **Rate Limiting:**
   - Kombinacja IP + email dla precyzyjnego rate limiting
   - 10 prób na 15 minut (bardziej agresywne niż register)
@@ -280,29 +296,30 @@ Client Response (200)
 ```typescript
 // Rate limiting strategy dla login
 const rateLimitKey = `${clientIp}:${email}`;
-await rateLimitService.checkAuthRateLimit(rateLimitKey, 'login');
+await rateLimitService.checkAuthRateLimit(rateLimitKey, "login");
 ```
 
 #### Krok 2: Route Handler (src/pages/api/auth/login.ts)
+
 ```typescript
 export const prerender = false;
 
 export async function POST(context: APIContext) {
   // 1. Parse body
   const requestBody = await context.request.json();
-  
+
   // 2. Validate
   const validationResult = LoginSchema.safeParse(requestBody);
   if (!validationResult.success) {
     return errorResponse(400, 'VALIDATION_ERROR', ...);
   }
-  
+
   // 3. Login via AuthService
   const authResponse = await authService.login(
     validationResult.data.email,
     validationResult.data.password
   );
-  
+
   // 4. Set refresh token cookie
   context.cookies.set('sb-refresh-token', authResponse.session.refresh_token, {
     httpOnly: true,
@@ -311,37 +328,35 @@ export async function POST(context: APIContext) {
     path: '/',
     maxAge: 60 * 60 * 24 * 7
   });
-  
+
   // 5. Return 200 OK
   return new Response(JSON.stringify(authResponse), { status: 200 });
 }
 ```
 
 #### Krok 3: AuthService (src/lib/services/auth.service.ts)
+
 ```typescript
 class AuthService {
   async login(email: string, password: string): Promise<AuthResponse> {
     // Call Supabase Auth signInWithPassword
     const { data, error } = await this.supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     });
-    
+
     if (error) {
       // Map to generic error (security)
-      throw new UnauthorizedError(
-        'INVALID_CREDENTIALS',
-        'Invalid email or password'
-      );
+      throw new UnauthorizedError("INVALID_CREDENTIALS", "Invalid email or password");
     }
-    
+
     if (!data.user || !data.session) {
-      throw new AuthServiceError('Login failed: No user or session');
+      throw new AuthServiceError("Login failed: No user or session");
     }
-    
+
     return {
       user: this.mapUserToDTO(data.user),
-      session: this.mapSessionToDTO(data.session)
+      session: this.mapSessionToDTO(data.session),
     };
   }
 }
@@ -350,6 +365,7 @@ class AuthService {
 ### Interakcje z zewnętrznymi serwisami
 
 #### Supabase Auth
+
 - **Service:** Supabase Auth
 - **Operation:** `signInWithPassword({ email, password })`
 - **Automatyczne akcje:**
@@ -367,6 +383,7 @@ class AuthService {
 ### 6.1. Brute Force Protection
 
 #### Aggressive Rate Limiting
+
 ```typescript
 Endpoint: POST /api/auth/login
 Strategy: IP + Email combination
@@ -375,44 +392,50 @@ Window: Sliding window
 ```
 
 **Dlaczego IP + Email?**
+
 - Zapobiega brute force na konkretne konto
 - Nawet jeśli atakujący zmienia IP, limit per email się utrzymuje
 - Chroni przed distributed brute force
 
 **Implementacja:**
+
 ```typescript
 const rateLimitKey = `${clientIp}:${normalizedEmail}`;
-await rateLimitService.checkAuthRateLimit(rateLimitKey, 'login');
+await rateLimitService.checkAuthRateLimit(rateLimitKey, "login");
 ```
 
 #### Account Lockout (Future Enhancement)
+
 ```typescript
 // Po X nieudanych próbach, zablokuj konto na Y minut
 if (failedAttempts >= 10) {
   await lockAccount(userId, 30); // 30 minutes lockout
-  sendEmailNotification(email, 'suspicious_activity');
+  sendEmailNotification(email, "suspicious_activity");
 }
 ```
 
 ### 6.2. Credential Security
 
 #### Password Verification
+
 - **Mechanism:** bcrypt przez Supabase Auth
 - **No Plain Text:** Hasło nigdy nie jest przechowywane ani logowane
 - **Timing Attack Resistance:** bcrypt ma stały czas wykonania
 
 #### Generic Error Messages
+
 ```typescript
 // ✅ GOOD - Generic message
-"Invalid email or password"
+"Invalid email or password";
 
 // ❌ BAD - Reveals information
-"Email not found"
-"Password incorrect"
-"Account not activated"
+"Email not found";
+"Password incorrect";
+"Account not activated";
 ```
 
 **Dlaczego:**
+
 - Zapobiega email enumeration
 - Atakujący nie wie czy email istnieje
 - Atakujący nie wie czy problem w email czy password
@@ -420,6 +443,7 @@ if (failedAttempts >= 10) {
 ### 6.3. Session Security
 
 #### JWT Tokens
+
 - **Access Token:**
   - Lifetime: 1 godzina
   - Storage: Frontend memory (nie localStorage!)
@@ -433,23 +457,26 @@ if (failedAttempts >= 10) {
   - Used for: Refreshing access token
 
 **Cookie Configuration:**
+
 ```typescript
-context.cookies.set('sb-refresh-token', refreshToken, {
-  httpOnly: true,      // JavaScript cannot read
-  secure: true,        // HTTPS only
-  sameSite: 'lax',     // CSRF protection
-  path: '/',
-  maxAge: 604800       // 7 days
+context.cookies.set("sb-refresh-token", refreshToken, {
+  httpOnly: true, // JavaScript cannot read
+  secure: true, // HTTPS only
+  sameSite: "lax", // CSRF protection
+  path: "/",
+  maxAge: 604800, // 7 days
 });
 ```
 
 ### 6.4. Rate Limiting Strategy
 
 **Per IP + Email (Current):**
+
 - Pros: Prevents targeted attacks
 - Cons: Może być ominięte przez botnet
 
 **Future Enhancements:**
+
 ```typescript
 // Multi-layer rate limiting
 1. Per IP: 30 requests/15min (global)
@@ -460,6 +487,7 @@ context.cookies.set('sb-refresh-token', refreshToken, {
 ### 6.5. Logging & Monitoring
 
 #### What to Log
+
 ```typescript
 // ✅ Safe to log
 - Email (for security monitoring)
@@ -477,6 +505,7 @@ context.cookies.set('sb-refresh-token', refreshToken, {
 ```
 
 #### Security Events to Monitor
+
 ```typescript
 - Multiple failed login attempts
 - Login from new location/device
@@ -489,12 +518,13 @@ context.cookies.set('sb-refresh-token', refreshToken, {
 ### 6.6. Additional Security Measures
 
 #### 2FA Support (Future)
+
 ```typescript
 // After successful password verification
 if (user.has_2fa_enabled) {
   return {
     requires_2fa: true,
-    temp_token: generateTempToken()
+    temp_token: generateTempToken(),
   };
   // Frontend shows 2FA code input
   // User submits code to /api/auth/verify-2fa
@@ -502,11 +532,12 @@ if (user.has_2fa_enabled) {
 ```
 
 #### Device Fingerprinting (Future)
+
 ```typescript
 // Track known devices
 const deviceFingerprint = generateFingerprint(request);
 if (!isKnownDevice(userId, deviceFingerprint)) {
-  sendEmailNotification(email, 'new_device_login');
+  sendEmailNotification(email, "new_device_login");
 }
 ```
 
@@ -519,6 +550,7 @@ if (!isKnownDevice(userId, deviceFingerprint)) {
 #### Client Errors (4xx)
 
 **400 Bad Request - VALIDATION_ERROR**
+
 - **Przyczyny:**
   - Missing email or password
   - Invalid email format
@@ -529,6 +561,7 @@ if (!isKnownDevice(userId, deviceFingerprint)) {
 - **Action:** Return validation details
 
 **401 Unauthorized - INVALID_CREDENTIALS**
+
 - **Przyczyny:**
   - Email not found in system
   - Password incorrect
@@ -539,6 +572,7 @@ if (!isKnownDevice(userId, deviceFingerprint)) {
 - **Action:** Increment failed attempt counter
 
 **429 Too Many Requests - RATE_LIMIT_EXCEEDED**
+
 - **Przyczyny:**
   - Exceeded 10 login attempts in 15 minutes
   - Brute force detection triggered
@@ -549,6 +583,7 @@ if (!isKnownDevice(userId, deviceFingerprint)) {
 #### Server Errors (5xx)
 
 **500 Internal Server Error - INTERNAL_ERROR**
+
 - **Przyczyny:**
   - Supabase Auth service error
   - Database unavailable
@@ -561,6 +596,7 @@ if (!isKnownDevice(userId, deviceFingerprint)) {
 ### 7.2. Error Handling Strategy
 
 #### W Route Handler
+
 ```typescript
 export async function POST(context: APIContext) {
   try {
@@ -569,68 +605,64 @@ export async function POST(context: APIContext) {
     try {
       requestBody = await context.request.json();
     } catch (error) {
-      return errorResponse(400, 'VALIDATION_ERROR', 'Invalid JSON');
+      return errorResponse(400, "VALIDATION_ERROR", "Invalid JSON");
     }
-    
+
     // 2. Validate
     const validationResult = LoginSchema.safeParse(requestBody);
     if (!validationResult.success) {
       const firstError = validationResult.error.errors[0];
-      return errorResponse(400, 'VALIDATION_ERROR', firstError.message, {
-        field: firstError.path.join('.')
+      return errorResponse(400, "VALIDATION_ERROR", firstError.message, {
+        field: firstError.path.join("."),
       });
     }
-    
+
     // 3. Login
     let authResponse;
     try {
       const authService = createAuthService(supabase);
-      authResponse = await authService.login(
-        validationResult.data.email,
-        validationResult.data.password
-      );
+      authResponse = await authService.login(validationResult.data.email, validationResult.data.password);
     } catch (error) {
       if (error instanceof UnauthorizedError) {
-        logger.warning('Login failed', {
+        logger.warning("Login failed", {
           email: validationResult.data.email,
-          reason: error.code
+          reason: error.code,
         });
         return errorResponse(401, error.code, error.message);
       }
-      
+
       if (error instanceof AuthServiceError) {
-        logger.error('Auth service error', error, {
-          email: validationResult.data.email
+        logger.error("Auth service error", error, {
+          email: validationResult.data.email,
         });
-        return errorResponse(500, 'INTERNAL_ERROR', 'Login failed');
+        return errorResponse(500, "INTERNAL_ERROR", "Login failed");
       }
-      
+
       throw error;
     }
-    
+
     // 4. Set cookie
-    context.cookies.set('sb-refresh-token', authResponse.session.refresh_token, {
+    context.cookies.set("sb-refresh-token", authResponse.session.refresh_token, {
       httpOnly: true,
       secure: import.meta.env.PROD,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 604800
+      sameSite: "lax",
+      path: "/",
+      maxAge: 604800,
     });
-    
-    logger.info('User logged in successfully', {
+
+    logger.info("User logged in successfully", {
       userId: authResponse.user.id,
-      email: authResponse.user.email
+      email: authResponse.user.email,
     });
-    
+
     // 5. Return 200
     return new Response(JSON.stringify(authResponse), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
-    
   } catch (error) {
-    logger.critical('Unexpected error in login', error as Error);
-    return errorResponse(500, 'INTERNAL_ERROR', 'An unexpected error occurred');
+    logger.critical("Unexpected error in login", error as Error);
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred");
   }
 }
 ```
@@ -645,7 +677,7 @@ export class UnauthorizedError extends Error {
     message: string
   ) {
     super(message);
-    this.name = 'UnauthorizedError';
+    this.name = "UnauthorizedError";
   }
 }
 ```
@@ -655,22 +687,19 @@ export class UnauthorizedError extends Error {
 ```typescript
 function mapSupabaseLoginError(error: AuthError): Error {
   const message = error.message.toLowerCase();
-  
+
   // Invalid credentials (catch-all for security)
   if (
-    message.includes('invalid login') ||
-    message.includes('invalid credentials') ||
-    message.includes('email not confirmed') ||
-    message.includes('user not found')
+    message.includes("invalid login") ||
+    message.includes("invalid credentials") ||
+    message.includes("email not confirmed") ||
+    message.includes("user not found")
   ) {
-    return new UnauthorizedError(
-      'INVALID_CREDENTIALS',
-      'Invalid email or password'
-    );
+    return new UnauthorizedError("INVALID_CREDENTIALS", "Invalid email or password");
   }
-  
+
   // Generic error
-  return new AuthServiceError('Login failed', error);
+  return new AuthServiceError("Login failed", error);
 }
 ```
 
@@ -683,21 +712,25 @@ function mapSupabaseLoginError(error: AuthError): Error {
 ### 8.1. Potencjalne wąskie gardła
 
 #### 1. Supabase Auth API Call
+
 - **Latency:** 100-300ms
 - **Impact:** Direct user experience
 - **Mitigation:** Supabase global CDN, proper timeout handling
 
 #### 2. bcrypt Password Verification
+
 - **Time:** 50-200ms (security feature)
 - **Impact:** Dodatkowa latencja
 - **Mitigation:** Wykonywane przez Supabase (nie blokuje naszego serwera)
 
 #### 3. Rate Limiting Lookup
+
 - **Time:** 1-5ms (in-memory), 10-20ms (Redis)
 - **Impact:** Minimalny
 - **Mitigation:** Use Redis for production
 
 #### 4. Session Creation
+
 - **Time:** 50-100ms
 - **Impact:** Part of total response time
 - **Mitigation:** Handled by Supabase efficiently
@@ -705,9 +738,10 @@ function mapSupabaseLoginError(error: AuthError): Error {
 ### 8.2. Strategie optymalizacji
 
 #### Optymalizacja 1: Redis dla Rate Limiting
+
 ```typescript
 // Zamiast in-memory store
-import Redis from 'ioredis';
+import Redis from "ioredis";
 const redis = new Redis(REDIS_URL);
 
 async function checkLoginRateLimit(key: string): Promise<boolean> {
@@ -720,38 +754,41 @@ async function checkLoginRateLimit(key: string): Promise<boolean> {
 ```
 
 **Korzyści:**
+
 - Persistent across restarts
 - Shared w multi-instance deployment
 - Very fast (~2ms)
 
 #### Optymalizacja 2: Connection Pooling
+
 ```typescript
 // Supabase client configuration
 export const supabase = createClient(url, key, {
   auth: {
     persistSession: false, // Server-side
-    autoRefreshToken: false
+    autoRefreshToken: false,
   },
   global: {
     headers: {
-      'x-application-name': '10x-cards'
-    }
-  }
+      "x-application-name": "10x-cards",
+    },
+  },
 });
 ```
 
 #### Optymalizacja 3: Response Compression
+
 ```typescript
 // Middleware
-if (response.headers.get('content-type')?.includes('application/json')) {
+if (response.headers.get("content-type")?.includes("application/json")) {
   const body = await response.text();
   if (body.length > 1024) {
     return new Response(gzip(body), {
       ...response,
       headers: {
         ...response.headers,
-        'content-encoding': 'gzip'
-      }
+        "content-encoding": "gzip",
+      },
     });
   }
 }
@@ -789,86 +826,83 @@ if (response.headers.get('content-type')?.includes('application/json')) {
 ### Faza 1: Rozszerzenie AuthService
 
 #### 1.1. Dodanie metody login
+
 **Plik:** `src/lib/services/auth.service.ts` (extend existing)
 
 ```typescript
 export class AuthService {
   // ... existing register method ...
-  
+
   /**
    * Login existing user
    */
   async login(email: string, password: string): Promise<AuthResponse> {
     try {
-      logger.info('Login attempt', { email });
-      
+      logger.info("Login attempt", { email });
+
       // Call Supabase Auth signInWithPassword
       const { data, error } = await this.supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
-      
+
       // Handle errors - map all to generic message for security
       if (error) {
-        logger.warning('Login failed', {
+        logger.warning("Login failed", {
           email,
-          error: error.message
+          error: error.message,
         });
         throw this.mapSupabaseLoginError(error);
       }
-      
+
       // Verify user and session exist
       if (!data.user || !data.session) {
-        logger.error('No user or session after login', new Error('Missing data'), { email });
-        throw new AuthServiceError('Login failed: No user or session returned');
+        logger.error("No user or session after login", new Error("Missing data"), { email });
+        throw new AuthServiceError("Login failed: No user or session returned");
       }
-      
-      logger.info('Login successful', {
+
+      logger.info("Login successful", {
         userId: data.user.id,
-        email: data.user.email
+        email: data.user.email,
       });
-      
+
       // Map to DTOs
       return {
         user: this.mapUserToDTO(data.user),
-        session: this.mapSessionToDTO(data.session)
+        session: this.mapSessionToDTO(data.session),
       };
-      
     } catch (error) {
       // Re-throw our custom errors
       if (error instanceof UnauthorizedError || error instanceof AuthServiceError) {
         throw error;
       }
-      
+
       // Wrap unexpected errors
-      logger.error('Unexpected error in login', error as Error, { email });
-      throw new AuthServiceError('An unexpected error occurred during login', error);
+      logger.error("Unexpected error in login", error as Error, { email });
+      throw new AuthServiceError("An unexpected error occurred during login", error);
     }
   }
-  
+
   /**
    * Map Supabase login errors to generic error
    * Security: Don't reveal whether email exists or password is wrong
    */
   private mapSupabaseLoginError(error: AuthError): Error {
     const message = error.message.toLowerCase();
-    
+
     // All auth failures mapped to same generic error
     if (
-      message.includes('invalid') ||
-      message.includes('credentials') ||
-      message.includes('not found') ||
-      message.includes('wrong password') ||
-      message.includes('email not confirmed')
+      message.includes("invalid") ||
+      message.includes("credentials") ||
+      message.includes("not found") ||
+      message.includes("wrong password") ||
+      message.includes("email not confirmed")
     ) {
-      return new UnauthorizedError(
-        'INVALID_CREDENTIALS',
-        'Invalid email or password'
-      );
+      return new UnauthorizedError("INVALID_CREDENTIALS", "Invalid email or password");
     }
-    
+
     // Other errors
-    return new AuthServiceError('Login failed', error);
+    return new AuthServiceError("Login failed", error);
   }
 }
 ```
@@ -876,6 +910,7 @@ export class AuthService {
 ### Faza 2: Utworzenie UnauthorizedError
 
 #### 2.1. UnauthorizedError class
+
 **Plik:** `src/lib/errors/unauthorized.error.ts`
 
 ```typescript
@@ -885,7 +920,7 @@ export class UnauthorizedError extends Error {
     message: string
   ) {
     super(message);
-    this.name = 'UnauthorizedError';
+    this.name = "UnauthorizedError";
   }
 }
 ```
@@ -893,12 +928,13 @@ export class UnauthorizedError extends Error {
 ### Faza 3: Rozszerzenie Rate Limiting
 
 #### 3.1. Update RateLimitService
+
 **Plik:** `src/lib/services/rate-limit.service.ts` (extend existing)
 
 ```typescript
 export class RateLimitService {
   // ... existing code ...
-  
+
   /**
    * Check login rate limit (IP + Email combination)
    * More aggressive than registration to prevent brute force
@@ -908,33 +944,33 @@ export class RateLimitService {
     const limit = 10;
     const windowMs = 900000; // 15 minutes
     const now = new Date();
-    
+
     const entry = this.store.get(key);
-    
+
     if (!entry || entry.resetAt < now) {
       this.store.set(key, {
         count: 1,
-        resetAt: new Date(now.getTime() + windowMs)
+        resetAt: new Date(now.getTime() + windowMs),
       });
       return;
     }
-    
+
     if (entry.count >= limit) {
       throw new RateLimitError(entry.resetAt);
     }
-    
+
     entry.count++;
     this.store.set(key, entry);
   }
-  
+
   getRemainingLogin(ip: string, email: string): number {
     const key = `rate_limit:login:${ip}:${email}`;
     const entry = this.store.get(key);
-    
+
     if (!entry || entry.resetAt < new Date()) {
       return 10;
     }
-    
+
     return Math.max(0, 10 - entry.count);
   }
 }
@@ -943,64 +979,59 @@ export class RateLimitService {
 ### Faza 4: Update Middleware
 
 #### 4.1. Dodaj rate limiting dla login
+
 **Plik:** `src/middleware/index.ts` (extend existing)
 
 ```typescript
 export const onRequest = defineMiddleware(async (context, next) => {
   // ... existing Supabase init code ...
-  
+
   const pathname = context.url.pathname;
   const method = context.request.method;
-  
+
   // Handle login endpoint
-  if (pathname === '/api/auth/login' && method === 'POST') {
+  if (pathname === "/api/auth/login" && method === "POST") {
     const clientIp = getClientIp(context.request);
-    
+
     // Parse body to get email for rate limiting
-    let email = '';
+    let email = "";
     try {
       const bodyText = await context.request.text();
       const body = JSON.parse(bodyText);
-      email = body.email?.toLowerCase() || '';
-      
+      email = body.email?.toLowerCase() || "";
+
       // Restore body for route handler
       context.request = new Request(context.request.url, {
         method: context.request.method,
         headers: context.request.headers,
-        body: bodyText
+        body: bodyText,
       });
     } catch (e) {
       // Invalid JSON - let route handler deal with it
     }
-    
+
     if (email) {
       try {
         await rateLimitService.checkLoginRateLimit(clientIp, email);
-        
+
         const remaining = rateLimitService.getRemainingLogin(clientIp, email);
-        const resetAt = rateLimitService.getResetAt(`rate_limit:login:${clientIp}:${email}`, 'login');
-        
+        const resetAt = rateLimitService.getResetAt(`rate_limit:login:${clientIp}:${email}`, "login");
+
         context.locals.rateLimitRemaining = remaining;
         context.locals.rateLimitReset = resetAt;
-        
       } catch (error) {
         if (error instanceof RateLimitError) {
-          return errorResponse(
-            429,
-            'RATE_LIMIT_EXCEEDED',
-            'Too many login attempts. Please try again later.',
-            {
-              limit: 10,
-              window_minutes: 15,
-              reset_at: error.resetAt.toISOString()
-            }
-          );
+          return errorResponse(429, "RATE_LIMIT_EXCEEDED", "Too many login attempts. Please try again later.", {
+            limit: 10,
+            window_minutes: 15,
+            reset_at: error.resetAt.toISOString(),
+          });
         }
         throw error;
       }
     }
   }
-  
+
   // ... rest of middleware ...
 });
 ```
@@ -1010,18 +1041,19 @@ export const onRequest = defineMiddleware(async (context, next) => {
 ### Faza 5: Implementacja API Route Handler
 
 #### 5.1. POST /api/auth/login handler
+
 **Plik:** `src/pages/api/auth/login.ts`
 
 ```typescript
-import type { APIContext } from 'astro';
-import { LoginSchema } from '../../../lib/validation/auth';
-import { errorResponse } from '../../../lib/helpers/error-response';
-import { createAuthService } from '../../../lib/services/auth.service';
-import { UnauthorizedError } from '../../../lib/errors/unauthorized.error';
-import { AuthServiceError } from '../../../lib/errors/auth-service.error';
-import { Logger } from '../../../lib/services/logger.service';
+import type { APIContext } from "astro";
+import { LoginSchema } from "../../../lib/validation/auth";
+import { errorResponse } from "../../../lib/helpers/error-response";
+import { createAuthService } from "../../../lib/services/auth.service";
+import { UnauthorizedError } from "../../../lib/errors/unauthorized.error";
+import { AuthServiceError } from "../../../lib/errors/auth-service.error";
+import { Logger } from "../../../lib/services/logger.service";
 
-const logger = new Logger('POST /api/auth/login');
+const logger = new Logger("POST /api/auth/login");
 
 export const prerender = false;
 
@@ -1029,45 +1061,40 @@ export async function POST(context: APIContext): Promise<Response> {
   try {
     // 1. Get Supabase client
     const supabase = context.locals.supabase;
-    
+
     if (!supabase) {
-      logger.error('Supabase client not available', new Error('No supabase'));
-      return errorResponse(500, 'INTERNAL_ERROR', 'Service configuration error');
+      logger.error("Supabase client not available", new Error("No supabase"));
+      return errorResponse(500, "INTERNAL_ERROR", "Service configuration error");
     }
-    
+
     // 2. Parse request body
     let requestBody;
     try {
       requestBody = await context.request.json();
     } catch (error) {
-      logger.info('Invalid JSON in login request');
-      return errorResponse(400, 'VALIDATION_ERROR', 'Invalid JSON in request body');
+      logger.info("Invalid JSON in login request");
+      return errorResponse(400, "VALIDATION_ERROR", "Invalid JSON in request body");
     }
-    
+
     // 3. Validate with Zod
     const validationResult = LoginSchema.safeParse(requestBody);
-    
+
     if (!validationResult.success) {
       const firstError = validationResult.error.errors[0];
-      logger.info('Login validation failed', {
-        field: firstError.path.join('.'),
-        message: firstError.message
+      logger.info("Login validation failed", {
+        field: firstError.path.join("."),
+        message: firstError.message,
       });
-      
-      return errorResponse(
-        400,
-        'VALIDATION_ERROR',
-        firstError.message,
-        {
-          field: firstError.path.join('.')
-        }
-      );
+
+      return errorResponse(400, "VALIDATION_ERROR", firstError.message, {
+        field: firstError.path.join("."),
+      });
     }
-    
+
     const { email, password } = validationResult.data;
-    
-    logger.info('Processing login request', { email });
-    
+
+    logger.info("Processing login request", { email });
+
     // 4. Login via AuthService
     let authResponse;
     try {
@@ -1076,65 +1103,53 @@ export async function POST(context: APIContext): Promise<Response> {
     } catch (error) {
       // Handle unauthorized (invalid credentials)
       if (error instanceof UnauthorizedError) {
-        logger.warning('Invalid credentials', {
+        logger.warning("Invalid credentials", {
           email,
-          code: error.code
+          code: error.code,
         });
         return errorResponse(401, error.code, error.message);
       }
-      
+
       // Handle other auth errors
       if (error instanceof AuthServiceError) {
-        logger.error('Auth service error during login', error as Error, { email });
-        return errorResponse(
-          500,
-          'INTERNAL_ERROR',
-          'Login failed. Please try again later.'
-        );
+        logger.error("Auth service error during login", error as Error, { email });
+        return errorResponse(500, "INTERNAL_ERROR", "Login failed. Please try again later.");
       }
-      
+
       // Re-throw unexpected
       throw error;
     }
-    
+
     // 5. Set refresh token cookie
     if (authResponse.session.refresh_token) {
-      context.cookies.set('sb-refresh-token', authResponse.session.refresh_token, {
+      context.cookies.set("sb-refresh-token", authResponse.session.refresh_token, {
         httpOnly: true,
         secure: import.meta.env.PROD,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 604800 // 7 days
+        sameSite: "lax",
+        path: "/",
+        maxAge: 604800, // 7 days
       });
-      
-      logger.info('Refresh token cookie set');
+
+      logger.info("Refresh token cookie set");
     }
-    
-    logger.info('User logged in successfully', {
+
+    logger.info("User logged in successfully", {
       userId: authResponse.user.id,
-      email: authResponse.user.email
+      email: authResponse.user.email,
     });
-    
+
     // 6. Return success (200 OK)
-    return new Response(
-      JSON.stringify(authResponse),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-    
+    return new Response(JSON.stringify(authResponse), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error) {
     // Catch-all
-    logger.critical('Unexpected error in login endpoint', error as Error);
-    
-    return errorResponse(
-      500,
-      'INTERNAL_ERROR',
-      'An unexpected error occurred. Please try again later.'
-    );
+    logger.critical("Unexpected error in login endpoint", error as Error);
+
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 }
 ```
@@ -1145,53 +1160,49 @@ export async function POST(context: APIContext): Promise<Response> {
 
 ```typescript
 // tests/lib/services/auth.service.login.test.ts
-describe('AuthService.login', () => {
-  it('should login user successfully', async () => {
+describe("AuthService.login", () => {
+  it("should login user successfully", async () => {
     const mockSupabase = createMockSupabase({
       signInResult: {
         data: {
-          user: { id: 'test-id', email: 'test@example.com' },
-          session: { access_token: 'token', refresh_token: 'refresh' }
+          user: { id: "test-id", email: "test@example.com" },
+          session: { access_token: "token", refresh_token: "refresh" },
         },
-        error: null
-      }
+        error: null,
+      },
     });
-    
+
     const authService = new AuthService(mockSupabase);
-    const result = await authService.login('test@example.com', 'password');
-    
-    expect(result.user.email).toBe('test@example.com');
-    expect(result.session.access_token).toBe('token');
+    const result = await authService.login("test@example.com", "password");
+
+    expect(result.user.email).toBe("test@example.com");
+    expect(result.session.access_token).toBe("token");
   });
-  
-  it('should throw UnauthorizedError for invalid credentials', async () => {
+
+  it("should throw UnauthorizedError for invalid credentials", async () => {
     const mockSupabase = createMockSupabase({
       signInResult: {
         data: { user: null, session: null },
-        error: { message: 'Invalid login credentials' }
-      }
+        error: { message: "Invalid login credentials" },
+      },
     });
-    
+
     const authService = new AuthService(mockSupabase);
-    
-    await expect(
-      authService.login('wrong@example.com', 'wrongpass')
-    ).rejects.toThrow(UnauthorizedError);
+
+    await expect(authService.login("wrong@example.com", "wrongpass")).rejects.toThrow(UnauthorizedError);
   });
-  
-  it('should throw UnauthorizedError for non-existent email', async () => {
+
+  it("should throw UnauthorizedError for non-existent email", async () => {
     const mockSupabase = createMockSupabase({
       signInResult: {
         data: { user: null, session: null },
-        error: { message: 'User not found' }
-      }
+        error: { message: "User not found" },
+      },
     });
-    
+
     const authService = new AuthService(mockSupabase);
-    
-    await expect(
-      authService.login('notfound@example.com', 'password')
-    ).rejects.toThrow(UnauthorizedError);
+
+    await expect(authService.login("notfound@example.com", "password")).rejects.toThrow(UnauthorizedError);
   });
 });
 ```
@@ -1200,97 +1211,97 @@ describe('AuthService.login', () => {
 
 ```typescript
 // tests/api/auth/login.test.ts
-describe('POST /api/auth/login', () => {
-  it('should return 400 for invalid email', async () => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+describe("POST /api/auth/login", () => {
+  it("should return 400 for invalid email", async () => {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: 'invalid-email',
-        password: 'password'
-      })
+        email: "invalid-email",
+        password: "password",
+      }),
     });
-    
+
     expect(response.status).toBe(400);
   });
-  
-  it('should return 401 for invalid credentials', async () => {
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+
+  it("should return 401 for invalid credentials", async () => {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: 'wrong@example.com',
-        password: 'wrongpassword'
-      })
+        email: "wrong@example.com",
+        password: "wrongpassword",
+      }),
     });
-    
+
     expect(response.status).toBe(401);
     const data = await response.json();
-    expect(data.error.code).toBe('INVALID_CREDENTIALS');
-    expect(data.error.message).toBe('Invalid email or password');
+    expect(data.error.code).toBe("INVALID_CREDENTIALS");
+    expect(data.error.message).toBe("Invalid email or password");
   });
-  
-  it('should login successfully with valid credentials', async () => {
+
+  it("should login successfully with valid credentials", async () => {
     // First register a user
-    await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: 'test@example.com',
-        password: 'TestPass123'
-      })
-    });
-    
-    // Then login
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'test@example.com',
-        password: 'TestPass123'
+        email: "test@example.com",
+        password: "TestPass123",
       }),
-      credentials: 'include'
     });
-    
+
+    // Then login
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: "test@example.com",
+        password: "TestPass123",
+      }),
+      credentials: "include",
+    });
+
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.user).toBeDefined();
-    expect(data.user.email).toBe('test@example.com');
+    expect(data.user.email).toBe("test@example.com");
     expect(data.session.access_token).toBeDefined();
-    
+
     // Check refresh token cookie
-    const cookies = response.headers.get('set-cookie');
-    expect(cookies).toContain('sb-refresh-token');
+    const cookies = response.headers.get("set-cookie");
+    expect(cookies).toContain("sb-refresh-token");
   });
-  
-  it('should enforce rate limiting', async () => {
-    const email = 'ratelimit@example.com';
-    
+
+  it("should enforce rate limiting", async () => {
+    const email = "ratelimit@example.com";
+
     // Make 10 failed attempts
     for (let i = 0; i < 10; i++) {
-      await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
-          password: 'wrongpassword'
-        })
+          password: "wrongpassword",
+        }),
       });
     }
-    
+
     // 11th attempt should be rate limited
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email,
-        password: 'wrongpassword'
-      })
+        password: "wrongpassword",
+      }),
     });
-    
+
     expect(response.status).toBe(429);
     const data = await response.json();
-    expect(data.error.code).toBe('RATE_LIMIT_EXCEEDED');
+    expect(data.error.code).toBe("RATE_LIMIT_EXCEEDED");
   });
 });
 ```
@@ -1333,7 +1344,7 @@ describe('POST /api/auth/login', () => {
 
 ### API Endpoint Documentation
 
-```markdown
+````markdown
 ## POST /api/auth/login
 
 Authenticate existing user.
@@ -1349,10 +1360,12 @@ Content-Type: application/json
   "password": "UserPassword123"
 }
 ```
+````
 
 ### Response
 
 **Success (200 OK):**
+
 ```json
 {
   "user": {
@@ -1369,15 +1382,18 @@ Content-Type: application/json
 ```
 
 **Errors:**
+
 - `400` - Validation error
 - `401` - Invalid credentials
 - `429` - Rate limit (10 per 15 min per IP+email)
 - `500` - Internal error
 
 ### Security
+
 - Generic error messages (no email enumeration)
 - Aggressive rate limiting (10/15min per IP+email)
 - httpOnly cookie for refresh token
+
 ```
 
 ---
@@ -1432,8 +1448,9 @@ Content-Type: application/json
 - ✅ httpOnly cookies
 - ✅ Account lockout (future)
 
-**Autor:** AI Architecture Team  
-**Data:** 2025-10-12  
-**Wersja:** 1.0  
+**Autor:** AI Architecture Team
+**Data:** 2025-10-12
+**Wersja:** 1.0
 **Status:** Ready for Implementation
 
+```

@@ -1,6 +1,6 @@
 /**
  * AI Service for generating flashcards from text
- * 
+ *
  * MOCK IMPLEMENTATION - Currently returns mock data for frontend development
  * TODO: Replace with actual OpenRouter.ai integration when ready
  */
@@ -20,7 +20,7 @@ export interface FlashcardData {
 
 /**
  * AI Service class for flashcard generation
- * 
+ *
  * CURRENT STATUS: Mock implementation for frontend development
  * Returns sample flashcards based on text length
  */
@@ -36,10 +36,10 @@ export class AIService {
 
   /**
    * Generates flashcards from source text
-   * 
+   *
    * MOCK IMPLEMENTATION: Returns 5-10 sample flashcards
    * TODO: Implement actual OpenRouter.ai API call
-   * 
+   *
    * @param sourceText - Source text to generate flashcards from (1000-10000 chars)
    * @returns Array of flashcard data with front and back
    * @throws AIServiceError if generation fails
@@ -134,7 +134,7 @@ export class AIService {
 
   /**
    * MOCK: Generates sample flashcards based on text
-   * 
+   *
    * @param sourceText - Source text
    * @returns Array of mock flashcards
    */
@@ -151,7 +151,7 @@ export class AIService {
 
   /**
    * Builds prompt for AI flashcard generation
-   * 
+   *
    * @param sourceText - Source text to generate flashcards from
    * @returns Formatted prompt string
    */
@@ -182,14 +182,14 @@ JSON array of flashcards:`;
 
   /**
    * Parses AI response and validates flashcard structure
-   * 
+   *
    * @param response - Raw response from OpenRouter.ai
    * @returns Validated array of flashcards
    * @throws AIServiceError if response is invalid
    */
   private parseAIResponse(response: unknown): FlashcardData[] {
     try {
-      const data = response as { choices?: Array<{ message?: { content?: string } }> };
+      const data = response as { choices?: { message?: { content?: string } }[] };
       const content = data.choices?.[0]?.message?.content;
 
       if (!content) {
@@ -213,10 +213,7 @@ JSON array of flashcards:`;
       for (const fc of flashcards) {
         const card = fc as { front?: unknown; back?: unknown };
         if (!card.front || !card.back || typeof card.front !== "string" || typeof card.back !== "string") {
-          throw new AIServiceError(
-            "Invalid flashcard structure",
-            "Each flashcard must have front and back as strings"
-          );
+          throw new AIServiceError("Invalid flashcard structure", "Each flashcard must have front and back as strings");
         }
       }
 
@@ -238,4 +235,3 @@ JSON array of flashcards:`;
  * Use this for all AI operations
  */
 export const aiService = new AIService();
-

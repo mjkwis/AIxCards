@@ -1,22 +1,22 @@
 /**
  * POST /api/study-sessions/review
- * 
+ *
  * Submit a flashcard review and calculate next review date using SM-2 algorithm
- * 
+ *
  * This endpoint implements the SM-2 (SuperMemo 2) spaced repetition algorithm
  * to calculate when a flashcard should be reviewed next based on the user's
  * recall quality.
- * 
+ *
  * SM-2 Algorithm:
  * - Quality 0-2 (failure): Reset interval to 0 (review today)
  * - Quality 3-5 (success): Increase interval based on ease factor
  * - Ease factor adjusts over time based on recall quality
- * 
+ *
  * Interval progression (successful reviews):
  * - First review: 1 day
  * - Second review: 6 days
  * - Subsequent: previous_interval * ease_factor
- * 
+ *
  * Authentication: Required (JWT Bearer token)
  */
 
@@ -36,11 +36,11 @@ export const prerender = false;
 
 /**
  * POST handler for submitting a flashcard review
- * 
+ *
  * Request:
  * - Headers: Authorization: Bearer {token}
  * - Body: { flashcard_id: string, quality: number (0-5) }
- * 
+ *
  * Quality rating scale (SM-2):
  * - 0: Complete blackout (total failure)
  * - 1: Incorrect response; correct answer remembered
@@ -48,14 +48,14 @@ export const prerender = false;
  * - 3: Correct response recalled with serious difficulty
  * - 4: Correct response after some hesitation
  * - 5: Perfect response (immediate recall)
- * 
+ *
  * Response:
  * - 200: Success with updated flashcard (new interval, ease_factor, next_review_at)
  * - 400: Validation error
  * - 401: Authentication required or invalid
  * - 404: Flashcard not found or doesn't belong to user
  * - 500: Internal server error
- * 
+ *
  * @param context - Astro API context with locals
  * @returns Response with FlashcardResponse or ErrorResponse
  */
@@ -74,7 +74,7 @@ export async function POST(context: APIContext): Promise<Response> {
     let requestBody: unknown;
     try {
       requestBody = await context.request.json();
-    } catch (error) {
+    } catch {
       return errorResponse(400, "VALIDATION_ERROR", "Invalid JSON in request body");
     }
 
@@ -122,26 +122,18 @@ export async function POST(context: APIContext): Promise<Response> {
     });
 
     // 5. Return success response with 200 OK
-    return new Response(
-      JSON.stringify({ flashcard }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return new Response(JSON.stringify({ flashcard }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error) {
     // Catch-all for unexpected errors
     logger.critical("Unexpected error in POST handler", error as Error, {
       userId: context.locals.user?.id,
     });
 
-    return errorResponse(
-      500,
-      "INTERNAL_ERROR",
-      "An unexpected error occurred. Please try again later."
-    );
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 }
-

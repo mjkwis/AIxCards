@@ -1,16 +1,19 @@
 # API Endpoint Implementation Plan: GET /api/statistics/generation
 
 ## 1. Przegląd
+
 **Endpoint:** `GET /api/statistics/generation`  
 **Cel:** Szczegółowe statystyki AI generation (metryki sukcesu AI)
 
 ## 2. Request
+
 ```
 GET /api/statistics/generation
 Authorization: Bearer {access_token}
 ```
 
 ## 3. Response (200 OK)
+
 ```json
 {
   "statistics": {
@@ -40,26 +43,27 @@ Authorization: Bearer {access_token}
 ## 4. Implementation
 
 ### Service
+
 ```typescript
 async getGenerationStatistics(userId: string): Promise<GenerationStatistics> {
   // Count AI flashcards
   const totalGenerated = await this.countAIFlashcards(userId);
   const totalApproved = await this.countAIFlashcards(userId, 'active');
   const totalRejected = await this.countAIFlashcards(userId, 'rejected');
-  
+
   // Calculate approval rate (excluding pending)
   const evaluated = totalApproved + totalRejected;
   const approvalRate = evaluated > 0 ? totalApproved / evaluated : 0;
-  
+
   // Average flashcards per request
   const totalRequests = await this.countGenerationRequests(userId);
-  const averagePerRequest = totalRequests > 0 
-    ? totalGenerated / totalRequests 
+  const averagePerRequest = totalRequests > 0
+    ? totalGenerated / totalRequests
     : 0;
-  
+
   // Recent requests (last 30 days)
   const recentRequests = await this.getRecentRequestsHistory(userId, 30);
-  
+
   return {
     total_generated: totalGenerated,
     total_approved: totalApproved,
@@ -71,7 +75,7 @@ async getGenerationStatistics(userId: string): Promise<GenerationStatistics> {
 }
 
 private async countAIFlashcards(
-  userId: string, 
+  userId: string,
   status?: string
 ): Promise<number> {
   let query = this.supabase
@@ -79,9 +83,9 @@ private async countAIFlashcards(
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('source', 'ai_generated');
-  
+
   if (status) query = query.eq('status', status);
-  
+
   const { count } = await query;
   return count || 0;
 }
@@ -92,7 +96,7 @@ private async getRecentRequestsHistory(
 ): Promise<RecentRequest[]> {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
-  
+
   // Get generation requests
   const { data: requests } = await this.supabase
     .from('generation_requests')
@@ -107,15 +111,15 @@ private async getRecentRequestsHistory(
     .eq('user_id', userId)
     .gte('created_at', startDate.toISOString())
     .order('created_at', { ascending: false });
-  
+
   if (!requests) return [];
-  
+
   // Group by date
   const grouped = new Map<string, RecentRequest>();
-  
+
   for (const request of requests) {
     const date = request.created_at.split('T')[0]; // YYYY-MM-DD
-    
+
     if (!grouped.has(date)) {
       grouped.set(date, {
         date,
@@ -124,7 +128,7 @@ private async getRecentRequestsHistory(
         flashcards_approved: 0
       });
     }
-    
+
     const stat = grouped.get(date)!;
     stat.requests++;
     stat.flashcards_generated += request.flashcards?.length || 0;
@@ -132,7 +136,7 @@ private async getRecentRequestsHistory(
       f => f.status === 'active'
     ).length || 0;
   }
-  
+
   return Array.from(grouped.values())
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 30);
@@ -140,23 +144,24 @@ private async getRecentRequestsHistory(
 ```
 
 ### Route Handler
+
 ```typescript
 export async function GET(context: APIContext) {
   const user = context.locals.user;
-  
+
   if (!user) {
-    return errorResponse(401, 'AUTH_REQUIRED', 'Authentication required');
+    return errorResponse(401, "AUTH_REQUIRED", "Authentication required");
   }
-  
+
   const service = new StatisticsService(context.locals.supabase);
   const statistics = await service.getGenerationStatistics(user.id);
-  
+
   return new Response(JSON.stringify({ statistics }), {
     status: 200,
     headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'private, max-age=300' // Cache 5 minutes
-    }
+      "Content-Type": "application/json",
+      "Cache-Control": "private, max-age=300", // Cache 5 minutes
+    },
   });
 }
 ```
@@ -171,10 +176,10 @@ export async function GET(context: APIContext) {
 - **recent_requests:** Daily breakdown for last 30 days
 
 ## 6. Use Cases
+
 - Measure AI quality/usefulness
 - Track user satisfaction with AI
 - Identify trends over time
 - Optimize AI prompts based on acceptance
 
 **Status:** Ready for Implementation
-

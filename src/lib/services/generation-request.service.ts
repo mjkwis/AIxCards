@@ -1,20 +1,20 @@
 /**
  * Generation Request Service
- * 
+ *
  * Handles creation of generation requests and associated flashcards
  * in the database with proper error handling and cleanup.
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../db/database.types";
-import type { 
-  GenerationRequestDTO, 
-  FlashcardDTO, 
+import type {
+  GenerationRequestDTO,
+  FlashcardDTO,
   CreateGenerationRequestResponse,
   GenerationRequestListItem,
   GenerationRequestListResponse,
   GenerationRequestDetailResponse,
-  Pagination
+  Pagination,
 } from "../../types";
 import { DatabaseError } from "../errors/database.error";
 import { Logger } from "./logger.service";
@@ -31,7 +31,7 @@ export interface FlashcardData {
 
 /**
  * Service class for managing generation requests
- * 
+ *
  * Handles database operations for creating generation requests
  * and bulk inserting associated flashcards.
  */
@@ -40,20 +40,20 @@ export class GenerationRequestService {
 
   /**
    * Creates a new generation request with flashcards
-   * 
+   *
    * Process:
    * 1. Insert generation_request record
    * 2. Bulk insert flashcards with default values
    * 3. Return DTOs for both entities
    * 4. Cleanup on error
-   * 
+   *
    * Default values for AI-generated flashcards:
    * - source: "ai_generated"
    * - status: "pending_review" (requires user approval)
    * - next_review_at: null (not yet scheduled for review)
    * - interval: 0 (days until next review)
    * - ease_factor: 2.5 (SM-2 algorithm default)
-   * 
+   *
    * @param userId - ID of the user creating the request
    * @param sourceText - Source text used for generation
    * @param flashcardsData - Array of flashcard data from AI service
@@ -141,11 +141,13 @@ export class GenerationRequestService {
 
   /**
    * Maps database entity to GenerationRequestDTO
-   * 
+   *
    * @param entity - Database entity from generation_requests table
    * @returns DTO for API response
    */
-  private mapGenerationRequestToDTO(entity: Database["public"]["Tables"]["generation_requests"]["Row"]): GenerationRequestDTO {
+  private mapGenerationRequestToDTO(
+    entity: Database["public"]["Tables"]["generation_requests"]["Row"]
+  ): GenerationRequestDTO {
     return {
       id: entity.id,
       user_id: entity.user_id,
@@ -157,7 +159,7 @@ export class GenerationRequestService {
 
   /**
    * Maps database entity to FlashcardDTO
-   * 
+   *
    * @param entity - Database entity from flashcards table
    * @returns DTO for API response
    */
@@ -180,13 +182,13 @@ export class GenerationRequestService {
 
   /**
    * Lists generation requests for a user with pagination
-   * 
+   *
    * Features:
    * - Pagination (page, limit)
    * - Sorting (created_at, updated_at)
    * - Flashcard count per request
    * - RLS ensures user can only see their own requests
-   * 
+   *
    * @param userId - ID of the user
    * @param page - Page number (1-indexed)
    * @param limit - Items per page
@@ -199,8 +201,8 @@ export class GenerationRequestService {
     userId: string,
     page: number,
     limit: number,
-    sort: 'created_at' | 'updated_at',
-    order: 'asc' | 'desc'
+    sort: "created_at" | "updated_at",
+    order: "asc" | "desc"
   ): Promise<GenerationRequestListResponse> {
     try {
       logger.info("Listing generation requests", { userId, page, limit, sort, order });
@@ -226,12 +228,14 @@ export class GenerationRequestService {
       // Using a LEFT JOIN to count flashcards per generation request
       const { data: requests, error: requestsError } = await this.supabase
         .from("generation_requests")
-        .select(`
+        .select(
+          `
           *,
           flashcards(count)
-        `)
+        `
+        )
         .eq("user_id", userId)
-        .order(sort, { ascending: order === 'asc' })
+        .order(sort, { ascending: order === "asc" })
         .range(offset, offset + limit - 1);
 
       if (requestsError) {
@@ -240,14 +244,24 @@ export class GenerationRequestService {
       }
 
       // Map to list items with flashcard count
-      const generation_requests: GenerationRequestListItem[] = (requests || []).map((req) => ({
-        id: req.id,
-        user_id: req.user_id,
-        source_text: req.source_text,
-        flashcard_count: Array.isArray(req.flashcards) ? req.flashcards.length : (req.flashcards as any)?.count || 0,
-        created_at: req.created_at,
-        updated_at: req.updated_at,
-      }));
+      const generation_requests: GenerationRequestListItem[] = (requests || []).map((req) => {
+        // flashcards can be either an array or an aggregate object with count
+        let flashcard_count = 0;
+        if (Array.isArray(req.flashcards)) {
+          flashcard_count = req.flashcards.length;
+        } else if (req.flashcards && typeof req.flashcards === "object" && "count" in req.flashcards) {
+          flashcard_count = (req.flashcards as { count: number }).count || 0;
+        }
+
+        return {
+          id: req.id,
+          user_id: req.user_id,
+          source_text: req.source_text,
+          flashcard_count,
+          created_at: req.created_at,
+          updated_at: req.updated_at,
+        };
+      });
 
       const pagination: Pagination = {
         page,
@@ -272,12 +286,12 @@ export class GenerationRequestService {
 
   /**
    * Gets a specific generation request with all flashcards
-   * 
+   *
    * Features:
    * - Fetches single generation request
    * - Includes all associated flashcards
    * - RLS ensures user can only see their own requests
-   * 
+   *
    * @param userId - ID of the user (for ownership verification)
    * @param requestId - ID of the generation request
    * @returns Generation request with flashcards
@@ -329,13 +343,13 @@ export class GenerationRequestService {
 
   /**
    * Deletes a generation request
-   * 
+   *
    * Behavior:
    * - Deletes the generation_request record
    * - Flashcards are NOT deleted (soft CASCADE)
    * - Flashcards' generation_request_id is set to NULL
    * - RLS ensures user can only delete their own requests
-   * 
+   *
    * @param userId - ID of the user (for ownership verification)
    * @param requestId - ID of the generation request to delete
    * @throws DatabaseError if not found or database error
@@ -368,4 +382,3 @@ export class GenerationRequestService {
     }
   }
 }
-

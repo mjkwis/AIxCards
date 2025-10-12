@@ -7,6 +7,7 @@
 **Cel:** Trwałe usunięcie konta użytkownika wraz z wszystkimi powiązanymi danymi z systemu 10x-cards. Endpoint realizuje prawo użytkownika do bycia zapomnianym (RODO/GDPR compliance) poprzez usunięcie konta użytkownika z tabeli `auth.users` oraz wszystkich powiązanych danych dzięki CASCADE constraints.
 
 **Funkcjonalność:**
+
 - Wymaganie validnego JWT tokenu (użytkownik musi być zalogowany)
 - Walidacja tożsamości użytkownika
 - Usunięcie wszystkich flashcards użytkownika (CASCADE)
@@ -25,19 +26,23 @@
 ## 2. Szczegóły żądania
 
 ### HTTP Method
+
 `DELETE`
 
 ### URL Structure
+
 ```
 /api/auth/account
 ```
 
 ### Headers (Required)
+
 ```http
 Authorization: Bearer {access_token}
 ```
 
 ### Request Body
+
 Brak - user_id wyekstrahowany z JWT
 
 ---
@@ -65,6 +70,7 @@ ErrorResponse {
 ### Success Response (204 No Content)
 
 **Headers:**
+
 ```http
 Set-Cookie: sb-refresh-token=; Max-Age=0; Path=/; HttpOnly; Secure
 ```
@@ -74,6 +80,7 @@ Set-Cookie: sb-refresh-token=; Max-Age=0; Path=/; HttpOnly; Secure
 ### Error Responses
 
 #### 401 Unauthorized - AUTH_REQUIRED
+
 ```json
 {
   "error": {
@@ -85,6 +92,7 @@ Set-Cookie: sb-refresh-token=; Max-Age=0; Path=/; HttpOnly; Secure
 ```
 
 #### 500 Internal Server Error - INTERNAL_ERROR
+
 ```json
 {
   "error": {
@@ -122,6 +130,7 @@ Client Request
 ### Szczegółowy przepływ
 
 #### AuthService Implementation
+
 ```typescript
 class AuthService {
   async deleteAccount(userId: string): Promise<void> {
@@ -129,14 +138,14 @@ class AuthService {
       // Delete user from Supabase Auth
       // This triggers CASCADE deletes in database
       const { error } = await this.supabase.auth.admin.deleteUser(userId);
-      
+
       if (error) {
-        throw new AuthServiceError('Failed to delete account', error);
+        throw new AuthServiceError("Failed to delete account", error);
       }
-      
-      logger.info('Account deleted successfully', { userId });
+
+      logger.info("Account deleted successfully", { userId });
     } catch (error) {
-      logger.error('Error deleting account', error as Error, { userId });
+      logger.error("Error deleting account", error as Error, { userId });
       throw error;
     }
   }
@@ -172,11 +181,12 @@ DELETE FROM auth.users WHERE id = 'user-uuid';
 **Solutions:**
 
 **Option 1: Frontend Confirmation (Recommended for MVP)**
+
 ```typescript
 // Frontend shows confirmation modal before calling API
 const confirmed = await confirmDialog(
-  'Delete Account?',
-  'This action cannot be undone. All your flashcards and data will be permanently deleted.'
+  "Delete Account?",
+  "This action cannot be undone. All your flashcards and data will be permanently deleted."
 );
 
 if (confirmed) {
@@ -185,20 +195,28 @@ if (confirmed) {
 ```
 
 **Option 2: API Confirmation Token (More Secure)**
+
 ```typescript
 // Step 1: Request deletion token
-POST /api/auth/account/delete-token
-Response: { confirmation_token: "uuid" }
+POST / api / auth / account / delete -token;
+Response: {
+  confirmation_token: "uuid";
+}
 
 // Step 2: Confirm with token
-DELETE /api/auth/account
-Body: { confirmation_token: "uuid" }
+DELETE / api / auth / account;
+Body: {
+  confirmation_token: "uuid";
+}
 ```
 
 **Option 3: Password Re-authentication**
+
 ```typescript
-DELETE /api/auth/account
-Body: { password: "user_password" }
+DELETE / api / auth / account;
+Body: {
+  password: "user_password";
+}
 // Verify password before deletion
 ```
 
@@ -207,24 +225,27 @@ Body: { password: "user_password" }
 ### 6.2. GDPR/RODO Compliance
 
 **Data Deletion Requirements:**
+
 - ✅ User data (auth.users)
 - ✅ User flashcards (flashcards table)
 - ✅ User generation requests (generation_requests table)
 - ✅ User sessions (handled by Supabase)
 
 **Audit Trail (Optional Future):**
+
 ```typescript
 // Log deletion event before deleting
 await auditLog.create({
   user_id,
-  action: 'account_deleted',
+  action: "account_deleted",
   timestamp: now(),
   ip_address,
-  user_agent
+  user_agent,
 });
 ```
 
 **Retention Policy:**
+
 - User data deleted immediately
 - Audit logs retained for 90 days (compliance)
 - Anonymized analytics can be retained
@@ -234,15 +255,17 @@ await auditLog.create({
 **Soft Delete vs Hard Delete:**
 
 **Hard Delete (Current):**
+
 - Immediate permanent deletion
 - Cannot be undone
 - GDPR compliant
 
 **Soft Delete (Alternative):**
+
 ```typescript
 // Mark as deleted, actual deletion after 30 days
-UPDATE auth.users 
-SET deleted_at = NOW(), 
+UPDATE auth.users
+SET deleted_at = NOW(),
     status = 'deleted'
 WHERE id = user_id;
 
@@ -263,44 +286,39 @@ export async function DELETE(context: APIContext) {
   try {
     const user = context.locals.user;
     const supabase = context.locals.supabase;
-    
+
     if (!user || !supabase) {
-      return errorResponse(401, 'AUTH_REQUIRED', 'Authentication required');
+      return errorResponse(401, "AUTH_REQUIRED", "Authentication required");
     }
-    
-    logger.info('Account deletion requested', {
+
+    logger.info("Account deletion requested", {
       userId: user.id,
-      email: user.email
+      email: user.email,
     });
-    
+
     // Optional: Verify password from request body
     // const { password } = await context.request.json();
     // await verifyPassword(user.id, password);
-    
+
     // Delete account
     const authService = createAuthService(supabase);
     await authService.deleteAccount(user.id);
-    
+
     // Clear cookie
-    context.cookies.delete('sb-refresh-token', { path: '/' });
-    
-    logger.info('Account deleted successfully', {
+    context.cookies.delete("sb-refresh-token", { path: "/" });
+
+    logger.info("Account deleted successfully", {
       userId: user.id,
-      email: user.email
+      email: user.email,
     });
-    
+
     return new Response(null, { status: 204 });
-    
   } catch (error) {
-    logger.critical('Account deletion failed', error as Error, {
-      userId: context.locals.user?.id
+    logger.critical("Account deletion failed", error as Error, {
+      userId: context.locals.user?.id,
     });
-    
-    return errorResponse(
-      500,
-      'INTERNAL_ERROR',
-      'Failed to delete account. Please contact support.'
-    );
+
+    return errorResponse(500, "INTERNAL_ERROR", "Failed to delete account. Please contact support.");
   }
 }
 ```
@@ -318,31 +336,30 @@ export class AuthService {
   /**
    * Delete user account permanently
    * Triggers CASCADE deletion of all user data
-   * 
+   *
    * IMPORTANT: This operation is IRREVERSIBLE
    */
   async deleteAccount(userId: string): Promise<void> {
     try {
-      logger.info('Deleting user account', { userId });
-      
+      logger.info("Deleting user account", { userId });
+
       // Delete user from Supabase Auth
       // Requires service role client for admin operations
       const { error } = await this.supabase.auth.admin.deleteUser(userId);
-      
+
       if (error) {
-        logger.error('Supabase deleteUser failed', error, { userId });
-        throw new AuthServiceError('Failed to delete account', error);
+        logger.error("Supabase deleteUser failed", error, { userId });
+        throw new AuthServiceError("Failed to delete account", error);
       }
-      
-      logger.info('User account deleted successfully', { userId });
-      
+
+      logger.info("User account deleted successfully", { userId });
     } catch (error) {
       if (error instanceof AuthServiceError) {
         throw error;
       }
-      
-      logger.error('Unexpected error deleting account', error as Error, { userId });
-      throw new AuthServiceError('Failed to delete account', error);
+
+      logger.error("Unexpected error deleting account", error as Error, { userId });
+      throw new AuthServiceError("Failed to delete account", error);
     }
   }
 }
@@ -355,8 +372,8 @@ export class AuthService {
 **Plik:** `src/db/supabase.admin.ts` (new file)
 
 ```typescript
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from './database.types';
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./database.types";
 
 // Service role client for admin operations
 // NEVER expose service role key to client!
@@ -364,22 +381,19 @@ const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseServiceKey) {
-  throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for admin operations');
+  throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for admin operations");
 }
 
-export const supabaseAdmin = createClient<Database>(
-  supabaseUrl,
-  supabaseServiceKey,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+export const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
 ```
 
 **Environment Variable:**
+
 ```env
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_from_supabase_dashboard
 ```
@@ -389,74 +403,65 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_from_supabase_dashboard
 **Plik:** `src/pages/api/auth/account.ts`
 
 ```typescript
-import type { APIContext } from 'astro';
-import { errorResponse } from '../../../lib/helpers/error-response';
-import { createAuthService } from '../../../lib/services/auth.service';
-import { supabaseAdmin } from '../../../db/supabase.admin';
-import { AuthServiceError } from '../../../lib/errors/auth-service.error';
-import { Logger } from '../../../lib/services/logger.service';
+import type { APIContext } from "astro";
+import { errorResponse } from "../../../lib/helpers/error-response";
+import { createAuthService } from "../../../lib/services/auth.service";
+import { supabaseAdmin } from "../../../db/supabase.admin";
+import { AuthServiceError } from "../../../lib/errors/auth-service.error";
+import { Logger } from "../../../lib/services/logger.service";
 
-const logger = new Logger('DELETE /api/auth/account');
+const logger = new Logger("DELETE /api/auth/account");
 
 export const prerender = false;
 
 export async function DELETE(context: APIContext): Promise<Response> {
   try {
     const user = context.locals.user;
-    
+
     if (!user) {
-      return errorResponse(401, 'AUTH_REQUIRED', 'Authentication required');
+      return errorResponse(401, "AUTH_REQUIRED", "Authentication required");
     }
-    
-    logger.warning('Account deletion requested - IRREVERSIBLE', {
+
+    logger.warning("Account deletion requested - IRREVERSIBLE", {
       userId: user.id,
-      email: user.email
+      email: user.email,
     });
-    
+
     // Create auth service with ADMIN client (required for deleteUser)
     const authService = createAuthService(supabaseAdmin);
-    
+
     try {
       await authService.deleteAccount(user.id);
     } catch (error) {
       if (error instanceof AuthServiceError) {
-        logger.error('Failed to delete account', error, {
-          userId: user.id
+        logger.error("Failed to delete account", error, {
+          userId: user.id,
         });
-        return errorResponse(
-          500,
-          'INTERNAL_ERROR',
-          'Failed to delete account. Please contact support.'
-        );
+        return errorResponse(500, "INTERNAL_ERROR", "Failed to delete account. Please contact support.");
       }
       throw error;
     }
-    
+
     // Clear cookie
-    context.cookies.delete('sb-refresh-token', { path: '/' });
-    
-    logger.warning('Account PERMANENTLY deleted', {
+    context.cookies.delete("sb-refresh-token", { path: "/" });
+
+    logger.warning("Account PERMANENTLY deleted", {
       userId: user.id,
-      email: user.email
+      email: user.email,
     });
-    
+
     return new Response(null, {
       status: 204,
       headers: {
-        'Cache-Control': 'no-store'
-      }
+        "Cache-Control": "no-store",
+      },
     });
-    
   } catch (error) {
-    logger.critical('Unexpected error during account deletion', error as Error, {
-      userId: context.locals.user?.id
+    logger.critical("Unexpected error during account deletion", error as Error, {
+      userId: context.locals.user?.id,
     });
-    
-    return errorResponse(
-      500,
-      'INTERNAL_ERROR',
-      'An unexpected error occurred. Please contact support.'
-    );
+
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please contact support.");
   }
 }
 ```
@@ -465,63 +470,63 @@ export async function DELETE(context: APIContext): Promise<Response> {
 
 ```typescript
 // tests/api/auth/account.test.ts
-describe('DELETE /api/auth/account', () => {
-  it('should return 401 without authentication', async () => {
-    const response = await fetch('/api/auth/account', {
-      method: 'DELETE'
+describe("DELETE /api/auth/account", () => {
+  it("should return 401 without authentication", async () => {
+    const response = await fetch("/api/auth/account", {
+      method: "DELETE",
     });
     expect(response.status).toBe(401);
   });
-  
-  it('should delete account with valid token', async () => {
+
+  it("should delete account with valid token", async () => {
     // Register user
-    const registerRes = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const registerRes = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: 'todelete@example.com',
-        password: 'TestPass123'
-      })
+        email: "todelete@example.com",
+        password: "TestPass123",
+      }),
     });
     const { session } = await registerRes.json();
-    
+
     // Create some data
-    await fetch('/api/flashcards', {
-      method: 'POST',
+    await fetch("/api/flashcards", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        front: 'Test',
-        back: 'Test'
-      })
+        front: "Test",
+        back: "Test",
+      }),
     });
-    
+
     // Delete account
-    const deleteRes = await fetch('/api/auth/account', {
-      method: 'DELETE',
+    const deleteRes = await fetch("/api/auth/account", {
+      method: "DELETE",
       headers: {
-        'Authorization': `Bearer ${session.access_token}`
+        Authorization: `Bearer ${session.access_token}`,
       },
-      credentials: 'include'
+      credentials: "include",
     });
-    
+
     expect(deleteRes.status).toBe(204);
-    
+
     // Verify user cannot login
-    const loginRes = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const loginRes = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: 'todelete@example.com',
-        password: 'TestPass123'
-      })
+        email: "todelete@example.com",
+        password: "TestPass123",
+      }),
     });
     expect(loginRes.status).toBe(401);
   });
-  
-  it('should CASCADE delete user data', async () => {
+
+  it("should CASCADE delete user data", async () => {
     // Test that flashcards and generation_requests are deleted
     // Requires database access to verify
   });
@@ -534,7 +539,7 @@ describe('DELETE /api/auth/account', () => {
 
 ### API Endpoint Documentation
 
-```markdown
+````markdown
 ## DELETE /api/auth/account
 
 **⚠️ WARNING: This operation is IRREVERSIBLE**
@@ -547,6 +552,7 @@ Permanently delete current user account and all associated data.
 DELETE /api/auth/account
 Authorization: Bearer {access_token}
 ```
+````
 
 ### Response
 
@@ -562,7 +568,8 @@ Authorization: Bearer {access_token}
 ### GDPR/RODO Compliance
 
 This endpoint implements the "right to be forgotten" as required by GDPR.
-```
+
+````
 
 ### Frontend Integration
 
@@ -575,12 +582,12 @@ async function deleteAccount() {
     confirmText: 'Delete My Account',
     confirmStyle: 'danger'
   });
-  
+
   if (!confirmed) return;
-  
+
   // Step 2: Require password re-entry (optional)
   const password = await promptPassword();
-  
+
   // Step 3: Delete account
   try {
     const token = getAccessToken();
@@ -591,7 +598,7 @@ async function deleteAccount() {
       },
       credentials: 'include'
     });
-    
+
     if (response.status === 204) {
       // Success
       clearAllLocalData();
@@ -604,13 +611,14 @@ async function deleteAccount() {
     showError('Network error. Please try again.');
   }
 }
-```
+````
 
 ---
 
 ## 10. Checklist
 
 ### Pre-deployment
+
 - [ ] Service role key configured
 - [ ] AuthService.deleteAccount implemented
 - [ ] CASCADE constraints verified in database
@@ -620,6 +628,7 @@ async function deleteAccount() {
 - [ ] Frontend confirmation flow implemented
 
 ### Security
+
 - [ ] Requires authentication
 - [ ] Service role key not exposed
 - [ ] User confirmation required
@@ -627,6 +636,7 @@ async function deleteAccount() {
 - [ ] Audit logging (optional)
 
 ### Post-deployment
+
 - [ ] Monitor deletion success rate
 - [ ] Verify CASCADE deletions work
 - [ ] Track GDPR compliance
@@ -639,14 +649,17 @@ async function deleteAccount() {
 ### Kluczowe Decyzje
 
 **1. Hard Delete vs Soft Delete:**
+
 - **Chosen:** Hard delete (immediate, permanent)
 - **Rationale:** GDPR compliance, simpler implementation
 
 **2. Confirmation Strategy:**
+
 - **Chosen:** Frontend confirmation + optional password
 - **Rationale:** Balance security with UX
 
 **3. Service Role Client:**
+
 - **Required:** `auth.admin.deleteUser()` needs service role
 - **Security:** Never expose service role key to client
 
@@ -673,4 +686,3 @@ generation_requests.user_id → auth.users.id ON DELETE CASCADE
 **Wersja:** 1.0  
 **Status:** Ready for Implementation  
 **Security Level:** CRITICAL - Irreversible Operation
-

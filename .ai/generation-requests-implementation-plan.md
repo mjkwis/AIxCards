@@ -1,4 +1,4 @@
-# API Endpoint Implementation Plan: POST /api/generation-requests
+teraz dla mnie wygeneruj dla mnie implementation-plan dla /api/auth/register i zapisz go do pliku .ai/register-implementation-plan.md# API Endpoint Implementation Plan: POST /api/generation-requests
 
 ## 1. Przegląd punktu końcowego
 

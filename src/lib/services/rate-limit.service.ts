@@ -1,12 +1,12 @@
 /**
  * Rate Limiting Service
- * 
+ *
  * Implements rate limiting for API endpoints to prevent abuse.
- * 
+ *
  * CURRENT IMPLEMENTATION: In-memory store (Map)
  * - Simple and sufficient for MVP
  * - Resets on server restart
- * 
+ *
  * PRODUCTION RECOMMENDATION: Migrate to Redis
  * - Persistent across server restarts
  * - Works in multi-instance deployments
@@ -28,7 +28,7 @@ interface RateLimitEntry {
 /**
  * In-memory store for rate limit tracking
  * Key format: "endpoint:userId"
- * 
+ *
  * Note: This will reset on server restart. For production,
  * consider using Redis or another persistent store.
  */
@@ -36,7 +36,7 @@ const store = new Map<string, RateLimitEntry>();
 
 /**
  * Rate Limiting Service
- * 
+ *
  * Tracks and enforces rate limits per user per endpoint
  */
 export class RateLimitService {
@@ -45,18 +45,18 @@ export class RateLimitService {
 
   /**
    * Creates a new rate limit service
-   * 
+   *
    * @param limit - Maximum number of requests allowed (default: 10)
    * @param windowMs - Time window in milliseconds (default: 3600000 = 1 hour)
    */
-  constructor(limit: number = 10, windowMs: number = 3600000) {
+  constructor(limit = 10, windowMs = 3600000) {
     this.limit = limit;
     this.windowMs = windowMs;
   }
 
   /**
    * Checks if a request should be allowed or rate limited
-   * 
+   *
    * @param userId - ID of the user making the request
    * @param endpoint - Endpoint identifier (e.g., "generation-requests")
    * @throws RateLimitError if rate limit is exceeded
@@ -88,7 +88,7 @@ export class RateLimitService {
 
   /**
    * Gets the number of remaining requests for a user
-   * 
+   *
    * @param userId - ID of the user
    * @param endpoint - Endpoint identifier
    * @returns Number of requests remaining in current window
@@ -107,7 +107,7 @@ export class RateLimitService {
 
   /**
    * Gets the timestamp when the rate limit will reset
-   * 
+   *
    * @param userId - ID of the user
    * @param endpoint - Endpoint identifier
    * @returns Date when limit resets, or null if no active limit
@@ -127,7 +127,7 @@ export class RateLimitService {
   /**
    * Clears rate limit data for a specific user and endpoint
    * Useful for testing or administrative actions
-   * 
+   *
    * @param userId - ID of the user
    * @param endpoint - Endpoint identifier
    */
@@ -150,4 +150,3 @@ export class RateLimitService {
  * Configured for generation requests: 10 requests per hour
  */
 export const rateLimitService = new RateLimitService(10, 3600000);
-

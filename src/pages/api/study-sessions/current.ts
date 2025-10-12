@@ -1,18 +1,18 @@
 /**
  * GET /api/study-sessions/current
- * 
+ *
  * Get current study session with flashcards due for review
- * 
+ *
  * This endpoint returns flashcards that are due for review based on the
  * spaced repetition schedule. Flashcards are returned in order of when
  * they became due (oldest first).
- * 
+ *
  * Features:
  * - Returns flashcards with status 'active' and next_review_at <= NOW
  * - Ordered by next_review_at ASC (prioritizes overdue flashcards)
  * - Configurable limit (default: 20, max: 50)
  * - Includes session metadata (total due, flashcards in response)
- * 
+ *
  * Authentication: Required (JWT Bearer token)
  */
 
@@ -32,17 +32,17 @@ export const prerender = false;
 
 /**
  * GET handler for retrieving current study session
- * 
+ *
  * Request:
  * - Headers: Authorization: Bearer {token}
  * - Query: ?limit=20 (optional)
- * 
+ *
  * Response:
  * - 200: Success with study session info and flashcards
  * - 400: Invalid query parameters
  * - 401: Authentication required or invalid
  * - 500: Internal server error
- * 
+ *
  * @param context - Astro API context with locals
  * @returns Response with StudySessionResponse or ErrorResponse
  */
@@ -112,11 +112,6 @@ export async function GET(context: APIContext): Promise<Response> {
       userId: context.locals.user?.id,
     });
 
-    return errorResponse(
-      500,
-      "INTERNAL_ERROR",
-      "An unexpected error occurred. Please try again later."
-    );
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 }
-

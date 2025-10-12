@@ -1,15 +1,15 @@
 /**
  * Flashcard Detail API Endpoint
- * 
+ *
  * GET /api/flashcards/:id
  * Gets a specific flashcard
- * 
+ *
  * PATCH /api/flashcards/:id
  * Updates a flashcard
- * 
+ *
  * DELETE /api/flashcards/:id
  * Deletes a flashcard permanently
- * 
+ *
  * Authentication: Required (JWT Bearer token)
  * Ownership: User can only access/modify their own flashcards
  */
@@ -32,17 +32,17 @@ export const prerender = false;
 
 /**
  * GET handler for retrieving a specific flashcard
- * 
+ *
  * Request:
  * - Headers: Authorization: Bearer {token}
  * - Params: id (UUID of flashcard)
- * 
+ *
  * Response:
  * - 200: Success with flashcard
  * - 401: Authentication required or invalid
  * - 404: Flashcard not found or doesn't belong to user
  * - 500: Internal server error
- * 
+ *
  * @param context - Astro API context with locals and params
  * @returns Response with FlashcardResponse or ErrorResponse
  */
@@ -90,15 +90,12 @@ export async function GET(context: APIContext): Promise<Response> {
     });
 
     // 3. Return success response with 200 OK
-    return new Response(
-      JSON.stringify({ flashcard }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return new Response(JSON.stringify({ flashcard }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error) {
     // Catch-all for unexpected errors
     getLogger.critical("Unexpected error in GET handler", error as Error, {
@@ -106,31 +103,27 @@ export async function GET(context: APIContext): Promise<Response> {
       flashcardId: context.params.id,
     });
 
-    return errorResponse(
-      500,
-      "INTERNAL_ERROR",
-      "An unexpected error occurred. Please try again later."
-    );
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 }
 
 /**
  * PATCH handler for updating a flashcard
- * 
+ *
  * Request:
  * - Headers: Authorization: Bearer {token}
  * - Params: id (UUID of flashcard)
  * - Body: { front?: string, back?: string, status?: string }
- * 
+ *
  * Response:
  * - 200: Success with updated flashcard
  * - 400: Validation error
  * - 401: Authentication required or invalid
  * - 404: Flashcard not found or doesn't belong to user
  * - 500: Internal server error
- * 
+ *
  * At least one field must be provided for update.
- * 
+ *
  * @param context - Astro API context with locals and params
  * @returns Response with FlashcardResponse or ErrorResponse
  */
@@ -155,7 +148,7 @@ export async function PATCH(context: APIContext): Promise<Response> {
     let requestBody: unknown;
     try {
       requestBody = await context.request.json();
-    } catch (error) {
+    } catch {
       return errorResponse(400, "VALIDATION_ERROR", "Invalid JSON in request body");
     }
 
@@ -198,15 +191,12 @@ export async function PATCH(context: APIContext): Promise<Response> {
     });
 
     // 5. Return success response with 200 OK
-    return new Response(
-      JSON.stringify({ flashcard }),
-      {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return new Response(JSON.stringify({ flashcard }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error) {
     // Catch-all for unexpected errors
     patchLogger.critical("Unexpected error in PATCH handler", error as Error, {
@@ -214,27 +204,23 @@ export async function PATCH(context: APIContext): Promise<Response> {
       flashcardId: context.params.id,
     });
 
-    return errorResponse(
-      500,
-      "INTERNAL_ERROR",
-      "An unexpected error occurred. Please try again later."
-    );
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 }
 
 /**
  * DELETE handler for deleting a flashcard
- * 
+ *
  * Request:
  * - Headers: Authorization: Bearer {token}
  * - Params: id (UUID of flashcard)
- * 
+ *
  * Response:
  * - 204: Success (no content)
  * - 401: Authentication required or invalid
  * - 404: Flashcard not found or doesn't belong to user
  * - 500: Internal server error
- * 
+ *
  * @param context - Astro API context with locals and params
  * @returns Response (204 No Content or ErrorResponse)
  */
@@ -291,11 +277,6 @@ export async function DELETE(context: APIContext): Promise<Response> {
       flashcardId: context.params.id,
     });
 
-    return errorResponse(
-      500,
-      "INTERNAL_ERROR",
-      "An unexpected error occurred. Please try again later."
-    );
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 }
-

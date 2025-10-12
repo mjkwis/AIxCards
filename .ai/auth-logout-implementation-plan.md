@@ -7,6 +7,7 @@
 **Cel:** Wylogowanie aktualnie zalogowanego użytkownika z systemu 10x-cards. Endpoint invaliduje aktualną sesję użytkownika, usuwa tokeny JWT i czyści cookies. Jest to kluczowa operacja bezpieczeństwa, która kończy dostęp użytkownika do chronionych zasobów.
 
 **Funkcjonalność:**
+
 - Wymaganie validnego JWT tokenu (użytkownik musi być zalogowany)
 - Invalidacja aktualnej sesji w Supabase Auth
 - Usunięcie refresh token z httpOnly cookie
@@ -22,14 +23,17 @@
 ## 2. Szczegóły żądania
 
 ### HTTP Method
+
 `POST`
 
 ### URL Structure
+
 ```
 /api/auth/logout
 ```
 
 ### Headers (Required)
+
 ```http
 Authorization: Bearer {access_token}
 ```
@@ -37,9 +41,11 @@ Authorization: Bearer {access_token}
 **Uwaga:** Ten endpoint WYMAGA autentykacji
 
 ### Request Body
+
 Brak - endpoint nie przyjmuje body
 
 **Przykład:**
+
 ```http
 POST /api/auth/logout
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -48,10 +54,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ### Parametry
 
 #### Z Authorization Header
-| Parametr | Typ | Źródło | Opis |
-|----------|-----|--------|------|
-| `access_token` | JWT | Authorization header | Token zalogowanego użytkownika |
-| `user_id` | UUID | Extracted from JWT | ID użytkownika (automatycznie) |
+
+| Parametr       | Typ  | Źródło               | Opis                           |
+| -------------- | ---- | -------------------- | ------------------------------ |
+| `access_token` | JWT  | Authorization header | Token zalogowanego użytkownika |
+| `user_id`      | UUID | Extracted from JWT   | ID użytkownika (automatycznie) |
 
 ---
 
@@ -83,29 +90,35 @@ ErrorResponse {
 ### Success Response (204 No Content)
 
 **Headers:**
+
 ```http
 Set-Cookie: sb-refresh-token=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax
 ```
 
 **Body:**
+
 ```
 (empty)
 ```
 
-**Uwaga:** 
+**Uwaga:**
+
 - Status 204 oznacza sukces bez zwracania contentu
 - Cookie `sb-refresh-token` jest usuwany przez ustawienie Max-Age=0
 
 ### Error Responses
 
 #### 401 Unauthorized - AUTH_REQUIRED
+
 **Scenariusze:**
+
 - Brak Authorization header
 - Invalid JWT token
 - Token wygasły
 - Token already invalidated
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -119,12 +132,15 @@ Set-Cookie: sb-refresh-token=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax
 **Uwaga:** Nawet jeśli token jest wygasły/invalid, można uznać to za "już wylogowany" i zwrócić 204, ale dla consistency zwracamy 401.
 
 #### 500 Internal Server Error - INTERNAL_ERROR
+
 **Scenariusze:**
+
 - Błąd Supabase Auth service
 - Błąd przy invalidacji sesji
 - Nieoczekiwany exception
 
 **Response:**
+
 ```json
 {
   "error": {
@@ -172,7 +188,8 @@ Client Response (204)
 ### Szczegółowy przepływ krok po kroku
 
 #### Krok 1: Middleware (src/middleware/index.ts)
-- **Authentication:** 
+
+- **Authentication:**
   - Ekstrakcja JWT z Authorization header
   - Walidacja tokenu przez Supabase Auth
   - Ustawienie `context.locals.user`
@@ -185,6 +202,7 @@ Client Response (204)
 ```
 
 #### Krok 2: Route Handler (src/pages/api/auth/logout.ts)
+
 ```typescript
 export const prerender = false;
 
@@ -192,32 +210,33 @@ export async function POST(context: APIContext) {
   // 1. Verify user is authenticated
   const user = context.locals.user;
   if (!user) {
-    return errorResponse(401, 'AUTH_REQUIRED', 'Authentication required');
+    return errorResponse(401, "AUTH_REQUIRED", "Authentication required");
   }
-  
+
   // 2. Call AuthService.logout()
   await authService.logout();
-  
+
   // 3. Clear refresh token cookie
-  context.cookies.delete('sb-refresh-token', {
-    path: '/'
+  context.cookies.delete("sb-refresh-token", {
+    path: "/",
   });
-  
+
   // 4. Return 204 No Content
   return new Response(null, { status: 204 });
 }
 ```
 
 #### Krok 3: AuthService (src/lib/services/auth.service.ts)
+
 ```typescript
 class AuthService {
   async logout(): Promise<void> {
     // Call Supabase Auth signOut
     const { error } = await this.supabase.auth.signOut();
-    
+
     if (error) {
       // Log but może nie throwować - logout powinien zawsze succeed po stronie klienta
-      logger.warning('Supabase signOut error', { error: error.message });
+      logger.warning("Supabase signOut error", { error: error.message });
     }
   }
 }
@@ -228,6 +247,7 @@ class AuthService {
 ### Interakcje z zewnętrznymi serwisami
 
 #### Supabase Auth
+
 - **Service:** Supabase Auth
 - **Operation:** `signOut()`
 - **Automatyczne akcje:**
@@ -243,6 +263,7 @@ class AuthService {
 ### 6.1. Session Invalidation
 
 #### Server-Side Invalidation
+
 ```typescript
 // Supabase Auth signOut() invaliduje sesję po stronie serwera
 await supabase.auth.signOut();
@@ -253,9 +274,10 @@ await supabase.auth.signOut();
 ```
 
 #### Client-Side Cleanup
+
 ```typescript
 // Usunięcie refresh token cookie
-context.cookies.delete('sb-refresh-token');
+context.cookies.delete("sb-refresh-token");
 
 // Frontend powinien dodatkowo:
 // - Usunąć access token z memory/state
@@ -270,15 +292,17 @@ context.cookies.delete('sb-refresh-token');
 **Rozwiązania:**
 
 **Option 1: Short-lived tokens (Current)**
+
 - Access token ważny 1h
 - Po logout token technicznie jeszcze działa
 - Ale user nie ma go już w aplikacji
 - Risk window: 1h
 
 **Option 2: Token Blacklist (Future)**
+
 ```typescript
 // Przy logout dodaj token do blacklist
-await redis.setex(`blacklist:${accessToken}`, 3600, '1');
+await redis.setex(`blacklist:${accessToken}`, 3600, "1");
 
 // Przy każdym request sprawdź blacklist
 const isBlacklisted = await redis.exists(`blacklist:${accessToken}`);
@@ -288,6 +312,7 @@ if (isBlacklisted) {
 ```
 
 **Option 3: Very short tokens + frequent refresh**
+
 - Access token ważny 5 min
 - Auto-refresh w tle
 - Po logout, token wygasa szybko
@@ -298,23 +323,25 @@ if (isBlacklisted) {
 ### 6.3. Refresh Token Security
 
 #### Cookie Deletion
+
 ```typescript
 // Prawidłowe usunięcie cookie
-context.cookies.delete('sb-refresh-token', {
-  path: '/'  // Must match path used when setting
+context.cookies.delete("sb-refresh-token", {
+  path: "/", // Must match path used when setting
 });
 
 // Alternative: Set Max-Age=0
-context.cookies.set('sb-refresh-token', '', {
+context.cookies.set("sb-refresh-token", "", {
   httpOnly: true,
   secure: true,
-  sameSite: 'lax',
-  path: '/',
-  maxAge: 0  // Immediate expiry
+  sameSite: "lax",
+  path: "/",
+  maxAge: 0, // Immediate expiry
 });
 ```
 
 #### Supabase Session Management
+
 - Refresh token jest single-use
 - Po użyciu, nowy refresh token jest generowany
 - Stare refresh tokeny są invalidowane
@@ -325,12 +352,13 @@ context.cookies.set('sb-refresh-token', '', {
 **Scenario:** User loguje się na wielu devices, wylogowuje na jednym
 
 **Behavior:**
+
 ```typescript
 // Option 1: Logout tylko current session (Default)
 await supabase.auth.signOut(); // Only current session
 
 // Option 2: Logout all sessions (Future)
-await supabase.auth.signOut({ scope: 'global' }); // All devices
+await supabase.auth.signOut({ scope: "global" }); // All devices
 ```
 
 **Decyzja dla MVP:** Logout only current session
@@ -344,18 +372,19 @@ try {
   await supabase.auth.signOut();
 } catch (error) {
   // Log error but don't fail request
-  logger.warning('Supabase signOut failed', { error });
+  logger.warning("Supabase signOut failed", { error });
   // Continue with client-side cleanup
 }
 
 // Always clear cookie
-context.cookies.delete('sb-refresh-token');
+context.cookies.delete("sb-refresh-token");
 
 // Always return 204
 return new Response(null, { status: 204 });
 ```
 
 **Rationale:**
+
 - User intent is clear: they want to logout
 - Server error shouldn't prevent client cleanup
 - Worst case: session remains in DB but client can't use it
@@ -381,6 +410,7 @@ return new Response(null, { status: 204 });
 #### Client Errors (4xx)
 
 **401 Unauthorized - AUTH_REQUIRED**
+
 - **Przyczyny:**
   - Brak Authorization header
   - Invalid JWT token
@@ -393,6 +423,7 @@ return new Response(null, { status: 204 });
 #### Server Errors (5xx)
 
 **500 Internal Server Error - INTERNAL_ERROR**
+
 - **Przyczyny:**
   - Supabase Auth service error
   - Database error during session cleanup
@@ -404,48 +435,48 @@ return new Response(null, { status: 204 });
 ### 7.2. Error Handling Strategy
 
 #### Graceful Degradation
+
 ```typescript
 export async function POST(context: APIContext) {
   try {
     const user = context.locals.user;
-    
+
     if (!user) {
-      return errorResponse(401, 'AUTH_REQUIRED', 'Authentication required');
+      return errorResponse(401, "AUTH_REQUIRED", "Authentication required");
     }
-    
+
     // Try to logout from Supabase
     try {
       const authService = createAuthService(context.locals.supabase);
       await authService.logout();
-      logger.info('User logged out successfully', { userId: user.id });
+      logger.info("User logged out successfully", { userId: user.id });
     } catch (error) {
       // Log but don't fail - client cleanup is more important
-      logger.warning('Supabase logout error', {
+      logger.warning("Supabase logout error", {
         userId: user.id,
-        error: error instanceof Error ? error.message : 'Unknown'
+        error: error instanceof Error ? error.message : "Unknown",
       });
     }
-    
+
     // Always clear cookie (even if Supabase failed)
-    context.cookies.delete('sb-refresh-token', { path: '/' });
-    
+    context.cookies.delete("sb-refresh-token", { path: "/" });
+
     // Always return success
     return new Response(null, { status: 204 });
-    
   } catch (error) {
     // Unexpected error
-    logger.error('Unexpected error in logout', error as Error);
-    
+    logger.error("Unexpected error in logout", error as Error);
+
     // Still try to clear cookie
     try {
-      context.cookies.delete('sb-refresh-token', { path: '/' });
+      context.cookies.delete("sb-refresh-token", { path: "/" });
     } catch (e) {
       // Cookie delete failed - log but continue
-      logger.error('Failed to delete cookie', e as Error);
+      logger.error("Failed to delete cookie", e as Error);
     }
-    
+
     // Return 500 but client should still cleanup locally
-    return errorResponse(500, 'INTERNAL_ERROR', 'Logout failed');
+    return errorResponse(500, "INTERNAL_ERROR", "Logout failed");
   }
 }
 ```
@@ -459,6 +490,7 @@ export async function POST(context: APIContext) {
 ### 8.1. Performance Characteristics
 
 #### Response Time
+
 - **Target:** < 100ms
 - **Typical:** 50-150ms
 - **Breakdown:**
@@ -470,29 +502,32 @@ export async function POST(context: APIContext) {
 #### Optimization Opportunities
 
 **1. Async Supabase Cleanup (Optional)**
+
 ```typescript
 // Don't wait for Supabase if it's slow
 const logoutPromise = authService.logout();
 
 // Delete cookie immediately
-context.cookies.delete('sb-refresh-token');
+context.cookies.delete("sb-refresh-token");
 
 // Return fast response
 const response = new Response(null, { status: 204 });
 
 // Cleanup in background (fire and forget)
-logoutPromise.catch(error => {
-  logger.warning('Async logout failed', { error });
+logoutPromise.catch((error) => {
+  logger.warning("Async logout failed", { error });
 });
 
 return response;
 ```
 
 **Pros:**
+
 - Faster response to user
 - Better UX
 
 **Cons:**
+
 - Session might not be cleaned up immediately
 - Harder to track errors
 
@@ -507,15 +542,16 @@ return response;
 return new Response(null, {
   status: 204,
   headers: {
-    'Cache-Control': 'no-store, no-cache, must-revalidate',
-    'Pragma': 'no-cache'
-  }
+    "Cache-Control": "no-store, no-cache, must-revalidate",
+    Pragma: "no-cache",
+  },
 });
 ```
 
 ### 8.3. Monitoring
 
 **Key Metrics:**
+
 - Logout success rate (should be ~100%)
 - Logout response time (P95 < 200ms)
 - Supabase signOut error rate
@@ -528,35 +564,35 @@ return new Response(null, {
 ### Faza 1: Rozszerzenie AuthService
 
 #### 1.1. Dodanie metody logout
+
 **Plik:** `src/lib/services/auth.service.ts` (extend existing)
 
 ```typescript
 export class AuthService {
   // ... existing methods ...
-  
+
   /**
    * Logout current user
    * Invalidates Supabase session
    */
   async logout(): Promise<void> {
     try {
-      logger.info('Logging out user');
-      
+      logger.info("Logging out user");
+
       const { error } = await this.supabase.auth.signOut();
-      
+
       if (error) {
-        logger.warning('Supabase signOut returned error', {
-          error: error.message
+        logger.warning("Supabase signOut returned error", {
+          error: error.message,
         });
         // Don't throw - logout should succeed from client perspective
       }
-      
-      logger.info('Logout successful');
-      
+
+      logger.info("Logout successful");
     } catch (error) {
       // Log but don't throw
-      logger.warning('Unexpected error during logout', {
-        error: error instanceof Error ? error.message : 'Unknown'
+      logger.warning("Unexpected error during logout", {
+        error: error instanceof Error ? error.message : "Unknown",
       });
     }
   }
@@ -568,15 +604,16 @@ export class AuthService {
 ### Faza 2: Implementacja API Route Handler
 
 #### 2.1. POST /api/auth/logout handler
+
 **Plik:** `src/pages/api/auth/logout.ts`
 
 ```typescript
-import type { APIContext } from 'astro';
-import { errorResponse } from '../../../lib/helpers/error-response';
-import { createAuthService } from '../../../lib/services/auth.service';
-import { Logger } from '../../../lib/services/logger.service';
+import type { APIContext } from "astro";
+import { errorResponse } from "../../../lib/helpers/error-response";
+import { createAuthService } from "../../../lib/services/auth.service";
+import { Logger } from "../../../lib/services/logger.service";
 
-const logger = new Logger('POST /api/auth/logout');
+const logger = new Logger("POST /api/auth/logout");
 
 export const prerender = false;
 
@@ -585,81 +622,68 @@ export async function POST(context: APIContext): Promise<Response> {
     // 1. Verify user is authenticated (set by middleware)
     const user = context.locals.user;
     const supabase = context.locals.supabase;
-    
+
     if (!user || !supabase) {
-      logger.info('Logout attempt without authentication');
-      return errorResponse(
-        401,
-        'AUTH_REQUIRED',
-        'Valid authentication token is required'
-      );
+      logger.info("Logout attempt without authentication");
+      return errorResponse(401, "AUTH_REQUIRED", "Valid authentication token is required");
     }
-    
-    logger.info('Processing logout request', {
+
+    logger.info("Processing logout request", {
       userId: user.id,
-      email: user.email
+      email: user.email,
     });
-    
+
     // 2. Logout via AuthService (best effort)
     try {
       const authService = createAuthService(supabase);
       await authService.logout();
     } catch (error) {
       // Log but continue with client cleanup
-      logger.warning('AuthService.logout error', {
+      logger.warning("AuthService.logout error", {
         userId: user.id,
-        error: error instanceof Error ? error.message : 'Unknown'
+        error: error instanceof Error ? error.message : "Unknown",
       });
     }
-    
+
     // 3. Clear refresh token cookie (critical step)
     try {
-      context.cookies.delete('sb-refresh-token', {
-        path: '/'
+      context.cookies.delete("sb-refresh-token", {
+        path: "/",
       });
-      logger.info('Refresh token cookie cleared', { userId: user.id });
+      logger.info("Refresh token cookie cleared", { userId: user.id });
     } catch (error) {
-      logger.error('Failed to clear cookie', error as Error, {
-        userId: user.id
+      logger.error("Failed to clear cookie", error as Error, {
+        userId: user.id,
       });
       // This is more serious - return error
-      return errorResponse(
-        500,
-        'INTERNAL_ERROR',
-        'Failed to complete logout. Please clear your browser cookies.'
-      );
+      return errorResponse(500, "INTERNAL_ERROR", "Failed to complete logout. Please clear your browser cookies.");
     }
-    
-    logger.info('User logged out successfully', {
+
+    logger.info("User logged out successfully", {
       userId: user.id,
-      email: user.email
+      email: user.email,
     });
-    
+
     // 4. Return 204 No Content
     return new Response(null, {
       status: 204,
       headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-        'Pragma': 'no-cache'
-      }
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+        Pragma: "no-cache",
+      },
     });
-    
   } catch (error) {
     // Unexpected error
-    logger.critical('Unexpected error in logout endpoint', error as Error);
-    
+    logger.critical("Unexpected error in logout endpoint", error as Error);
+
     // Still try to clear cookie as last resort
     try {
-      context.cookies.delete('sb-refresh-token', { path: '/' });
+      context.cookies.delete("sb-refresh-token", { path: "/" });
     } catch (cookieError) {
-      logger.error('Cookie cleanup in error handler failed', cookieError as Error);
+      logger.error("Cookie cleanup in error handler failed", cookieError as Error);
     }
-    
-    return errorResponse(
-      500,
-      'INTERNAL_ERROR',
-      'An unexpected error occurred during logout'
-    );
+
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred during logout");
   }
 }
 ```
@@ -670,32 +694,32 @@ export async function POST(context: APIContext): Promise<Response> {
 
 ```typescript
 // tests/lib/services/auth.service.logout.test.ts
-describe('AuthService.logout', () => {
-  it('should call Supabase signOut', async () => {
+describe("AuthService.logout", () => {
+  it("should call Supabase signOut", async () => {
     const mockSignOut = jest.fn().mockResolvedValue({ error: null });
     const mockSupabase = {
       auth: {
-        signOut: mockSignOut
-      }
+        signOut: mockSignOut,
+      },
     } as any;
-    
+
     const authService = new AuthService(mockSupabase);
     await authService.logout();
-    
+
     expect(mockSignOut).toHaveBeenCalled();
   });
-  
-  it('should not throw on Supabase error', async () => {
+
+  it("should not throw on Supabase error", async () => {
     const mockSupabase = {
       auth: {
         signOut: jest.fn().mockResolvedValue({
-          error: { message: 'Session not found' }
-        })
-      }
+          error: { message: "Session not found" },
+        }),
+      },
     } as any;
-    
+
     const authService = new AuthService(mockSupabase);
-    
+
     // Should not throw
     await expect(authService.logout()).resolves.toBeUndefined();
   });
@@ -706,72 +730,72 @@ describe('AuthService.logout', () => {
 
 ```typescript
 // tests/api/auth/logout.test.ts
-describe('POST /api/auth/logout', () => {
-  it('should return 401 without authentication', async () => {
-    const response = await fetch('/api/auth/logout', {
-      method: 'POST'
+describe("POST /api/auth/logout", () => {
+  it("should return 401 without authentication", async () => {
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
     });
-    
+
     expect(response.status).toBe(401);
   });
-  
-  it('should logout successfully with valid token', async () => {
+
+  it("should logout successfully with valid token", async () => {
     // First login to get token
-    const loginResponse = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const loginResponse = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: 'test@example.com',
-        password: 'TestPass123'
+        email: "test@example.com",
+        password: "TestPass123",
       }),
-      credentials: 'include'
+      credentials: "include",
     });
-    
+
     const { session } = await loginResponse.json();
-    
+
     // Then logout
-    const logoutResponse = await fetch('/api/auth/logout', {
-      method: 'POST',
+    const logoutResponse = await fetch("/api/auth/logout", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${session.access_token}`
+        Authorization: `Bearer ${session.access_token}`,
       },
-      credentials: 'include'
+      credentials: "include",
     });
-    
+
     expect(logoutResponse.status).toBe(204);
-    
+
     // Verify cookie was cleared
-    const cookies = logoutResponse.headers.get('set-cookie');
-    expect(cookies).toContain('sb-refresh-token=');
-    expect(cookies).toContain('Max-Age=0');
+    const cookies = logoutResponse.headers.get("set-cookie");
+    expect(cookies).toContain("sb-refresh-token=");
+    expect(cookies).toContain("Max-Age=0");
   });
-  
-  it('should invalidate token after logout', async () => {
+
+  it("should invalidate token after logout", async () => {
     // Login
-    const loginResponse = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const loginResponse = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        email: 'test@example.com',
-        password: 'TestPass123'
-      })
+        email: "test@example.com",
+        password: "TestPass123",
+      }),
     });
-    
+
     const { session } = await loginResponse.json();
     const token = session.access_token;
-    
+
     // Logout
-    await fetch('/api/auth/logout', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` }
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
     });
-    
+
     // Try to use token after logout (should fail eventually)
     // Note: Token might still work for a bit if not blacklisted
-    const protectedResponse = await fetch('/api/flashcards', {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const protectedResponse = await fetch("/api/flashcards", {
+      headers: { Authorization: `Bearer ${token}` },
     });
-    
+
     // Behavior depends on implementation:
     // - Without blacklist: might still work until expiry
     // - With blacklist: should fail immediately
@@ -814,7 +838,7 @@ describe('POST /api/auth/logout', () => {
 
 ### API Endpoint Documentation
 
-```markdown
+````markdown
 ## POST /api/auth/logout
 
 Logout current user and invalidate session.
@@ -825,24 +849,29 @@ Logout current user and invalidate session.
 POST /api/auth/logout
 Authorization: Bearer {access_token}
 ```
+````
 
 ### Response
 
 **Success (204 No Content):**
+
 ```http
 HTTP/1.1 204 No Content
 Set-Cookie: sb-refresh-token=; Max-Age=0; Path=/; HttpOnly; Secure
 ```
 
 **Errors:**
+
 - `401` - Not authenticated
 - `500` - Logout failed
 
 ### Behavior
+
 - Invalidates current session
 - Clears refresh token cookie
 - Does not affect other active sessions
-```
+
+````
 
 ### Frontend Integration
 
@@ -851,7 +880,7 @@ Set-Cookie: sb-refresh-token=; Max-Age=0; Path=/; HttpOnly; Secure
 async function logout() {
   try {
     const token = getAccessToken(); // From state/memory
-    
+
     const response = await fetch('/api/auth/logout', {
       method: 'POST',
       headers: {
@@ -859,13 +888,13 @@ async function logout() {
       },
       credentials: 'include' // Important for cookie deletion
     });
-    
+
     if (response.status === 204 || response.status === 401) {
       // Success or already logged out
       // Clear client state
       clearAccessToken();
       clearUserData();
-      
+
       // Redirect to login
       window.location.href = '/login';
     } else {
@@ -875,7 +904,7 @@ async function logout() {
       clearUserData();
       window.location.href = '/login';
     }
-    
+
   } catch (error) {
     // Network error - still cleanup client
     console.error('Network error during logout:', error);
@@ -884,13 +913,14 @@ async function logout() {
     window.location.href = '/login';
   }
 }
-```
+````
 
 ---
 
 ## 11. Checklist końcowy
 
 ### Pre-deployment
+
 - [ ] AuthService.logout method implemented
 - [ ] Route handler implemented
 - [ ] Cookie deletion working
@@ -900,6 +930,7 @@ async function logout() {
 - [ ] Frontend logout flow tested
 
 ### Security Verification
+
 - [ ] JWT token required
 - [ ] Session invalidated
 - [ ] Cookie deleted
@@ -907,6 +938,7 @@ async function logout() {
 - [ ] Error handling graceful
 
 ### Post-deployment
+
 - [ ] Monitor logout success rate
 - [ ] Monitor Supabase errors
 - [ ] Verify cookie deletion
@@ -919,15 +951,18 @@ async function logout() {
 ### Design Decisions
 
 **1. Always succeed philosophy:**
+
 - Client cleanup > Server cleanup
 - User intent clear: logout
 - Failing logout frustrating for users
 
 **2. No rate limiting:**
+
 - User może się wylogować ile razy chce
 - Logout nie jest attack vector
 
 **3. No blacklist (MVP):**
+
 - Short-lived tokens (1h)
 - Complexity vs risk trade-off
 - Can add later if needed
@@ -935,26 +970,29 @@ async function logout() {
 ### Future Enhancements
 
 **1. Global logout:**
+
 ```typescript
 // Logout from all devices
-await supabase.auth.signOut({ scope: 'global' });
+await supabase.auth.signOut({ scope: "global" });
 ```
 
 **2. Token blacklist:**
+
 ```typescript
 // Add to Redis on logout
-await redis.setex(`blacklist:${accessToken}`, 3600, '1');
+await redis.setex(`blacklist:${accessToken}`, 3600, "1");
 ```
 
 **3. Logout audit:**
+
 ```typescript
 // Track logout events
-await db.insert('audit_log', {
+await db.insert("audit_log", {
   user_id,
-  action: 'logout',
+  action: "logout",
   ip_address,
   user_agent,
-  timestamp
+  timestamp,
 });
 ```
 
@@ -962,4 +1000,3 @@ await db.insert('audit_log', {
 **Data:** 2025-10-12  
 **Wersja:** 1.0  
 **Status:** Ready for Implementation
-
