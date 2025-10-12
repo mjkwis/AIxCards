@@ -7,7 +7,15 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../db/database.types";
-import type { GenerationRequestDTO, FlashcardDTO, CreateGenerationRequestResponse } from "../../types";
+import type { 
+  GenerationRequestDTO, 
+  FlashcardDTO, 
+  CreateGenerationRequestResponse,
+  GenerationRequestListItem,
+  GenerationRequestListResponse,
+  GenerationRequestDetailResponse,
+  Pagination
+} from "../../types";
 import { DatabaseError } from "../errors/database.error";
 import { Logger } from "./logger.service";
 
@@ -168,6 +176,196 @@ export class GenerationRequestService {
       created_at: entity.created_at,
       updated_at: entity.updated_at,
     };
+  }
+
+  /**
+   * Lists generation requests for a user with pagination
+   * 
+   * Features:
+   * - Pagination (page, limit)
+   * - Sorting (created_at, updated_at)
+   * - Flashcard count per request
+   * - RLS ensures user can only see their own requests
+   * 
+   * @param userId - ID of the user
+   * @param page - Page number (1-indexed)
+   * @param limit - Items per page
+   * @param sort - Sort field
+   * @param order - Sort order (asc/desc)
+   * @returns List of generation requests with pagination metadata
+   * @throws DatabaseError if database operations fail
+   */
+  async list(
+    userId: string,
+    page: number,
+    limit: number,
+    sort: 'created_at' | 'updated_at',
+    order: 'asc' | 'desc'
+  ): Promise<GenerationRequestListResponse> {
+    try {
+      logger.info("Listing generation requests", { userId, page, limit, sort, order });
+
+      // Calculate offset for pagination
+      const offset = (page - 1) * limit;
+
+      // Get total count for pagination
+      const { count, error: countError } = await this.supabase
+        .from("generation_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId);
+
+      if (countError) {
+        logger.error("Failed to count generation requests", countError as Error);
+        throw new DatabaseError("Failed to count generation requests", countError);
+      }
+
+      const total = count || 0;
+      const total_pages = Math.ceil(total / limit);
+
+      // Get generation requests with flashcard count
+      // Using a LEFT JOIN to count flashcards per generation request
+      const { data: requests, error: requestsError } = await this.supabase
+        .from("generation_requests")
+        .select(`
+          *,
+          flashcards(count)
+        `)
+        .eq("user_id", userId)
+        .order(sort, { ascending: order === 'asc' })
+        .range(offset, offset + limit - 1);
+
+      if (requestsError) {
+        logger.error("Failed to list generation requests", requestsError as Error);
+        throw new DatabaseError("Failed to list generation requests", requestsError);
+      }
+
+      // Map to list items with flashcard count
+      const generation_requests: GenerationRequestListItem[] = (requests || []).map((req) => ({
+        id: req.id,
+        user_id: req.user_id,
+        source_text: req.source_text,
+        flashcard_count: Array.isArray(req.flashcards) ? req.flashcards.length : (req.flashcards as any)?.count || 0,
+        created_at: req.created_at,
+        updated_at: req.updated_at,
+      }));
+
+      const pagination: Pagination = {
+        page,
+        limit,
+        total,
+        total_pages,
+      };
+
+      return {
+        generation_requests,
+        pagination,
+      };
+    } catch (error) {
+      if (error instanceof DatabaseError) {
+        throw error;
+      }
+
+      logger.error("Unexpected error in list", error as Error);
+      throw new DatabaseError("Unexpected database error", error);
+    }
+  }
+
+  /**
+   * Gets a specific generation request with all flashcards
+   * 
+   * Features:
+   * - Fetches single generation request
+   * - Includes all associated flashcards
+   * - RLS ensures user can only see their own requests
+   * 
+   * @param userId - ID of the user (for ownership verification)
+   * @param requestId - ID of the generation request
+   * @returns Generation request with flashcards
+   * @throws DatabaseError if not found or database error
+   */
+  async getById(userId: string, requestId: string): Promise<GenerationRequestDetailResponse> {
+    try {
+      logger.info("Getting generation request", { userId, requestId });
+
+      // Get generation request
+      const { data: request, error: requestError } = await this.supabase
+        .from("generation_requests")
+        .select()
+        .eq("id", requestId)
+        .eq("user_id", userId)
+        .single();
+
+      if (requestError || !request) {
+        logger.warning("Generation request not found", { userId, requestId });
+        throw new DatabaseError("Generation request not found", requestError);
+      }
+
+      // Get associated flashcards
+      const { data: flashcards, error: flashcardsError } = await this.supabase
+        .from("flashcards")
+        .select()
+        .eq("generation_request_id", requestId)
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+
+      if (flashcardsError) {
+        logger.error("Failed to get flashcards", flashcardsError as Error);
+        throw new DatabaseError("Failed to get flashcards", flashcardsError);
+      }
+
+      return {
+        generation_request: this.mapGenerationRequestToDTO(request),
+        flashcards: (flashcards || []).map((fc) => this.mapFlashcardToDTO(fc)),
+      };
+    } catch (error) {
+      if (error instanceof DatabaseError) {
+        throw error;
+      }
+
+      logger.error("Unexpected error in getById", error as Error);
+      throw new DatabaseError("Unexpected database error", error);
+    }
+  }
+
+  /**
+   * Deletes a generation request
+   * 
+   * Behavior:
+   * - Deletes the generation_request record
+   * - Flashcards are NOT deleted (soft CASCADE)
+   * - Flashcards' generation_request_id is set to NULL
+   * - RLS ensures user can only delete their own requests
+   * 
+   * @param userId - ID of the user (for ownership verification)
+   * @param requestId - ID of the generation request to delete
+   * @throws DatabaseError if not found or database error
+   */
+  async delete(userId: string, requestId: string): Promise<void> {
+    try {
+      logger.info("Deleting generation request", { userId, requestId });
+
+      // Delete generation request
+      // Database will automatically set flashcards.generation_request_id to NULL
+      const { error } = await this.supabase
+        .from("generation_requests")
+        .delete()
+        .eq("id", requestId)
+        .eq("user_id", userId);
+
+      if (error) {
+        logger.error("Failed to delete generation request", error as Error);
+        throw new DatabaseError("Failed to delete generation request", error);
+      }
+
+      logger.info("Successfully deleted generation request", { userId, requestId });
+    } catch (error) {
+      if (error instanceof DatabaseError) {
+        throw error;
+      }
+
+      logger.error("Unexpected error in delete", error as Error);
+      throw new DatabaseError("Unexpected database error", error);
+    }
   }
 }
 

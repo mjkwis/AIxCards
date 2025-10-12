@@ -170,7 +170,7 @@ Create a new AI flashcard generation request.
 
 - `400 Bad Request`: Invalid text length (must be 1000-10000 characters)
 - `401 Unauthorized`: Invalid or missing token
-- `422 Unprocessable Entity`: AI service error or unable to generate flashcards
+- `422 Unprocessable Entity`: AI service error (MVP: unlikely with MockAIService, important for production)
 - `429 Too Many Requests`: Rate limit exceeded
 
 ---
@@ -895,7 +895,9 @@ Authorization is enforced at two levels:
 
 1. User submits text via `POST /api/generation-requests`
 2. API validates text length (1000-10000 chars)
-3. API calls OpenRouter.ai with configured prompt
+3. API calls AI Service to generate flashcards
+   - **MVP:** MockAIService (deterministic test data)
+   - **Future:** OpenRouter.ai with configured prompt
 4. AI response is parsed into flashcard objects
 5. Flashcards are created with:
    - `source` = "ai_generated"
