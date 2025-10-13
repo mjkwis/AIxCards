@@ -50,27 +50,42 @@ To set up and run the project on your local machine, follow these steps.
     ```
 
 3.  **Set up environment variables:**
-    Create a `.env` file in the project root and add the necessary API keys and URLs. These are required for connecting to the backend services.
+    Copy the `.env.example` file to `.env` and fill in the required values:
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    Then edit the `.env` file and add your actual API keys and URLs:
 
     ```env
     # Supabase Configuration
-    PUBLIC_SUPABASE_URL="your_supabase_project_url"
-    PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
+    SUPABASE_URL=your_supabase_project_url
+    SUPABASE_KEY=your_supabase_anon_key
+    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
     
     # OpenRouter Configuration
-    OPENROUTER_API_KEY="your_openrouter_api_key"
-    OPENROUTER_MODEL="openai/gpt-4-turbo"  # Optional, defaults to gpt-4-turbo
+    OPENROUTER_API_KEY=your_openrouter_api_key
+    OPENROUTER_MODEL=openai/gpt-4o-mini  # Optional, recommended for Structured Outputs support
     
     # Site URL for OpenRouter referer tracking
-    SITE="http://localhost:4321"  # Optional
+    SITE=http://localhost:3000  # Optional
     ```
+    
+    **How to get Supabase credentials:**
+    - Go to your [Supabase Dashboard](https://app.supabase.com/)
+    - Select your project
+    - Go to Project Settings → API
+    - Copy the `Project URL` to `SUPABASE_URL`
+    - Copy the `anon public` key to `SUPABASE_KEY`
+    - Copy the `service_role` key to `SUPABASE_SERVICE_ROLE_KEY` (used in dev mode)
     
     **OpenRouter Setup:**
     - Get an API key from [OpenRouter](https://openrouter.ai/)
-    - Supported models:
-      - `openai/gpt-4-turbo` (recommended)
-      - `anthropic/claude-3-opus`
-      - `google/gemini-pro`
+    - Recommended models (with Structured Outputs support):
+      - `openai/gpt-4o-mini` (recommended - fast and cost-effective)
+      - `openai/gpt-4o` (more capable, higher quality)
+      - `anthropic/claude-3-5-sonnet` (alternative option)
       - See [OpenRouter Models](https://openrouter.ai/models) for full list
 
 4.  **Run the development server:**

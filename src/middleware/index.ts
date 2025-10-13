@@ -19,29 +19,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // DEV MODE: Use mock user when authentication is not implemented
   const DEV_MOCK_AUTH = import.meta.env.DEV; // Uses Astro's built-in DEV flag
 
-  if (DEV_MOCK_AUTH) {
-    // Create mock user for development
-    const mockUser = {
-      id: "00000000-0000-0000-0000-000000000000",
-      email: "dev@test.com",
-    };
-
-    // Set mock user in context for all requests
-    context.locals.user = mockUser;
-
-    // Create a minimal supabase client placeholder (if needed by other code)
-    // @ts-expect-error - Mock supabase client for development mode
-    context.locals.supabase = {};
-
-    // Continue to endpoint without authentication checks
-    const response = await next();
-    return response;
-  }
-
-  // PRODUCTION MODE: Full authentication flow
   // 1. Initialize Supabase client with SSR support
-  // This creates a client that properly handles cookies for server-side rendering
-  const supabase = createServerClient<Database>(import.meta.env.SUPABASE_URL, import.meta.env.SUPABASE_KEY, {
+  // In DEV mode, use Service Role Key to bypass RLS since we don't have real auth sessions
+  // In PROD mode, use the regular anon key with proper SSR cookie handling
+  const supabaseKey = DEV_MOCK_AUTH
+    ? import.meta.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_KEY
+    : import.meta.env.SUPABASE_KEY;
+
+  const supabase = createServerClient<Database>(import.meta.env.SUPABASE_URL, supabaseKey, {
     cookies: {
       get: (key) => context.cookies.get(key)?.value,
       set: (key, value, options) => {
@@ -51,9 +36,32 @@ export const onRequest = defineMiddleware(async (context, next) => {
         context.cookies.delete(key, options);
       },
     },
+    auth: DEV_MOCK_AUTH
+      ? {
+          autoRefreshToken: false,
+          persistSession: false,
+        }
+      : undefined,
   });
 
   context.locals.supabase = supabase;
+
+  if (DEV_MOCK_AUTH) {
+    // Create mock user for development
+    const mockUser = {
+      id: "2c87435e-48a2-4467-9a6b-e6c7524e730e",
+      email: "mjk.wisniewski@gmail.com",
+    };
+
+    // Set mock user in context for all requests
+    context.locals.user = mockUser;
+
+    // Continue to endpoint without authentication checks
+    const response = await next();
+    return response;
+  }
+
+  // PRODUCTION MODE: Full authentication flow
 
   // 2. Check authentication for dashboard pages (SSR cookie-based)
   const isDashboardPage = context.url.pathname.startsWith("/dashboard");

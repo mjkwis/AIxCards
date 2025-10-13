@@ -72,8 +72,8 @@ export const UpdateFlashcardSchema = z
 export const FlashcardsListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  status: z.enum(["active", "pending_review", "rejected"]).optional(),
-  source: z.enum(["manual", "ai_generated"]).optional(),
+  status: z.enum(["active", "pending_review", "rejected"]).nullable().optional(),
+  source: z.enum(["manual", "ai_generated"]).nullable().optional(),
   sort: z.enum(["created_at", "updated_at", "next_review_at"]).default("created_at"),
   order: z.enum(["asc", "desc"]).default("desc"),
 });

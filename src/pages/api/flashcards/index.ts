@@ -170,6 +170,10 @@ export async function GET(context: APIContext): Promise<Response> {
 
     if (!validationResult.success) {
       const firstError = validationResult.error.errors[0];
+      getLogger.error("Query validation failed", new Error(firstError.message), {
+        queryParams,
+        errors: validationResult.error.errors,
+      });
       return errorResponse(400, "VALIDATION_ERROR", firstError.message, {
         field: firstError.path.join("."),
         errors: validationResult.error.errors,

@@ -599,6 +599,13 @@ export class OpenRouterService {
     const errorData = await response.json().catch(() => ({}));
     const errorMessage = errorData.error?.message || response.statusText;
 
+    // Log full error details for debugging
+    this.logger.error("OpenRouter API error details", new Error(errorMessage), {
+      status: response.status,
+      errorData: JSON.stringify(errorData, null, 2),
+      url: response.url,
+    });
+
     switch (response.status) {
       case 400:
         throw new OpenRouterValidationError(errorMessage, errorData.error);

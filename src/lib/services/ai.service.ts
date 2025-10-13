@@ -26,10 +26,6 @@ export interface FlashcardData {
  * using LLM via OpenRouter service
  */
 export class AIService {
-  constructor() {
-    // Service uses singleton openRouterService
-  }
-
   /**
    * Generates flashcards from source text
    *
@@ -134,7 +130,8 @@ Your task is to:
 - Create clear, focused questions for the front of each card
 - Provide concise, accurate answers for the back
 - Generate between 5 and 15 flashcards depending on content richness
-- Ensure flashcards are suitable for spaced repetition learning`;
+- Ensure flashcards are suitable for spaced repetition learning
+- IMPORTANT: Always generate flashcards in the SAME LANGUAGE as the source text`;
   }
 
   /**
@@ -144,6 +141,8 @@ Your task is to:
    */
   private buildUserMessage(sourceText: string): string {
     return `Generate educational flashcards from the following text. Each flashcard should focus on a single concept and be suitable for spaced repetition learning.
+
+IMPORTANT: Generate flashcards in the SAME LANGUAGE as the text below.
 
 Text to analyze:
 ---

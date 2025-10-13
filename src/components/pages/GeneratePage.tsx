@@ -18,9 +18,7 @@ export function GeneratePage() {
           <Card>
             <CardHeader>
               <CardTitle>Nowe generowanie</CardTitle>
-              <CardDescription>
-                Wklej tekst (1000-10000 znaków) z którego chcesz wygenerować fiszki
-              </CardDescription>
+              <CardDescription>Wklej tekst (1000-10000 znaków) z którego chcesz wygenerować fiszki</CardDescription>
             </CardHeader>
             <CardContent>
               <GenerationForm />
@@ -35,9 +33,7 @@ export function GeneratePage() {
           <Card>
             <CardHeader>
               <CardTitle>Wygenerowane fiszki</CardTitle>
-              <CardDescription>
-                Przejrzyj, edytuj i zatwierdź fiszki wygenerowane przez AI
-              </CardDescription>
+              <CardDescription>Przejrzyj, edytuj i zatwierdź fiszki wygenerowane przez AI</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-12 text-muted-foreground">
