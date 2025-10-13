@@ -1,15 +1,15 @@
 /**
  * API Client Configuration
- * 
+ *
  * Axios instance with interceptors for authentication and error handling
  */
 
-import axios, { type AxiosError } from 'axios';
+import axios, { type AxiosError } from "axios";
 
 export const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: "/api",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   withCredentials: true, // Important for cookie-based auth
 });
@@ -22,12 +22,11 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // Redirect to login with return URL
       const currentPath = window.location.pathname;
-      if (currentPath !== '/login' && currentPath !== '/register') {
+      if (currentPath !== "/login" && currentPath !== "/register") {
         window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
-

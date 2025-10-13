@@ -1,136 +1,21 @@
 ---
 /**
  * Generate Flashcards Page
- * 
+ *
  * Page for generating flashcards from text using AI
  */
 
-import DashboardLayout from '@/layouts/DashboardLayout.astro';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
+import { GeneratePage } from "@/components/pages/GeneratePage";
 ---
 
-<DashboardLayout
-  title="Generuj fiszki - 10x-cards"
-  description="Wygeneruj fiszki z tekstu używając AI"
->
+<DashboardLayout title="Generuj fiszki - 10x-cards" description="Wygeneruj fiszki z tekstu używając AI">
   <div class="space-y-6">
     <div>
       <h1 class="text-3xl font-bold mb-2">Generuj fiszki</h1>
-      <p class="text-muted-foreground">
-        Wklej tekst, a AI automatycznie utworzy z niego pytania i odpowiedzi
-      </p>
+      <p class="text-muted-foreground">Wklej tekst, a AI automatycznie utworzy z niego pytania i odpowiedzi</p>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-2">
-      {/* Left Column - Generation Form */}
-      <div class="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Nowe generowanie</CardTitle>
-            <CardDescription>
-              Wklej tekst (1000-10000 znaków) z którego chcesz wygenerować fiszki
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div data-react-root id="generation-form-root"></div>
-          </CardContent>
-        </Card>
-
-        <div id="generation-history-root" data-react-root></div>
-      </div>
-
-      {/* Right Column - Generated Flashcards */}
-      <div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Wygenerowane fiszki</CardTitle>
-            <CardDescription>
-              Przejrzyj, edytuj i zatwierdź fiszki wygenerowane przez AI
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div id="generated-flashcards-root" data-react-root></div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <GeneratePage client:only="react" />
   </div>
-
-  <script>
-    import { createElement } from 'react';
-    import { createRoot } from 'react-dom/client';
-    import { Providers } from '@/components/providers/Providers';
-    import { GenerationForm } from '@/components/generate/GenerationForm';
-    import { GeneratedFlashcardList } from '@/components/generate/GeneratedFlashcardList';
-    import { GenerationHistory } from '@/components/generate/GenerationHistory';
-    import type { CreateGenerationRequestResponse } from '@/types';
-
-    // Get user data from meta tag
-    const userMeta = document.querySelector('meta[name="user-data"]');
-    const userData = userMeta ? JSON.parse(userMeta.getAttribute('content') || 'null') : null;
-
-    // State for generated flashcards
-    let currentFlashcards: any[] = [];
-
-    // Mount Generation Form
-    const formRoot = document.getElementById('generation-form-root');
-    if (formRoot) {
-      createRoot(formRoot).render(
-        createElement(Providers, { initialUser: userData },
-          createElement(GenerationForm, {
-            onSuccess: (data: CreateGenerationRequestResponse) => {
-              currentFlashcards = data.flashcards;
-              renderFlashcardList();
-            }
-          })
-        )
-      );
-    }
-
-    // Mount Generation History
-    const historyRoot = document.getElementById('generation-history-root');
-    if (historyRoot) {
-      createRoot(historyRoot).render(
-        createElement(Providers, { initialUser: userData },
-          createElement(GenerationHistory, {
-            onSelectRequest: (requestId: string) => {
-              // Navigate to the request detail or load flashcards
-              // For now, we can just show a toast
-              console.log('Selected request:', requestId);
-            }
-          })
-        )
-      );
-    }
-
-    // Render flashcard list
-    let flashcardsRootInstance: any = null;
-    function renderFlashcardList() {
-      const flashcardsRoot = document.getElementById('generated-flashcards-root');
-      if (flashcardsRoot) {
-        if (!flashcardsRootInstance) {
-          flashcardsRootInstance = createRoot(flashcardsRoot);
-        }
-        
-        if (currentFlashcards.length > 0) {
-          flashcardsRootInstance.render(
-            createElement(Providers, { initialUser: userData },
-              createElement(GeneratedFlashcardList, { flashcards: currentFlashcards })
-            )
-          );
-        } else {
-          flashcardsRootInstance.render(
-            createElement('div', { className: 'text-center py-12 text-muted-foreground' },
-              createElement('p', null, 'Wygenerowane fiszki pojawią się tutaj.')
-            )
-          );
-        }
-      }
-    }
-
-    // Initial render
-    renderFlashcardList();
-  </script>
 </DashboardLayout>
-

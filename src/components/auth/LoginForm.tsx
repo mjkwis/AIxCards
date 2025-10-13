@@ -1,24 +1,24 @@
 /**
  * Login Form Component
- * 
+ *
  * Form for user authentication with email and password
  */
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuth } from '@/components/providers/AuthProvider';
-import { useToast } from '@/components/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import type { AxiosError } from 'axios';
-import type { ErrorResponse } from '@/types';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useToast } from "@/components/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { AxiosError } from "axios";
+import type { ErrorResponse } from "@/types";
 
 const loginSchema = z.object({
-  email: z.string().email('Nieprawidłowy adres email').trim().toLowerCase(),
-  password: z.string().min(1, 'Hasło jest wymagane'),
+  email: z.string().email("Nieprawidłowy adres email").trim().toLowerCase(),
+  password: z.string().min(1, "Hasło jest wymagane"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -41,18 +41,18 @@ export function LoginForm() {
     setIsLoading(true);
     try {
       await login(data.email, data.password);
-      
+
       // Redirect after successful login
       const params = new URLSearchParams(window.location.search);
-      const redirect = params.get('redirect') || '/dashboard/generate';
+      const redirect = params.get("redirect") || "/dashboard/generate";
       window.location.href = redirect;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
-      const message = axiosError.response?.data?.error?.message || 'Nie udało się zalogować. Sprawdź swoje dane.';
-      
+      const message = axiosError.response?.data?.error?.message || "Nie udało się zalogować. Sprawdź swoje dane.";
+
       toast({
-        variant: 'destructive',
-        title: 'Błąd logowania',
+        variant: "destructive",
+        title: "Błąd logowania",
         description: message,
       });
       setIsLoading(false);
@@ -68,9 +68,9 @@ export function LoginForm() {
           type="email"
           placeholder="twoj@email.pl"
           autoComplete="email"
-          {...register('email')}
-          aria-invalid={errors.email ? 'true' : 'false'}
-          aria-describedby={errors.email ? 'email-error' : undefined}
+          {...register("email")}
+          aria-invalid={errors.email ? "true" : "false"}
+          aria-describedby={errors.email ? "email-error" : undefined}
         />
         {errors.email && (
           <p id="email-error" className="text-sm text-destructive">
@@ -84,12 +84,12 @@ export function LoginForm() {
         <div className="relative">
           <Input
             id="password"
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             placeholder="••••••••"
             autoComplete="current-password"
-            {...register('password')}
-            aria-invalid={errors.password ? 'true' : 'false'}
-            aria-describedby={errors.password ? 'password-error' : undefined}
+            {...register("password")}
+            aria-invalid={errors.password ? "true" : "false"}
+            aria-describedby={errors.password ? "password-error" : undefined}
           />
           <Button
             type="button"
@@ -129,9 +129,7 @@ export function LoginForm() {
                 <circle cx="12" cy="12" r="3" />
               </svg>
             )}
-            <span className="sr-only">
-              {showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
-            </span>
+            <span className="sr-only">{showPassword ? "Ukryj hasło" : "Pokaż hasło"}</span>
           </Button>
         </div>
         {errors.password && (
@@ -142,11 +140,11 @@ export function LoginForm() {
       </div>
 
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Logowanie...' : 'Zaloguj się'}
+        {isLoading ? "Logowanie..." : "Zaloguj się"}
       </Button>
 
       <p className="text-sm text-center text-muted-foreground">
-        Nie masz konta?{' '}
+        Nie masz konta?{" "}
         <a href="/register" className="text-primary hover:underline">
           Zarejestruj się
         </a>
@@ -154,4 +152,3 @@ export function LoginForm() {
     </form>
   );
 }
-

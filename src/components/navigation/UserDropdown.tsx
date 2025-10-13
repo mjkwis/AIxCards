@@ -1,11 +1,11 @@
 /**
  * User Dropdown Component
- * 
+ *
  * Displays user menu with email, logout and delete account options
  */
 
-import { useState } from 'react';
-import { useAuth } from '@/components/providers/AuthProvider';
+import { useState } from "react";
+import { useAuth } from "@/components/providers/AuthProvider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,8 +13,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,8 +24,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { useToast } from '@/components/hooks/use-toast';
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/components/hooks/use-toast";
 
 export function UserDropdown() {
   const { user, logout, deleteAccount } = useAuth();
@@ -38,9 +38,9 @@ export function UserDropdown() {
       await logout();
     } catch (error) {
       toast({
-        variant: 'destructive',
-        title: 'Błąd',
-        description: 'Nie udało się wylogować. Spróbuj ponownie.',
+        variant: "destructive",
+        title: "Błąd",
+        description: "Nie udało się wylogować. Spróbuj ponownie.",
       });
     }
   };
@@ -50,14 +50,14 @@ export function UserDropdown() {
     try {
       await deleteAccount();
       toast({
-        title: 'Konto usunięte',
-        description: 'Twoje konto zostało trwale usunięte.',
+        title: "Konto usunięte",
+        description: "Twoje konto zostało trwale usunięte.",
       });
     } catch (error) {
       toast({
-        variant: 'destructive',
-        title: 'Błąd',
-        description: 'Nie udało się usunąć konta. Spróbuj ponownie.',
+        variant: "destructive",
+        title: "Błąd",
+        description: "Nie udało się usunąć konta. Spróbuj ponownie.",
       });
       setIsDeleting(false);
     }
@@ -96,15 +96,11 @@ export function UserDropdown() {
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">Konto</p>
-              <p className="text-xs leading-none text-muted-foreground">
-                {user.email}
-              </p>
+              <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout}>
-            Wyloguj się
-          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout}>Wyloguj się</DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setShowDeleteDialog(true)}
             className="text-destructive focus:text-destructive"
@@ -129,7 +125,7 @@ export function UserDropdown() {
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? 'Usuwanie...' : 'Usuń konto'}
+              {isDeleting ? "Usuwanie..." : "Usuń konto"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -137,4 +133,3 @@ export function UserDropdown() {
     </>
   );
 }
-

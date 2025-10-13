@@ -1,19 +1,19 @@
 /**
  * Study Session Component
- * 
+ *
  * Main component for managing study sessions
  */
 
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api-client';
-import { useToast } from '@/components/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { StudyCard } from './StudyCard';
-import { ProgressBar } from './ProgressBar';
-import { SessionSummary } from './SessionSummary';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { StudySessionResponse, FlashcardDTO } from '@/types';
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
+import { useToast } from "@/components/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { StudyCard } from "./StudyCard";
+import { ProgressBar } from "./ProgressBar";
+import { SessionSummary } from "./SessionSummary";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { StudySessionResponse, FlashcardDTO } from "@/types";
 
 export function StudySession() {
   const { toast } = useToast();
@@ -23,9 +23,9 @@ export function StudySession() {
   const [sessionFinished, setSessionFinished] = useState(false);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['study-session'],
+    queryKey: ["study-session"],
     queryFn: async () => {
-      const response = await apiClient.get<StudySessionResponse>('/study-sessions/current');
+      const response = await apiClient.get<StudySessionResponse>("/study-sessions/current");
       return response.data;
     },
     refetchOnWindowFocus: false,
@@ -34,29 +34,29 @@ export function StudySession() {
 
   const reviewMutation = useMutation({
     mutationFn: async ({ flashcard_id, quality }: { flashcard_id: string; quality: number }) => {
-      const response = await apiClient.post('/study-sessions/review', {
+      const response = await apiClient.post("/study-sessions/review", {
         flashcard_id,
         quality,
       });
       return response.data;
     },
     onSuccess: () => {
-      setReviewedCount(prev => prev + 1);
-      
+      setReviewedCount((prev) => prev + 1);
+
       // Move to next card or finish session
       if (data && currentIndex < data.flashcards.length - 1) {
-        setCurrentIndex(prev => prev + 1);
+        setCurrentIndex((prev) => prev + 1);
       } else {
         setSessionFinished(true);
-        queryClient.invalidateQueries({ queryKey: ['statistics'] });
-        queryClient.invalidateQueries({ queryKey: ['flashcards'] });
+        queryClient.invalidateQueries({ queryKey: ["statistics"] });
+        queryClient.invalidateQueries({ queryKey: ["flashcards"] });
       }
     },
     onError: () => {
       toast({
-        variant: 'destructive',
-        title: 'Błąd',
-        description: 'Nie udało się zapisać oceny. Spróbuj ponownie.',
+        variant: "destructive",
+        title: "Błąd",
+        description: "Nie udało się zapisać oceny. Spróbuj ponownie.",
       });
     },
   });
@@ -67,14 +67,14 @@ export function StudySession() {
       if (reviewMutation.isPending || !data?.flashcards[currentIndex]) return;
 
       const key = e.key;
-      if (['0', '1', '2', '3', '4', '5'].includes(key)) {
+      if (["0", "1", "2", "3", "4", "5"].includes(key)) {
         const quality = parseInt(key);
         handleRate(quality);
       }
     };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
   }, [currentIndex, data, reviewMutation.isPending]);
 
   const handleRate = (quality: number) => {
@@ -85,7 +85,7 @@ export function StudySession() {
   };
 
   const handleFinish = () => {
-    window.location.href = '/dashboard/flashcards';
+    window.location.href = "/dashboard/flashcards";
   };
 
   if (isLoading) {
@@ -120,12 +120,8 @@ export function StudySession() {
           </svg>
         </div>
         <h2 className="text-2xl font-bold mb-2">Błąd ładowania sesji</h2>
-        <p className="text-muted-foreground mb-6">
-          Nie udało się załadować sesji nauki. Spróbuj ponownie.
-        </p>
-        <Button onClick={() => window.location.reload()}>
-          Odśwież stronę
-        </Button>
+        <p className="text-muted-foreground mb-6">Nie udało się załadować sesji nauki. Spróbuj ponownie.</p>
+        <Button onClick={() => window.location.reload()}>Odśwież stronę</Button>
       </div>
     );
   }
@@ -152,17 +148,11 @@ export function StudySession() {
         </div>
         <h2 className="text-2xl font-bold mb-2">Brak fiszek do powtórki</h2>
         <p className="text-muted-foreground mb-6">
-          Świetnie! Nie masz żadnych fiszek zaplanowanych na dziś.
-          Wróć później lub dodaj nowe fiszki.
+          Świetnie! Nie masz żadnych fiszek zaplanowanych na dziś. Wróć później lub dodaj nowe fiszki.
         </p>
         <div className="flex gap-4 justify-center">
-          <Button onClick={() => window.location.href = '/dashboard/generate'}>
-            Generuj fiszki
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => window.location.href = '/dashboard/flashcards'}
-          >
+          <Button onClick={() => (window.location.href = "/dashboard/generate")}>Generuj fiszki</Button>
+          <Button variant="outline" onClick={() => (window.location.href = "/dashboard/flashcards")}>
             Moje fiszki
           </Button>
         </div>
@@ -183,7 +173,7 @@ export function StudySession() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Sesja nauki</h1>
         <p className="text-sm text-muted-foreground">
-          {totalFlashcards} {totalFlashcards === 1 ? 'fiszka' : 'fiszek'} do powtórki
+          {totalFlashcards} {totalFlashcards === 1 ? "fiszka" : "fiszek"} do powtórki
         </p>
       </div>
 
@@ -200,7 +190,7 @@ export function StudySession() {
           size="sm"
           onClick={() => {
             if (currentIndex < data.flashcards.length - 1) {
-              setCurrentIndex(prev => prev + 1);
+              setCurrentIndex((prev) => prev + 1);
             } else {
               setSessionFinished(true);
             }
@@ -213,4 +203,3 @@ export function StudySession() {
     </div>
   );
 }
-

@@ -1,16 +1,16 @@
 /**
  * Flashcard Card Component
- * 
+ *
  * Individual flashcard display with actions
  */
 
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api-client';
-import { useToast } from '@/components/hooks/use-toast';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
+import { useToast } from "@/components/hooks/use-toast";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,9 +20,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { FlashcardEditor } from '@/components/generate/FlashcardEditor';
-import type { FlashcardDTO } from '@/types';
+} from "@/components/ui/alert-dialog";
+import { FlashcardEditor } from "@/components/generate/FlashcardEditor";
+import type { FlashcardDTO } from "@/types";
 
 interface FlashcardCardProps {
   flashcard: FlashcardDTO;
@@ -40,16 +40,16 @@ export function FlashcardCard({ flashcard }: FlashcardCardProps) {
     },
     onSuccess: () => {
       toast({
-        title: 'Usunięto',
-        description: 'Fiszka została usunięta.',
+        title: "Usunięto",
+        description: "Fiszka została usunięta.",
       });
-      queryClient.invalidateQueries({ queryKey: ['flashcards'] });
+      queryClient.invalidateQueries({ queryKey: ["flashcards"] });
     },
     onError: () => {
       toast({
-        variant: 'destructive',
-        title: 'Błąd',
-        description: 'Nie udało się usunąć fiszki.',
+        variant: "destructive",
+        title: "Błąd",
+        description: "Nie udało się usunąć fiszki.",
       });
     },
   });
@@ -60,10 +60,10 @@ export function FlashcardCard({ flashcard }: FlashcardCardProps) {
     },
     onSuccess: () => {
       toast({
-        title: 'Zatwierdzono',
-        description: 'Fiszka została zatwierdzona.',
+        title: "Zatwierdzono",
+        description: "Fiszka została zatwierdzona.",
       });
-      queryClient.invalidateQueries({ queryKey: ['flashcards'] });
+      queryClient.invalidateQueries({ queryKey: ["flashcards"] });
     },
   });
 
@@ -73,22 +73,22 @@ export function FlashcardCard({ flashcard }: FlashcardCardProps) {
     },
     onSuccess: () => {
       toast({
-        title: 'Odrzucono',
-        description: 'Fiszka została odrzucona.',
+        title: "Odrzucono",
+        description: "Fiszka została odrzucona.",
       });
-      queryClient.invalidateQueries({ queryKey: ['flashcards'] });
+      queryClient.invalidateQueries({ queryKey: ["flashcards"] });
     },
   });
 
   const statusColors: Record<string, string> = {
-    active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-    pending_review: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-    rejected: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+    active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+    pending_review: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+    rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
   };
 
   const sourceLabels: Record<string, string> = {
-    manual: 'Ręczna',
-    ai_generated: 'AI',
+    manual: "Ręczna",
+    ai_generated: "AI",
   };
 
   return (
@@ -96,13 +96,14 @@ export function FlashcardCard({ flashcard }: FlashcardCardProps) {
       <Card className="flex flex-col h-full">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-2">
-            <Badge className={statusColors[flashcard.status] || ''}>
-              {flashcard.status === 'active' ? 'Aktywna' : 
-               flashcard.status === 'pending_review' ? 'Oczekuje' : 'Odrzucona'}
+            <Badge className={statusColors[flashcard.status] || ""}>
+              {flashcard.status === "active"
+                ? "Aktywna"
+                : flashcard.status === "pending_review"
+                  ? "Oczekuje"
+                  : "Odrzucona"}
             </Badge>
-            <Badge variant="outline">
-              {sourceLabels[flashcard.source] || flashcard.source}
-            </Badge>
+            <Badge variant="outline">{sourceLabels[flashcard.source] || flashcard.source}</Badge>
           </div>
         </CardHeader>
 
@@ -118,23 +119,18 @@ export function FlashcardCard({ flashcard }: FlashcardCardProps) {
           {flashcard.next_review_at && (
             <div>
               <p className="text-xs text-muted-foreground">
-                Następna powtórka: {new Date(flashcard.next_review_at).toLocaleDateString('pl-PL')}
+                Następna powtórka: {new Date(flashcard.next_review_at).toLocaleDateString("pl-PL")}
               </p>
             </div>
           )}
         </CardContent>
 
         <CardFooter className="gap-2 flex-wrap pt-3">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setShowEditor(true)}
-            className="flex-1"
-          >
+          <Button size="sm" variant="outline" onClick={() => setShowEditor(true)} className="flex-1">
             Edytuj
           </Button>
-          
-          {flashcard.status === 'pending_review' && (
+
+          {flashcard.status === "pending_review" && (
             <>
               <Button
                 size="sm"
@@ -154,12 +150,8 @@ export function FlashcardCard({ flashcard }: FlashcardCardProps) {
               </Button>
             </>
           )}
-          
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={() => setShowDeleteDialog(true)}
-          >
+
+          <Button size="sm" variant="destructive" onClick={() => setShowDeleteDialog(true)}>
             Usuń
           </Button>
         </CardFooter>
@@ -175,9 +167,7 @@ export function FlashcardCard({ flashcard }: FlashcardCardProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>
-              Anuluj
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Anuluj</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 deleteMutation.mutate();
@@ -186,21 +176,14 @@ export function FlashcardCard({ flashcard }: FlashcardCardProps) {
               disabled={deleteMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {deleteMutation.isPending ? 'Usuwanie...' : 'Usuń'}
+              {deleteMutation.isPending ? "Usuwanie..." : "Usuń"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Edit Modal */}
-      {showEditor && (
-        <FlashcardEditor
-          flashcard={flashcard}
-          open={showEditor}
-          onOpenChange={setShowEditor}
-        />
-      )}
+      {showEditor && <FlashcardEditor flashcard={flashcard} open={showEditor} onOpenChange={setShowEditor} />}
     </>
   );
 }
-

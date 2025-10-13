@@ -1,23 +1,25 @@
 ---
 /**
  * Register Page
- * 
+ *
  * User registration page
  */
 
-import PublicLayout from '@/layouts/PublicLayout.astro';
-import { RegisterForm } from '@/components/auth/RegisterForm';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import PublicLayout from "@/layouts/PublicLayout.astro";
+import { RegisterForm } from "@/components/auth/RegisterForm";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 // DEV MODE: Always redirect to dashboard
 if (import.meta.env.DEV) {
-  return Astro.redirect('/dashboard/generate');
+  return Astro.redirect("/dashboard/generate");
 }
 
 // PRODUCTION: If user is already logged in, redirect to dashboard
-const { data: { session } } = await Astro.locals.supabase.auth.getSession();
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
 if (session?.user) {
-  return Astro.redirect('/dashboard/generate');
+  return Astro.redirect("/dashboard/generate");
 }
 ---
 
@@ -33,9 +35,7 @@ if (session?.user) {
         <Card>
           <CardHeader>
             <CardTitle>Rejestracja</CardTitle>
-            <CardDescription>
-              Wprowadź swoje dane, aby utworzyć konto
-            </CardDescription>
+            <CardDescription> Wprowadź swoje dane, aby utworzyć konto </CardDescription>
           </CardHeader>
           <CardContent>
             <RegisterForm client:load />
@@ -45,4 +45,3 @@ if (session?.user) {
     </div>
   </div>
 </PublicLayout>
-

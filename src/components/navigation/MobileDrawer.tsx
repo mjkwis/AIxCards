@@ -1,25 +1,19 @@
 /**
  * Mobile Drawer Component
- * 
+ *
  * Mobile navigation drawer with hamburger menu
  */
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface MobileDrawerProps {
-  links: Array<{
+  links: {
     href: string;
     label: string;
     active: boolean;
-  }>;
+  }[];
 }
 
 export function MobileDrawer({ links }: MobileDrawerProps) {
@@ -58,9 +52,7 @@ export function MobileDrawer({ links }: MobileDrawerProps) {
               key={link.href}
               href={link.href}
               className={`block px-4 py-2 rounded-md transition-colors ${
-                link.active
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-accent hover:text-accent-foreground'
+                link.active ? "bg-primary text-primary-foreground" : "hover:bg-accent hover:text-accent-foreground"
               }`}
               onClick={() => setOpen(false)}
             >
@@ -72,4 +64,3 @@ export function MobileDrawer({ links }: MobileDrawerProps) {
     </Sheet>
   );
 }
-

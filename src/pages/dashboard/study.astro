@@ -1,39 +1,16 @@
 ---
 /**
  * Study Session Page
- * 
+ *
  * Page for conducting study sessions with spaced repetition
  */
 
-import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
+import { StudyPage } from "@/components/pages/StudyPage";
 ---
 
-<DashboardLayout
-  title="Sesja nauki - 10x-cards"
-  description="Przeprowadź sesję nauki z algorytmem SM-2"
->
-  <div data-react-root id="study-session-root"></div>
-
-  <script>
-    import { createElement } from 'react';
-    import { createRoot } from 'react-dom/client';
-    import { Providers } from '@/components/providers/Providers';
-    import { StudySession } from '@/components/study/StudySession';
-
-    // Get user data from meta tag
-    const userMeta = document.querySelector('meta[name="user-data"]');
-    const userData = userMeta ? JSON.parse(userMeta.getAttribute('content') || 'null') : null;
-
-    // Mount Study Session
-    const root = document.getElementById('study-session-root');
-    if (root) {
-      createRoot(root).render(
-        createElement(Providers, { initialUser: userData },
-          createElement(StudySession)
-        )
-      );
-    }
-  </script>
+<DashboardLayout title="Sesja nauki - 10x-cards" description="Przeprowadź sesję nauki z algorytmem SM-2">
+  <StudyPage client:only="react" />
 
   {/* CSS for 3D flip animation */}
   <style is:global>
@@ -51,4 +28,3 @@ import DashboardLayout from '@/layouts/DashboardLayout.astro';
     }
   </style>
 </DashboardLayout>
-

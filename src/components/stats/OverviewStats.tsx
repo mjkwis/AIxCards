@@ -1,11 +1,11 @@
 /**
  * Overview Stats Component
- * 
+ *
  * Displays overview statistics cards
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { StatisticsOverview } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { StatisticsOverview } from "@/types";
 
 interface OverviewStatsProps {
   statistics: StatisticsOverview;
@@ -14,7 +14,7 @@ interface OverviewStatsProps {
 export function OverviewStats({ statistics }: OverviewStatsProps) {
   const stats = [
     {
-      title: 'Wszystkie fiszki',
+      title: "Wszystkie fiszki",
       value: statistics.total_flashcards,
       icon: (
         <svg
@@ -34,7 +34,7 @@ export function OverviewStats({ statistics }: OverviewStatsProps) {
       ),
     },
     {
-      title: 'Aktywne fiszki',
+      title: "Aktywne fiszki",
       value: statistics.active_flashcards,
       icon: (
         <svg
@@ -51,10 +51,10 @@ export function OverviewStats({ statistics }: OverviewStatsProps) {
           <polyline points="20 6 9 17 4 12" />
         </svg>
       ),
-      color: 'text-green-600',
+      color: "text-green-600",
     },
     {
-      title: 'Do powtórki dziś',
+      title: "Do powtórki dziś",
       value: statistics.flashcards_due_today,
       icon: (
         <svg
@@ -72,10 +72,10 @@ export function OverviewStats({ statistics }: OverviewStatsProps) {
           <polyline points="12 6 12 12 16 14" />
         </svg>
       ),
-      color: 'text-primary',
+      color: "text-primary",
     },
     {
-      title: 'Przejrzanych fiszek',
+      title: "Przejrzanych fiszek",
       value: statistics.total_reviews_completed,
       icon: (
         <svg
@@ -95,7 +95,7 @@ export function OverviewStats({ statistics }: OverviewStatsProps) {
       ),
     },
     {
-      title: 'Oczekujące',
+      title: "Oczekujące",
       value: statistics.pending_review_flashcards,
       icon: (
         <svg
@@ -114,10 +114,10 @@ export function OverviewStats({ statistics }: OverviewStatsProps) {
           <path d="M12 8h.01" />
         </svg>
       ),
-      color: 'text-yellow-600',
+      color: "text-yellow-600",
     },
     {
-      title: 'Akceptacja AI',
+      title: "Akceptacja AI",
       value: `${Math.round(statistics.ai_acceptance_rate * 100)}%`,
       icon: (
         <svg
@@ -134,7 +134,7 @@ export function OverviewStats({ statistics }: OverviewStatsProps) {
           <path d="M12 2v20M2 12h20" />
         </svg>
       ),
-      color: 'text-blue-600',
+      color: "text-blue-600",
     },
   ];
 
@@ -143,12 +143,8 @@ export function OverviewStats({ statistics }: OverviewStatsProps) {
       {stats.map((stat, index) => (
         <Card key={index}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {stat.title}
-            </CardTitle>
-            <div className={stat.color || 'text-muted-foreground'}>
-              {stat.icon}
-            </div>
+            <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+            <div className={stat.color || "text-muted-foreground"}>{stat.icon}</div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stat.value}</div>
@@ -158,4 +154,3 @@ export function OverviewStats({ statistics }: OverviewStatsProps) {
     </div>
   );
 }
-

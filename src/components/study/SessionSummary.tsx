@@ -1,11 +1,11 @@
 /**
  * Session Summary Component
- * 
+ *
  * Displays summary after completing a study session
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface SessionSummaryProps {
   totalReviewed: number;
@@ -34,9 +34,7 @@ export function SessionSummary({ totalReviewed, onFinish }: SessionSummaryProps)
           </svg>
         </div>
         <h2 className="text-3xl font-bold mb-2">Świetna robota!</h2>
-        <p className="text-muted-foreground">
-          Ukończyłeś sesję nauki
-        </p>
+        <p className="text-muted-foreground">Ukończyłeś sesję nauki</p>
       </div>
 
       <Card>
@@ -49,24 +47,17 @@ export function SessionSummary({ totalReviewed, onFinish }: SessionSummaryProps)
             <span className="text-2xl font-bold">{totalReviewed}</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            Następne fiszki do powtórki będą dostępne zgodnie z algorytmem SM-2.
-            Powróć później, aby kontynuować naukę.
+            Następne fiszki do powtórki będą dostępne zgodnie z algorytmem SM-2. Powróć później, aby kontynuować naukę.
           </p>
         </CardContent>
       </Card>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Button onClick={onFinish}>
-          Zakończ sesję
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => window.location.href = '/dashboard/stats'}
-        >
+        <Button onClick={onFinish}>Zakończ sesję</Button>
+        <Button variant="outline" onClick={() => (window.location.href = "/dashboard/stats")}>
           Zobacz statystyki
         </Button>
       </div>
     </div>
   );
 }
-

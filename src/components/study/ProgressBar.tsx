@@ -1,10 +1,10 @@
 /**
  * Progress Bar Component
- * 
+ *
  * Displays progress through the study session
  */
 
-import { Progress } from '@/components/ui/progress';
+import { Progress } from "@/components/ui/progress";
 
 interface ProgressBarProps {
   current: number;
@@ -26,4 +26,3 @@ export function ProgressBar({ current, total }: ProgressBarProps) {
     </div>
   );
 }
-

@@ -1,12 +1,12 @@
 /**
  * Source Breakdown Component
- * 
+ *
  * Displays breakdown of flashcards by source (AI vs Manual)
  */
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import type { StatisticsOverview } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import type { StatisticsOverview } from "@/types";
 
 interface SourceBreakdownProps {
   statistics: StatisticsOverview;
@@ -56,4 +56,3 @@ export function SourceBreakdown({ statistics }: SourceBreakdownProps) {
     </Card>
   );
 }
-

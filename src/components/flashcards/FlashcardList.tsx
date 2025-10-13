@@ -1,47 +1,51 @@
 /**
  * Flashcard List Component
- * 
+ *
  * Main component for displaying, filtering and sorting flashcards
  */
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api-client';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { FlashcardCard } from './FlashcardCard';
-import { CreateFlashcardModal } from './CreateFlashcardModal';
-import type { FlashcardsListResponse, FlashcardStatus, FlashcardSource } from '@/types';
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FlashcardCard } from "./FlashcardCard";
+import { CreateFlashcardModal } from "./CreateFlashcardModal";
+import type { FlashcardsListResponse, FlashcardStatus, FlashcardSource } from "@/types";
 
-type SortOption = 'created_at' | 'updated_at' | 'next_review_at';
-type OrderOption = 'asc' | 'desc';
+type SortOption = "created_at" | "updated_at" | "next_review_at";
+type OrderOption = "asc" | "desc";
 
 export function FlashcardList() {
-  const [status, setStatus] = useState<FlashcardStatus | 'all'>('active');
-  const [source, setSource] = useState<FlashcardSource | 'all'>('all');
-  const [sort, setSort] = useState<SortOption>('created_at');
-  const [order, setOrder] = useState<OrderOption>('desc');
+  const [status, setStatus] = useState<FlashcardStatus | "all">("active");
+  const [source, setSource] = useState<FlashcardSource | "all">("all");
+  const [sort, setSort] = useState<SortOption>("created_at");
+  const [order, setOrder] = useState<OrderOption>("desc");
   const [page, setPage] = useState(1);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const limit = 20;
 
   const { data, isLoading, isFetching } = useQuery({
-    queryKey: ['flashcards', { status: status !== 'all' ? status : undefined, source: source !== 'all' ? source : undefined, sort, order, page, limit }],
+    queryKey: [
+      "flashcards",
+      {
+        status: status !== "all" ? status : undefined,
+        source: source !== "all" ? source : undefined,
+        sort,
+        order,
+        page,
+        limit,
+      },
+    ],
     queryFn: async () => {
       const params: any = { sort, order, page, limit };
-      if (status !== 'all') params.status = status;
-      if (source !== 'all') params.source = source;
-      
-      const response = await apiClient.get<FlashcardsListResponse>('/flashcards', { params });
+      if (status !== "all") params.status = status;
+      if (source !== "all") params.source = source;
+
+      const response = await apiClient.get<FlashcardsListResponse>("/flashcards", { params });
       return response.data;
     },
   });
@@ -50,7 +54,7 @@ export function FlashcardList() {
   const pagination = data?.pagination;
 
   const handleStatusChange = (value: string) => {
-    setStatus(value as FlashcardStatus | 'all');
+    setStatus(value as FlashcardStatus | "all");
     setPage(1);
   };
 
@@ -64,9 +68,7 @@ export function FlashcardList() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Moje fiszki</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            {pagination?.total || 0} fiszek w sumie
-          </p>
+          <p className="text-sm text-muted-foreground mt-1">{pagination?.total || 0} fiszek w sumie</p>
         </div>
         <CreateFlashcardModal
           trigger={
@@ -107,7 +109,13 @@ export function FlashcardList() {
         </Tabs>
 
         {/* Source Filter */}
-        <Select value={source} onValueChange={(v) => { setSource(v as FlashcardSource | 'all'); setPage(1); }}>
+        <Select
+          value={source}
+          onValueChange={(v) => {
+            setSource(v as FlashcardSource | "all");
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Źródło" />
           </SelectTrigger>
@@ -119,12 +127,15 @@ export function FlashcardList() {
         </Select>
 
         {/* Sort */}
-        <Select value={`${sort}-${order}`} onValueChange={(v) => {
-          const [s, o] = v.split('-');
-          setSort(s as SortOption);
-          setOrder(o as OrderOption);
-          setPage(1);
-        }}>
+        <Select
+          value={`${sort}-${order}`}
+          onValueChange={(v) => {
+            const [s, o] = v.split("-");
+            setSort(s as SortOption);
+            setOrder(o as OrderOption);
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Sortuj" />
           </SelectTrigger>
@@ -166,14 +177,12 @@ export function FlashcardList() {
           </div>
           <h3 className="text-lg font-semibold mb-2">Brak fiszek</h3>
           <p className="text-muted-foreground mb-4">
-            {status === 'all' 
-              ? 'Zacznij od wygenerowania fiszek z tekstu lub utwórz własne.'
+            {status === "all"
+              ? "Zacznij od wygenerowania fiszek z tekstu lub utwórz własne."
               : `Nie masz fiszek ze statusem "${status}".`}
           </p>
           <div className="flex gap-2 justify-center">
-            <Button onClick={() => window.location.href = '/dashboard/generate'}>
-              Generuj fiszki
-            </Button>
+            <Button onClick={() => (window.location.href = "/dashboard/generate")}>Generuj fiszki</Button>
             <Button variant="outline" onClick={() => setShowCreateModal(true)}>
               Utwórz fiszkę
             </Button>
@@ -197,7 +206,7 @@ export function FlashcardList() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1 || isFetching}
                 >
                   Poprzednia
@@ -205,7 +214,7 @@ export function FlashcardList() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage(p => p + 1)}
+                  onClick={() => setPage((p) => p + 1)}
                   disabled={page >= pagination.total_pages || isFetching}
                 >
                   Następna
@@ -218,4 +227,3 @@ export function FlashcardList() {
     </div>
   );
 }
-

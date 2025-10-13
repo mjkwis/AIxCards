@@ -1,12 +1,13 @@
 /**
  * AI Service for generating flashcards from text
  *
- * MOCK IMPLEMENTATION - Currently returns mock data for frontend development
- * TODO: Replace with actual OpenRouter.ai integration when ready
+ * Uses OpenRouter service for LLM-powered flashcard generation
  */
 
 import { AIServiceError } from "../errors/ai-service.error";
 import { Logger } from "./logger.service";
+import { openRouterService, type JsonSchema } from "./openrouter.service";
+import { OpenRouterError, OpenRouterAuthError, OpenRouterRateLimitError } from "../errors/openrouter.error";
 
 const logger = new Logger("AIService");
 
@@ -21,106 +22,95 @@ export interface FlashcardData {
 /**
  * AI Service class for flashcard generation
  *
- * CURRENT STATUS: Mock implementation for frontend development
- * Returns sample flashcards based on text length
+ * Provides high-level interface for generating educational flashcards
+ * using LLM via OpenRouter service
  */
 export class AIService {
-  private apiKey: string;
-  private model: string;
-  private apiUrl = "https://openrouter.ai/api/v1/chat/completions";
-
   constructor() {
-    this.apiKey = import.meta.env.OPENROUTER_API_KEY || "";
-    this.model = import.meta.env.OPENROUTER_MODEL || "openai/gpt-4-turbo";
+    // Service uses singleton openRouterService
   }
 
   /**
    * Generates flashcards from source text
    *
-   * MOCK IMPLEMENTATION: Returns 5-10 sample flashcards
-   * TODO: Implement actual OpenRouter.ai API call
+   * Uses OpenRouter LLM to generate educational flashcards with structured output
    *
    * @param sourceText - Source text to generate flashcards from (1000-10000 chars)
    * @returns Array of flashcard data with front and back
    * @throws AIServiceError if generation fails
    */
   async generateFlashcards(sourceText: string): Promise<FlashcardData[]> {
-    logger.info("Generating flashcards via AI (MOCK)", {
+    logger.info("Generating flashcards via AI", {
       textLength: sourceText.length,
     });
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Mock implementation - generate sample flashcards
-    const mockFlashcards = this.generateMockFlashcards(sourceText);
-
-    logger.info("Successfully generated flashcards (MOCK)", {
-      count: mockFlashcards.length,
-    });
-
-    return mockFlashcards;
-
-    /* 
-    TODO: Uncomment and implement when ready for OpenRouter.ai integration
-    
     try {
-      if (!this.apiKey) {
-        throw new AIServiceError(
-          "AI service is not configured",
-          "OPENROUTER_API_KEY is missing"
-        );
-      }
-
-      const prompt = this.buildPrompt(sourceText);
-
-      // HTTP Request to OpenRouter.ai
-      const response = await fetch(this.apiUrl, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": import.meta.env.SITE || "http://localhost:4321",
-          "X-Title": "10x-cards",
+      // Define response schema for structured output
+      const schema: JsonSchema<{ flashcards: FlashcardData[] }> = {
+        name: "flashcards_response",
+        description: "Array of educational flashcards",
+        schema: {
+          type: "object",
+          properties: {
+            flashcards: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  front: {
+                    type: "string",
+                    description: "Question or front side of the flashcard",
+                  },
+                  back: {
+                    type: "string",
+                    description: "Answer or back side of the flashcard",
+                  },
+                },
+                required: ["front", "back"],
+                additionalProperties: false,
+              },
+              minItems: 5,
+              maxItems: 15,
+            },
+          },
+          required: ["flashcards"],
+          additionalProperties: false,
         },
-        body: JSON.stringify({
-          model: this.model,
-          messages: [
-            {
-              role: "system",
-              content: "You are a helpful assistant that generates educational flashcards.",
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 2000,
-        }),
-        signal: AbortSignal.timeout(30000), // 30s timeout
-      });
+        strict: true,
+      };
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new AIServiceError(
-          "AI service returned an error",
-          errorData.error?.message || "Unknown error",
-          response.status
-        );
-      }
-
-      const data = await response.json();
-      const flashcards = this.parseAIResponse(data);
+      // Generate flashcards using OpenRouter
+      const result = await openRouterService.generateStructured(
+        this.buildSystemMessage(),
+        this.buildUserMessage(sourceText),
+        schema
+      );
 
       logger.info("Successfully generated flashcards", {
-        count: flashcards.length,
+        count: result.flashcards.length,
       });
 
-      return flashcards;
+      return result.flashcards;
     } catch (error) {
-      if (error instanceof AIServiceError) {
-        throw error;
+      // Handle OpenRouter-specific errors
+      if (error instanceof OpenRouterAuthError) {
+        throw new AIServiceError(
+          "AI service authentication failed",
+          "Invalid or missing OPENROUTER_API_KEY. Please check your configuration.",
+          error.statusCode
+        );
+      }
+
+      if (error instanceof OpenRouterRateLimitError) {
+        throw new AIServiceError(
+          "AI service rate limit exceeded",
+          "Too many requests. Please try again later.",
+          error.statusCode
+        );
+      }
+
+      if (error instanceof OpenRouterError) {
+        throw new AIServiceError("Failed to generate flashcards", error.message, error.statusCode);
       }
 
       logger.error("Unexpected error in generateFlashcards", error as Error);
@@ -129,104 +119,38 @@ export class AIService {
         error instanceof Error ? error.message : "Unknown error"
       );
     }
-    */
   }
 
   /**
-   * MOCK: Generates sample flashcards based on text
+   * Builds system message for LLM
    *
-   * @param sourceText - Source text
-   * @returns Array of mock flashcards
+   * Defines the role and behavior of the AI assistant
    */
-  private generateMockFlashcards(sourceText: string): FlashcardData[] {
-    // Generate 5-10 flashcards based on text length
-    const count = Math.min(10, Math.max(5, Math.floor(sourceText.length / 1000)));
-    const preview = sourceText.substring(0, 50);
+  private buildSystemMessage(): string {
+    return `You are an expert educational assistant specializing in creating high-quality flashcards for spaced repetition learning.
 
-    return Array.from({ length: count }, (_, i) => ({
-      front: `Sample question ${i + 1} about: "${preview}..."?`,
-      back: `Sample answer ${i + 1} based on the provided text. This is a mock response for frontend development.`,
-    }));
+Your task is to:
+- Extract key concepts from the provided text
+- Create clear, focused questions for the front of each card
+- Provide concise, accurate answers for the back
+- Generate between 5 and 15 flashcards depending on content richness
+- Ensure flashcards are suitable for spaced repetition learning`;
   }
 
   /**
-   * Builds prompt for AI flashcard generation
+   * Builds user message for LLM
    *
-   * @param sourceText - Source text to generate flashcards from
-   * @returns Formatted prompt string
+   * Provides the source text and instructions for flashcard generation
    */
-  private buildPrompt(sourceText: string): string {
-    return `Generate educational flashcards from the following text. Create between 5 and 15 flashcards.
+  private buildUserMessage(sourceText: string): string {
+    return `Generate educational flashcards from the following text. Each flashcard should focus on a single concept and be suitable for spaced repetition learning.
 
-Each flashcard should:
-- Have a clear question on the front
-- Have a concise answer on the back
-- Cover important concepts from the text
-- Be suitable for spaced repetition learning
-
-Return ONLY a JSON array with this exact format:
-[
-  {
-    "front": "Question text?",
-    "back": "Answer text."
-  }
-]
-
-Text to generate flashcards from:
+Text to analyze:
 ---
 ${sourceText}
 ---
 
-JSON array of flashcards:`;
-  }
-
-  /**
-   * Parses AI response and validates flashcard structure
-   *
-   * @param response - Raw response from OpenRouter.ai
-   * @returns Validated array of flashcards
-   * @throws AIServiceError if response is invalid
-   */
-  private parseAIResponse(response: unknown): FlashcardData[] {
-    try {
-      const data = response as { choices?: { message?: { content?: string } }[] };
-      const content = data.choices?.[0]?.message?.content;
-
-      if (!content) {
-        throw new AIServiceError("AI response is empty", "No content in AI response");
-      }
-
-      // Try to extract JSON from response (might be wrapped in markdown)
-      const jsonMatch = content.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) {
-        throw new AIServiceError("Could not parse AI response", "No JSON array found in response");
-      }
-
-      const flashcards = JSON.parse(jsonMatch[0]) as unknown[];
-
-      // Validate structure
-      if (!Array.isArray(flashcards) || flashcards.length === 0) {
-        throw new AIServiceError("Invalid flashcards format", "Expected non-empty array");
-      }
-
-      // Validate each flashcard
-      for (const fc of flashcards) {
-        const card = fc as { front?: unknown; back?: unknown };
-        if (!card.front || !card.back || typeof card.front !== "string" || typeof card.back !== "string") {
-          throw new AIServiceError("Invalid flashcard structure", "Each flashcard must have front and back as strings");
-        }
-      }
-
-      // Limit to max 20 flashcards
-      return (flashcards as FlashcardData[]).slice(0, 20);
-    } catch (error) {
-      if (error instanceof AIServiceError) {
-        throw error;
-      }
-
-      logger.error("Error parsing AI response", error as Error, { response });
-      throw new AIServiceError("Failed to parse AI response", error instanceof Error ? error.message : "Parse error");
-    }
+Create flashcards that help learners master the key concepts from this text.`;
   }
 }
 

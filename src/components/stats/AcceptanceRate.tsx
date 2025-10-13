@@ -1,12 +1,12 @@
 /**
  * Acceptance Rate Component
- * 
+ *
  * Displays AI flashcard acceptance rate with breakdown
  */
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import type { GenerationStatistics } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import type { GenerationStatistics } from "@/types";
 
 interface AcceptanceRateProps {
   statistics: GenerationStatistics;
@@ -14,17 +14,14 @@ interface AcceptanceRateProps {
 
 export function AcceptanceRate({ statistics }: AcceptanceRateProps) {
   const approvalPercentage = Math.round(statistics.approval_rate * 100);
-  const rejectionPercentage = statistics.total_generated > 0
-    ? Math.round((statistics.total_rejected / statistics.total_generated) * 100)
-    : 0;
+  const rejectionPercentage =
+    statistics.total_generated > 0 ? Math.round((statistics.total_rejected / statistics.total_generated) * 100) : 0;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Akceptacja AI</CardTitle>
-        <CardDescription>
-          Jak często zatwierdzasz fiszki wygenerowane przez AI
-        </CardDescription>
+        <CardDescription>Jak często zatwierdzasz fiszki wygenerowane przez AI</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Circular Progress */}
@@ -92,4 +89,3 @@ export function AcceptanceRate({ statistics }: AcceptanceRateProps) {
     </Card>
   );
 }
-

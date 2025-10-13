@@ -1,19 +1,19 @@
 /**
  * Generated Flashcard List Component
- * 
+ *
  * Displays list of generated flashcards with approve/reject/edit actions
  */
 
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api-client';
-import { useToast } from '@/components/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { FlashcardEditor } from './FlashcardEditor';
-import type { FlashcardDTO } from '@/types';
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api-client";
+import { useToast } from "@/components/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { FlashcardEditor } from "./FlashcardEditor";
+import type { FlashcardDTO } from "@/types";
 
 interface GeneratedFlashcardListProps {
   flashcards: FlashcardDTO[];
@@ -31,16 +31,16 @@ export function GeneratedFlashcardList({ flashcards: initialFlashcards }: Genera
       await apiClient.post(`/flashcards/${id}/approve`);
     },
     onSuccess: (_, id) => {
-      setFlashcards(prev => prev.filter(f => f.id !== id));
+      setFlashcards((prev) => prev.filter((f) => f.id !== id));
       selectedIds.delete(id);
       setSelectedIds(new Set(selectedIds));
-      
+
       toast({
-        title: 'Zatwierdzono',
-        description: 'Fiszka została dodana do aktywnych.',
+        title: "Zatwierdzono",
+        description: "Fiszka została dodana do aktywnych.",
       });
-      
-      queryClient.invalidateQueries({ queryKey: ['flashcards'] });
+
+      queryClient.invalidateQueries({ queryKey: ["flashcards"] });
     },
   });
 
@@ -49,40 +49,40 @@ export function GeneratedFlashcardList({ flashcards: initialFlashcards }: Genera
       await apiClient.post(`/flashcards/${id}/reject`);
     },
     onSuccess: (_, id) => {
-      setFlashcards(prev => prev.filter(f => f.id !== id));
+      setFlashcards((prev) => prev.filter((f) => f.id !== id));
       selectedIds.delete(id);
       setSelectedIds(new Set(selectedIds));
-      
+
       toast({
-        title: 'Odrzucono',
-        description: 'Fiszka została odrzucona.',
+        title: "Odrzucono",
+        description: "Fiszka została odrzucona.",
       });
-      
-      queryClient.invalidateQueries({ queryKey: ['flashcards'] });
+
+      queryClient.invalidateQueries({ queryKey: ["flashcards"] });
     },
   });
 
   const batchApproveMutation = useMutation({
     mutationFn: async (ids: string[]) => {
-      await apiClient.post('/flashcards/batch-approve', { flashcard_ids: ids });
+      await apiClient.post("/flashcards/batch-approve", { flashcard_ids: ids });
     },
     onSuccess: () => {
       const approvedCount = selectedIds.size;
-      setFlashcards(prev => prev.filter(f => !selectedIds.has(f.id)));
+      setFlashcards((prev) => prev.filter((f) => !selectedIds.has(f.id)));
       setSelectedIds(new Set());
-      
+
       toast({
-        title: 'Zatwierdzono',
+        title: "Zatwierdzono",
         description: `${approvedCount} fiszek zostało dodanych do aktywnych.`,
       });
-      
-      queryClient.invalidateQueries({ queryKey: ['flashcards'] });
+
+      queryClient.invalidateQueries({ queryKey: ["flashcards"] });
     },
   });
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedIds(new Set(flashcards.map(f => f.id)));
+      setSelectedIds(new Set(flashcards.map((f) => f.id)));
     } else {
       setSelectedIds(new Set());
     }
@@ -123,21 +123,16 @@ export function GeneratedFlashcardList({ flashcards: initialFlashcards }: Genera
             checked={allSelected}
             onCheckedChange={handleSelectAll}
             aria-label="Zaznacz wszystkie"
-            className={someSelected ? 'data-[state=checked]:bg-primary/50' : ''}
+            className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
           />
           <span className="text-sm font-medium">
-            {selectedIds.size > 0 ? `Zaznaczono ${selectedIds.size}` : 'Zaznacz wszystkie'}
+            {selectedIds.size > 0 ? `Zaznaczono ${selectedIds.size}` : "Zaznacz wszystkie"}
           </span>
         </div>
-        
+
         {selectedIds.size > 0 && (
-          <Button
-            onClick={handleBatchApprove}
-            disabled={batchApproveMutation.isPending}
-          >
-            {batchApproveMutation.isPending
-              ? 'Zatwierdzanie...'
-              : `Zatwierdź zaznaczone (${selectedIds.size})`}
+          <Button onClick={handleBatchApprove} disabled={batchApproveMutation.isPending}>
+            {batchApproveMutation.isPending ? "Zatwierdzanie..." : `Zatwierdź zaznaczone (${selectedIds.size})`}
           </Button>
         )}
       </div>
@@ -158,7 +153,7 @@ export function GeneratedFlashcardList({ flashcards: initialFlashcards }: Genera
                 </Badge>
               </div>
             </CardHeader>
-            
+
             <CardContent className="flex-1 space-y-2">
               <div>
                 <p className="text-xs font-medium text-muted-foreground mb-1">Pytanie:</p>
@@ -180,11 +175,7 @@ export function GeneratedFlashcardList({ flashcards: initialFlashcards }: Genera
               >
                 Zatwierdź
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setEditingFlashcard(flashcard)}
-              >
+              <Button size="sm" variant="outline" onClick={() => setEditingFlashcard(flashcard)}>
                 Edytuj
               </Button>
               <Button
@@ -208,11 +199,10 @@ export function GeneratedFlashcardList({ flashcards: initialFlashcards }: Genera
           onOpenChange={(open) => !open && setEditingFlashcard(null)}
           onSuccess={() => {
             // Refresh the list
-            queryClient.invalidateQueries({ queryKey: ['generation-requests'] });
+            queryClient.invalidateQueries({ queryKey: ["generation-requests"] });
           }}
         />
       )}
     </div>
   );
 }
-

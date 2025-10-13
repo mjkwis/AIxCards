@@ -1,12 +1,12 @@
 ---
 /**
  * Public Layout
- * 
+ *
  * Layout for public pages (landing, login, register)
  */
 
-import Layout from './Layout.astro';
-import Navbar from '@/components/navigation/Navbar.astro';
+import Layout from "./Layout.astro";
+import Navbar from "@/components/navigation/Navbar.astro";
 
 interface Props {
   title: string;
@@ -19,7 +19,7 @@ const { title, description } = Astro.props;
 <Layout title={title} description={description}>
   <div class="min-h-screen flex flex-col">
     <Navbar variant="public" />
-    
+
     <main class="flex-1">
       <slot />
     </main>
@@ -29,12 +29,8 @@ const { title, description } = Astro.props;
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
           <p>&copy; 2025 10x-cards. Wszystkie prawa zastrzeżone.</p>
           <div class="flex gap-4">
-            <a href="/privacy" class="hover:text-foreground transition-colors">
-              Polityka prywatności
-            </a>
-            <a href="/contact" class="hover:text-foreground transition-colors">
-              Kontakt
-            </a>
+            <a href="/privacy" class="hover:text-foreground transition-colors"> Polityka prywatności </a>
+            <a href="/contact" class="hover:text-foreground transition-colors"> Kontakt </a>
           </div>
         </div>
       </div>
@@ -43,26 +39,21 @@ const { title, description } = Astro.props;
 
   {/* Wrap with providers for React components */}
   <script>
-    import { Providers } from '@/components/providers/Providers';
-    import { createElement } from 'react';
-    import { createRoot } from 'react-dom/client';
+    import { Providers } from "@/components/providers/Providers";
+    import { createElement } from "react";
+    import { createRoot } from "react-dom/client";
 
     // Find all React component roots and wrap them with Providers
-    document.addEventListener('DOMContentLoaded', () => {
-      const reactRoots = document.querySelectorAll('[data-react-root]');
+    document.addEventListener("DOMContentLoaded", () => {
+      const reactRoots = document.querySelectorAll("[data-react-root]");
       reactRoots.forEach((root) => {
         const Component = (root as any).__reactComponent;
         const props = (root as any).__reactProps || {};
-        
+
         if (Component) {
-          createRoot(root).render(
-            createElement(Providers, { initialUser: null }, 
-              createElement(Component, props)
-            )
-          );
+          createRoot(root).render(createElement(Providers, { initialUser: null }, createElement(Component, props)));
         }
       });
     });
   </script>
 </Layout>
-

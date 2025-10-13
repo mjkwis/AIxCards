@@ -1,33 +1,35 @@
 /**
  * Register Form Component
- * 
+ *
  * Form for user registration with email and password validation
  */
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuth } from '@/components/providers/AuthProvider';
-import { useToast } from '@/components/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import type { AxiosError } from 'axios';
-import type { ErrorResponse } from '@/types';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useToast } from "@/components/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { AxiosError } from "axios";
+import type { ErrorResponse } from "@/types";
 
-const registerSchema = z.object({
-  email: z.string().email('Nieprawidłowy adres email').trim().toLowerCase(),
-  password: z
-    .string()
-    .min(8, 'Hasło musi mieć co najmniej 8 znaków')
-    .regex(/[A-Z]/, 'Hasło musi zawierać co najmniej jedną wielką literę')
-    .regex(/[0-9]/, 'Hasło musi zawierać co najmniej jedną cyfrę'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Hasła muszą być identyczne',
-  path: ['confirmPassword'],
-});
+const registerSchema = z
+  .object({
+    email: z.string().email("Nieprawidłowy adres email").trim().toLowerCase(),
+    password: z
+      .string()
+      .min(8, "Hasło musi mieć co najmniej 8 znaków")
+      .regex(/[A-Z]/, "Hasło musi zawierać co najmniej jedną wielką literę")
+      .regex(/[0-9]/, "Hasło musi zawierać co najmniej jedną cyfrę"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Hasła muszą być identyczne",
+    path: ["confirmPassword"],
+  });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -45,10 +47,10 @@ export function RegisterForm() {
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    mode: 'onChange',
+    mode: "onChange",
   });
 
-  const password = watch('password', '');
+  const password = watch("password", "");
 
   // Password requirements validation
   const requirements = {
@@ -61,23 +63,23 @@ export function RegisterForm() {
     setIsLoading(true);
     try {
       await registerUser(data.email, data.password);
-      
+
       toast({
-        title: 'Konto utworzone!',
-        description: 'Przekierowujemy Cię do aplikacji...',
+        title: "Konto utworzone!",
+        description: "Przekierowujemy Cię do aplikacji...",
       });
 
       // Redirect to dashboard after successful registration
       setTimeout(() => {
-        window.location.href = '/dashboard/generate';
+        window.location.href = "/dashboard/generate";
       }, 1000);
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
-      const message = axiosError.response?.data?.error?.message || 'Nie udało się utworzyć konta. Spróbuj ponownie.';
-      
+      const message = axiosError.response?.data?.error?.message || "Nie udało się utworzyć konta. Spróbuj ponownie.";
+
       toast({
-        variant: 'destructive',
-        title: 'Błąd rejestracji',
+        variant: "destructive",
+        title: "Błąd rejestracji",
         description: message,
       });
       setIsLoading(false);
@@ -93,9 +95,9 @@ export function RegisterForm() {
           type="email"
           placeholder="twoj@email.pl"
           autoComplete="email"
-          {...register('email')}
-          aria-invalid={errors.email ? 'true' : 'false'}
-          aria-describedby={errors.email ? 'email-error' : undefined}
+          {...register("email")}
+          aria-invalid={errors.email ? "true" : "false"}
+          aria-describedby={errors.email ? "email-error" : undefined}
         />
         {errors.email && (
           <p id="email-error" className="text-sm text-destructive">
@@ -109,11 +111,11 @@ export function RegisterForm() {
         <div className="relative">
           <Input
             id="password"
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             placeholder="••••••••"
             autoComplete="new-password"
-            {...register('password')}
-            aria-invalid={errors.password ? 'true' : 'false'}
+            {...register("password")}
+            aria-invalid={errors.password ? "true" : "false"}
             aria-describedby="password-requirements"
           />
           <Button
@@ -154,20 +156,18 @@ export function RegisterForm() {
                 <circle cx="12" cy="12" r="3" />
               </svg>
             )}
-            <span className="sr-only">
-              {showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
-            </span>
+            <span className="sr-only">{showPassword ? "Ukryj hasło" : "Pokaż hasło"}</span>
           </Button>
         </div>
         <ul id="password-requirements" className="text-xs space-y-1">
-          <li className={requirements.minLength ? 'text-green-600' : 'text-muted-foreground'}>
-            {requirements.minLength ? '✓' : '○'} Co najmniej 8 znaków
+          <li className={requirements.minLength ? "text-green-600" : "text-muted-foreground"}>
+            {requirements.minLength ? "✓" : "○"} Co najmniej 8 znaków
           </li>
-          <li className={requirements.hasUpperCase ? 'text-green-600' : 'text-muted-foreground'}>
-            {requirements.hasUpperCase ? '✓' : '○'} Jedna wielka litera
+          <li className={requirements.hasUpperCase ? "text-green-600" : "text-muted-foreground"}>
+            {requirements.hasUpperCase ? "✓" : "○"} Jedna wielka litera
           </li>
-          <li className={requirements.hasNumber ? 'text-green-600' : 'text-muted-foreground'}>
-            {requirements.hasNumber ? '✓' : '○'} Jedna cyfra
+          <li className={requirements.hasNumber ? "text-green-600" : "text-muted-foreground"}>
+            {requirements.hasNumber ? "✓" : "○"} Jedna cyfra
           </li>
         </ul>
       </div>
@@ -177,12 +177,12 @@ export function RegisterForm() {
         <div className="relative">
           <Input
             id="confirmPassword"
-            type={showConfirmPassword ? 'text' : 'password'}
+            type={showConfirmPassword ? "text" : "password"}
             placeholder="••••••••"
             autoComplete="new-password"
-            {...register('confirmPassword')}
-            aria-invalid={errors.confirmPassword ? 'true' : 'false'}
-            aria-describedby={errors.confirmPassword ? 'confirm-error' : undefined}
+            {...register("confirmPassword")}
+            aria-invalid={errors.confirmPassword ? "true" : "false"}
+            aria-describedby={errors.confirmPassword ? "confirm-error" : undefined}
           />
           <Button
             type="button"
@@ -222,9 +222,7 @@ export function RegisterForm() {
                 <circle cx="12" cy="12" r="3" />
               </svg>
             )}
-            <span className="sr-only">
-              {showConfirmPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
-            </span>
+            <span className="sr-only">{showConfirmPassword ? "Ukryj hasło" : "Pokaż hasło"}</span>
           </Button>
         </div>
         {errors.confirmPassword && (
@@ -235,11 +233,11 @@ export function RegisterForm() {
       </div>
 
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Tworzenie konta...' : 'Zarejestruj się'}
+        {isLoading ? "Tworzenie konta..." : "Zarejestruj się"}
       </Button>
 
       <p className="text-sm text-center text-muted-foreground">
-        Masz już konto?{' '}
+        Masz już konto?{" "}
         <a href="/login" className="text-primary hover:underline">
           Zaloguj się
         </a>
@@ -247,4 +245,3 @@ export function RegisterForm() {
     </form>
   );
 }
-

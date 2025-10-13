@@ -1,38 +1,14 @@
 ---
 /**
  * Flashcards Page
- * 
+ *
  * Page for browsing, filtering, and managing flashcards
  */
 
-import DashboardLayout from '@/layouts/DashboardLayout.astro';
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
+import { FlashcardsPage } from "@/components/pages/FlashcardsPage";
 ---
 
-<DashboardLayout
-  title="Moje fiszki - 10x-cards"
-  description="Przeglądaj, edytuj i zarządzaj swoimi fiszkami"
->
-  <div data-react-root id="flashcard-list-root"></div>
-
-  <script>
-    import { createElement } from 'react';
-    import { createRoot } from 'react-dom/client';
-    import { Providers } from '@/components/providers/Providers';
-    import { FlashcardList } from '@/components/flashcards/FlashcardList';
-
-    // Get user data from meta tag
-    const userMeta = document.querySelector('meta[name="user-data"]');
-    const userData = userMeta ? JSON.parse(userMeta.getAttribute('content') || 'null') : null;
-
-    // Mount Flashcard List
-    const root = document.getElementById('flashcard-list-root');
-    if (root) {
-      createRoot(root).render(
-        createElement(Providers, { initialUser: userData },
-          createElement(FlashcardList)
-        )
-      );
-    }
-  </script>
+<DashboardLayout title="Moje fiszki - 10x-cards" description="Przeglądaj, edytuj i zarządzaj swoimi fiszkami">
+  <FlashcardsPage client:only="react" />
 </DashboardLayout>
-

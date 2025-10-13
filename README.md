@@ -53,11 +53,25 @@ To set up and run the project on your local machine, follow these steps.
     Create a `.env` file in the project root and add the necessary API keys and URLs. These are required for connecting to the backend services.
 
     ```env
-    # Example .env file
+    # Supabase Configuration
     PUBLIC_SUPABASE_URL="your_supabase_project_url"
     PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key"
+    
+    # OpenRouter Configuration
     OPENROUTER_API_KEY="your_openrouter_api_key"
+    OPENROUTER_MODEL="openai/gpt-4-turbo"  # Optional, defaults to gpt-4-turbo
+    
+    # Site URL for OpenRouter referer tracking
+    SITE="http://localhost:4321"  # Optional
     ```
+    
+    **OpenRouter Setup:**
+    - Get an API key from [OpenRouter](https://openrouter.ai/)
+    - Supported models:
+      - `openai/gpt-4-turbo` (recommended)
+      - `anthropic/claude-3-opus`
+      - `google/gemini-pro`
+      - See [OpenRouter Models](https://openrouter.ai/models) for full list
 
 4.  **Run the development server:**
     ```bash
