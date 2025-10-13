@@ -1,8 +1,233 @@
 ---
-import Welcome from "../components/Welcome.astro";
-import Layout from "../layouts/Layout.astro";
+/**
+ * Landing Page
+ *
+ * Main landing page presenting the value of the product
+ */
+
+import PublicLayout from "@/layouts/PublicLayout.astro";
+
+// DEV MODE: Always redirect to dashboard
+if (import.meta.env.DEV) {
+  return Astro.redirect("/dashboard/generate");
+}
+
+// PRODUCTION: If user is already logged in, redirect to dashboard
+const {
+  data: { session },
+} = await Astro.locals.supabase.auth.getSession();
+if (session?.user) {
+  return Astro.redirect("/dashboard/generate");
+}
 ---
 
-<Layout>
-  <Welcome />
-</Layout>
+<PublicLayout
+  title="10x-cards - Ucz się 10x szybciej z fiszkami AI"
+  description="Generuj fiszki automatycznie z AI i ucz się efektywnie dzięki algorytmowi powtórek SM-2"
+>
+  {/* Hero Section */}
+  <section class="py-20 md:py-32">
+    <div class="container mx-auto px-4">
+      <div class="max-w-3xl mx-auto text-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-6">
+          Ucz się <span class="text-primary">10x szybciej</span> z fiszkami AI
+        </h1>
+        <p class="text-xl text-muted-foreground mb-8">
+          Generuj fiszki automatycznie z dowolnego tekstu dzięki AI i ucz się efektywnie z algorytmem powtórek
+          rozłożonych w czasie SM-2
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="/register"
+            class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 transition-colors w-full sm:w-auto"
+          >
+            Rozpocznij za darmo
+          </a>
+          <a
+            href="/login"
+            class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8 transition-colors w-full sm:w-auto"
+          >
+            Zaloguj się
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* Features Section */}
+  <section class="py-16 bg-muted/50">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-12">Jak to działa?</h2>
+      <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div class="text-center">
+          <div class="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="text-primary"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              <line x1="9" x2="15" y1="10" y2="10"></line>
+              <line x1="12" x2="12" y1="7" y2="13"></line>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">Wklej tekst</h3>
+          <p class="text-muted-foreground">Skopiuj notatki, artykuł lub dowolny materiał do nauki</p>
+        </div>
+        <div class="text-center">
+          <div class="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="text-primary"
+            >
+              <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+              <path d="M3 9h18"></path>
+              <path d="M9 21V9"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">Generuj fiszki</h3>
+          <p class="text-muted-foreground">AI automatycznie tworzy pytania i odpowiedzi z Twojego tekstu</p>
+        </div>
+        <div class="text-center">
+          <div class="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="text-primary"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold mb-2">Ucz się efektywnie</h3>
+          <p class="text-muted-foreground">
+            Algorytm SM-2 optymalizuje harmonogram powtórek dla lepszego zapamiętywania
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* Benefits Section */}
+  <section class="py-16">
+    <div class="container mx-auto px-4">
+      <div class="max-w-3xl mx-auto">
+        <h2 class="text-3xl font-bold text-center mb-12">Dlaczego 10x-cards?</h2>
+        <div class="space-y-6">
+          <div class="flex gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="text-primary"
+                >
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-semibold mb-1">Oszczędność czasu</h3>
+              <p class="text-muted-foreground">Przestań ręcznie tworzyć fiszki. AI zrobi to za Ciebie w sekundach.</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="text-primary"
+                >
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-semibold mb-1">Lepsze zapamiętywanie</h3>
+              <p class="text-muted-foreground">
+                Algorytm SM-2 automatycznie planuje powtórki w optymalnych odstępach czasu.
+              </p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="text-primary"
+                >
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <h3 class="font-semibold mb-1">Pełna kontrola</h3>
+              <p class="text-muted-foreground">
+                Edytuj, odrzucaj lub twórz własne fiszki. Ty decydujesz, czego się uczysz.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* CTA Section */}
+  <section class="py-20 bg-primary text-primary-foreground">
+    <div class="container mx-auto px-4 text-center">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4">Gotowy na efektywniejszą naukę?</h2>
+      <p class="text-lg mb-8 opacity-90">Dołącz do tysięcy użytkowników, którzy uczą się szybciej z 10x-cards</p>
+      <a
+        href="/register"
+        class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground hover:bg-secondary/80 h-11 px-8 transition-colors"
+      >
+        Rozpocznij teraz - to darmowe!
+      </a>
+    </div>
+  </section>
+</PublicLayout>

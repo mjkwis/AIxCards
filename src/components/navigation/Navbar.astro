@@ -1,0 +1,110 @@
+---
+/**
+ * Navbar Component
+ * 
+ * Top navigation bar with support for public and protected views
+ */
+
+interface Props {
+  variant?: 'public' | 'protected';
+  currentPath?: string;
+}
+
+const { variant = 'public', currentPath = '/' } = Astro.props;
+
+const dashboardLinks = [
+  { href: '/dashboard/generate', label: 'Generuj fiszki' },
+  { href: '/dashboard/flashcards', label: 'Moje fiszki' },
+  { href: '/dashboard/study', label: 'Sesja nauki' },
+  { href: '/dashboard/stats', label: 'Statystyki' },
+];
+
+const linksWithActive = dashboardLinks.map(link => ({
+  ...link,
+  active: currentPath === link.href,
+}));
+---
+
+<header class="border-b bg-background">
+  <div class="container mx-auto px-4">
+    <nav class="flex items-center justify-between h-16" aria-label="Główna nawigacja">
+      {/* Logo */}
+      <a 
+        href={variant === 'protected' ? '/dashboard/generate' : '/'} 
+        class="text-xl font-bold hover:opacity-80 transition-opacity"
+      >
+        10x-cards
+      </a>
+
+      {variant === 'protected' ? (
+        <>
+          {/* Desktop Navigation */}
+          <div class="hidden md:flex items-center gap-6">
+            {dashboardLinks.map((link) => (
+              <a
+                href={link.href}
+                class={`text-sm font-medium transition-colors hover:text-primary ${
+                  currentPath === link.href
+                    ? 'text-foreground border-b-2 border-primary'
+                    : 'text-muted-foreground'
+                }`}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+
+          {/* User Dropdown & Mobile Menu */}
+          <div class="flex items-center gap-2">
+            <div class="hidden md:block" id="user-dropdown-container"></div>
+            <div id="mobile-drawer-container"></div>
+          </div>
+
+          {/* Client-side components will be mounted here */}
+          <script define:vars={{ linksWithActive }}>
+            import { UserDropdown } from '../navigation/UserDropdown';
+            import { MobileDrawer } from '../navigation/MobileDrawer';
+            import { createElement } from 'react';
+            import { createRoot } from 'react-dom/client';
+
+            // Mount UserDropdown
+            const dropdownContainer = document.getElementById('user-dropdown-container');
+            if (dropdownContainer) {
+              createRoot(dropdownContainer).render(createElement(UserDropdown));
+            }
+
+            // Mount MobileDrawer with links
+            const drawerContainer = document.getElementById('mobile-drawer-container');
+            if (drawerContainer && linksWithActive) {
+              const links = linksWithActive.map(link => ({
+                href: link.href,
+                label: link.label,
+                active: link.active,
+              }));
+              createRoot(drawerContainer).render(
+                createElement(MobileDrawer, { links })
+              );
+            }
+          </script>
+        </>
+      ) : (
+        <div class="flex items-center gap-4">
+          <a
+            href="/login"
+            class="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Zaloguj się
+          </a>
+          <a
+            href="/register"
+            class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 transition-colors"
+          >
+            Rozpocznij za darmo
+          </a>
+        </div>
+      )}
+    </nav>
+  </div>
+</header>
+---
+

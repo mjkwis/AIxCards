@@ -3,9 +3,10 @@ import "../styles/global.css";
 
 interface Props {
   title?: string;
+  description?: string;
 }
 
-const { title = "10x Astro Starter" } = Astro.props;
+const { title = "10x Astro Starter", description } = Astro.props;
 ---
 
 <!doctype html>
@@ -15,7 +16,9 @@ const { title = "10x Astro Starter" } = Astro.props;
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="generator" content={Astro.generator} />
+    {description && <meta name="description" content={description} />}
     <title>{title}</title>
+    <slot name="head" />
   </head>
   <body>
     <slot />

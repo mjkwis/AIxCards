@@ -1,0 +1,38 @@
+---
+/**
+ * Statistics Page
+ * 
+ * Page for viewing user statistics and progress
+ */
+
+import DashboardLayout from '@/layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout
+  title="Statystyki - 10x-cards"
+  description="Zobacz swoje postępy i statystyki nauki"
+>
+  <div data-react-root id="statistics-root"></div>
+
+  <script>
+    import { createElement } from 'react';
+    import { createRoot } from 'react-dom/client';
+    import { Providers } from '@/components/providers/Providers';
+    import { Statistics } from '@/components/stats/Statistics';
+
+    // Get user data from meta tag
+    const userMeta = document.querySelector('meta[name="user-data"]');
+    const userData = userMeta ? JSON.parse(userMeta.getAttribute('content') || 'null') : null;
+
+    // Mount Statistics
+    const root = document.getElementById('statistics-root');
+    if (root) {
+      createRoot(root).render(
+        createElement(Providers, { initialUser: userData },
+          createElement(Statistics)
+        )
+      );
+    }
+  </script>
+</DashboardLayout>
+
