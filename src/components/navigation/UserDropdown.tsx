@@ -2,10 +2,11 @@
  * User Dropdown Component
  *
  * Displays user menu with email, logout and delete account options
+ * Standalone component - doesn't require AuthProvider context
  */
 
 import { useState } from "react";
-import { useAuth } from "@/components/providers/AuthProvider";
+import type { UserDTO } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,17 +27,26 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/hooks/use-toast";
+import { supabaseClient } from "@/db/supabase.client";
 
-export function UserDropdown() {
-  const { user, logout, deleteAccount } = useAuth();
+interface UserDropdownProps {
+  user: UserDTO | null;
+}
+
+export function UserDropdown({ user }: UserDropdownProps) {
   const { toast } = useToast();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleLogout = async () => {
     try {
-      await logout();
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) throw error;
+      
+      // Redirect to login page
+      window.location.href = "/login";
     } catch (error) {
+      console.error("Logout error:", error);
       toast({
         variant: "destructive",
         title: "Błąd",
@@ -48,16 +58,43 @@ export function UserDropdown() {
   const handleDeleteAccount = async () => {
     setIsDeleting(true);
     try {
-      await deleteAccount();
+      // Get session for auth token
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      if (!token) {
+        throw new Error("Brak tokenu autoryzacji");
+      }
+
+      // Call delete account API
+      const response = await fetch("/api/auth/account", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Nie udało się usunąć konta");
+      }
+
+      // Sign out and redirect
+      await supabaseClient.auth.signOut();
+      
       toast({
         title: "Konto usunięte",
         description: "Twoje konto zostało trwale usunięte.",
       });
+
+      // Redirect to home page
+      window.location.href = "/";
     } catch (error) {
+      console.error("Delete account error:", error);
       toast({
         variant: "destructive",
         title: "Błąd",
-        description: "Nie udało się usunąć konta. Spróbuj ponownie.",
+        description: error instanceof Error ? error.message : "Nie udało się usunąć konta. Spróbuj ponownie.",
       });
       setIsDeleting(false);
     }

@@ -3,12 +3,10 @@
  * Dashboard Layout
  *
  * Protected layout for authenticated dashboard pages
- * Wraps everything in Providers so Navbar and page content share context
  */
 
 import Layout from "./Layout.astro";
 import Navbar from "@/components/navigation/Navbar.astro";
-import { DashboardContent } from "@/components/layouts/DashboardContent";
 
 interface Props {
   title: string;
@@ -40,18 +38,11 @@ const linksWithActive = dashboardLinks.map((link) => ({
 ---
 
 <Layout title={title} description={description}>
-  <Fragment slot="head">
-    <!-- Pass user data to client-side via meta tag for React components -->
-    <meta name="user-data" content={JSON.stringify(user)} />
-  </Fragment>
-
   <div class="min-h-screen flex flex-col">
-    <Navbar variant="protected" currentPath={currentPath} />
+    <Navbar variant="protected" currentPath={currentPath} user={user} links={linksWithActive} />
 
-    <DashboardContent client:only="react" user={user} links={linksWithActive}>
-      <main class="flex-1 container mx-auto px-4 py-8">
-        <slot />
-      </main>
-    </DashboardContent>
+    <main class="flex-1 container mx-auto px-4 py-8">
+      <slot />
+    </main>
   </div>
 </Layout>
