@@ -181,7 +181,7 @@ export function StudySession() {
       <ProgressBar current={currentIndex + 1} total={data.flashcards.length} />
 
       {/* Study Card */}
-      <StudyCard flashcard={currentFlashcard} onRate={handleRate} />
+      <StudyCard key={currentFlashcard.id} flashcard={currentFlashcard} onRate={handleRate} />
 
       {/* Skip Button */}
       <div className="text-center">
