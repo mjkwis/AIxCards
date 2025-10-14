@@ -4,7 +4,7 @@
  * Displays list of generated flashcards with approve/reject/edit actions
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/components/hooks/use-toast";
@@ -25,6 +25,12 @@ export function GeneratedFlashcardList({ flashcards: initialFlashcards }: Genera
   const [flashcards, setFlashcards] = useState(initialFlashcards);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [editingFlashcard, setEditingFlashcard] = useState<FlashcardDTO | null>(null);
+
+  // Sync local state with props when new flashcards are generated
+  useEffect(() => {
+    setFlashcards(initialFlashcards);
+    setSelectedIds(new Set()); // Clear selections when new flashcards arrive
+  }, [initialFlashcards]);
 
   const approveMutation = useMutation({
     mutationFn: async (id: string) => {

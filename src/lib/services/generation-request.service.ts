@@ -231,7 +231,7 @@ export class GenerationRequestService {
         .select(
           `
           *,
-          flashcards(count)
+          flashcards!generation_request_id(count)
         `
         )
         .eq("user_id", userId)
@@ -245,11 +245,15 @@ export class GenerationRequestService {
 
       // Map to list items with flashcard count
       const generation_requests: GenerationRequestListItem[] = (requests || []).map((req) => {
-        // flashcards can be either an array or an aggregate object with count
+        // flashcards can be an array with one object containing count: number
         let flashcard_count = 0;
-        if (Array.isArray(req.flashcards)) {
-          flashcard_count = req.flashcards.length;
+        
+        if (Array.isArray(req.flashcards) && req.flashcards.length > 0) {
+          // Supabase returns count as [{ count: number }]
+          const countObj = req.flashcards[0] as { count?: number };
+          flashcard_count = countObj.count || 0;
         } else if (req.flashcards && typeof req.flashcards === "object" && "count" in req.flashcards) {
+          // Fallback: if it's directly an object with count
           flashcard_count = (req.flashcards as { count: number }).count || 0;
         }
 
