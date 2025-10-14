@@ -67,15 +67,22 @@ export const UpdateFlashcardSchema = z
  * - sort: Sort field (default: 'created_at', options: 'created_at' | 'updated_at' | 'next_review_at')
  * - order: Sort order (default: 'desc', options: 'asc' | 'desc')
  *
- * Note: Uses z.coerce to automatically convert string query params to numbers
+ * Note: Uses preprocess to handle null/empty values from URLSearchParams.get()
+ * which returns null (not undefined) when parameter is missing.
  */
 export const FlashcardsListQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  page: z.preprocess(
+    (val) => (val === null || val === "" ? undefined : val),
+    z.coerce.number().int().min(1).default(1)
+  ),
+  limit: z.preprocess(
+    (val) => (val === null || val === "" ? undefined : val),
+    z.coerce.number().int().min(1).max(100).default(20)
+  ),
   status: z.enum(["active", "pending_review", "rejected"]).nullable().optional(),
   source: z.enum(["manual", "ai_generated"]).nullable().optional(),
-  sort: z.enum(["created_at", "updated_at", "next_review_at"]).default("created_at"),
-  order: z.enum(["asc", "desc"]).default("desc"),
+  sort: z.preprocess((val) => (val === null || val === "" ? undefined : val), z.enum(["created_at", "updated_at", "next_review_at"]).default("created_at")),
+  order: z.preprocess((val) => (val === null || val === "" ? undefined : val), z.enum(["asc", "desc"]).default("desc")),
 });
 
 /**

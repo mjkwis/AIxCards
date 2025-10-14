@@ -39,13 +39,20 @@ export type CreateGenerationRequestInput = z.infer<typeof CreateGenerationReques
  * - sort: Sort field (default: 'created_at', options: 'created_at' | 'updated_at')
  * - order: Sort order (default: 'desc', options: 'asc' | 'desc')
  *
- * Note: Uses z.coerce to automatically convert string query params to numbers
+ * Note: Uses preprocess to handle null/empty values from URLSearchParams.get()
+ * which returns null (not undefined) when parameter is missing.
  */
 export const GenerationRequestListQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-  sort: z.enum(["created_at", "updated_at"]).default("created_at"),
-  order: z.enum(["asc", "desc"]).default("desc"),
+  page: z.preprocess(
+    (val) => (val === null || val === "" ? undefined : val),
+    z.coerce.number().int().min(1).default(1)
+  ),
+  limit: z.preprocess(
+    (val) => (val === null || val === "" ? undefined : val),
+    z.coerce.number().int().min(1).max(100).default(20)
+  ),
+  sort: z.preprocess((val) => (val === null || val === "" ? undefined : val), z.enum(["created_at", "updated_at"]).default("created_at")),
+  order: z.preprocess((val) => (val === null || val === "" ? undefined : val), z.enum(["asc", "desc"]).default("desc")),
 });
 
 /**

@@ -14,9 +14,15 @@ import { z } from "zod";
  *
  * Validates:
  * - limit: Maximum number of flashcards to return (default: 20, max: 50)
+ *
+ * Note: Uses preprocess to handle null/empty values from URLSearchParams.get()
+ * which returns null (not undefined) when parameter is missing.
  */
 export const StudySessionQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(50).default(20),
+  limit: z.preprocess(
+    (val) => (val === null || val === "" ? undefined : val),
+    z.coerce.number().int().min(1).max(50).default(20)
+  ),
 });
 
 /**
