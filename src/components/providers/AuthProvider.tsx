@@ -20,15 +20,15 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+// DEV MODE: Use mock user when authentication is not implemented
+const DEV_MOCK_AUTH = import.meta.env.DEV;
+
 interface AuthProviderProps {
   children: ReactNode;
   initialUser?: UserDTO | null;
 }
 
 export function AuthProvider({ children, initialUser = null }: AuthProviderProps) {
-  // DEV MODE: Use mock user when authentication is not implemented
-  const DEV_MOCK_AUTH = import.meta.env.DEV;
-
   const mockUser: UserDTO | null = DEV_MOCK_AUTH
     ? {
         id: "2c87435e-48a2-4467-9a6b-e6c7524e730e",
@@ -57,7 +57,7 @@ export function AuthProvider({ children, initialUser = null }: AuthProviderProps
     try {
       const response = await apiClient.get<{ user: UserDTO }>("/auth/account");
       setUser(response.data.user);
-    } catch (error) {
+    } catch {
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -66,6 +66,7 @@ export function AuthProvider({ children, initialUser = null }: AuthProviderProps
 
   const login = async (email: string, password: string) => {
     if (DEV_MOCK_AUTH) {
+      // eslint-disable-next-line no-console
       console.warn("[DEV] Mock login - authentication not implemented");
       setUser(mockUser);
       return;
@@ -76,6 +77,7 @@ export function AuthProvider({ children, initialUser = null }: AuthProviderProps
 
   const register = async (email: string, password: string) => {
     if (DEV_MOCK_AUTH) {
+      // eslint-disable-next-line no-console
       console.warn("[DEV] Mock register - authentication not implemented");
       setUser(mockUser);
       return;
@@ -86,6 +88,7 @@ export function AuthProvider({ children, initialUser = null }: AuthProviderProps
 
   const logout = async () => {
     if (DEV_MOCK_AUTH) {
+      // eslint-disable-next-line no-console
       console.warn("[DEV] Mock logout - authentication not implemented");
       window.location.href = "/";
       return;
@@ -97,6 +100,7 @@ export function AuthProvider({ children, initialUser = null }: AuthProviderProps
 
   const deleteAccount = async () => {
     if (DEV_MOCK_AUTH) {
+      // eslint-disable-next-line no-console
       console.warn("[DEV] Mock delete account - authentication not implemented");
       window.location.href = "/";
       return;

@@ -4,7 +4,7 @@
  * Main component for managing study sessions
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { useToast } from "@/components/hooks/use-toast";
@@ -13,7 +13,7 @@ import { StudyCard } from "./StudyCard";
 import { ProgressBar } from "./ProgressBar";
 import { SessionSummary } from "./SessionSummary";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { StudySessionResponse, FlashcardDTO } from "@/types";
+import type { StudySessionResponse } from "@/types";
 
 export function StudySession() {
   const { toast } = useToast();
@@ -61,6 +61,16 @@ export function StudySession() {
     },
   });
 
+  const handleRate = useCallback(
+    (quality: number) => {
+      const flashcard = data?.flashcards[currentIndex];
+      if (!flashcard) return;
+
+      reviewMutation.mutate({ flashcard_id: flashcard.id, quality });
+    },
+    [currentIndex, data?.flashcards, reviewMutation]
+  );
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -75,14 +85,7 @@ export function StudySession() {
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [currentIndex, data, reviewMutation.isPending]);
-
-  const handleRate = (quality: number) => {
-    const flashcard = data?.flashcards[currentIndex];
-    if (!flashcard) return;
-
-    reviewMutation.mutate({ flashcard_id: flashcard.id, quality });
-  };
+  }, [currentIndex, data, reviewMutation.isPending, handleRate]);
 
   const handleFinish = () => {
     window.location.href = "/dashboard/flashcards";
