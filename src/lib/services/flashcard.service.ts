@@ -72,6 +72,18 @@ export class FlashcardService {
 
       if (error || !data) {
         logger.error("Failed to create flashcard", error as Error);
+
+        // In development mode, provide helpful error message for missing user
+        if (error?.message?.includes('violates foreign key constraint "flashcards_user_id_fkey"')) {
+          const devMode = import.meta.env?.DEV;
+          if (devMode) {
+            throw new DatabaseError(
+              "Mock user not found in database. Please run 'supabase db reset' to seed the development user.",
+              error
+            );
+          }
+        }
+
         throw new DatabaseError("Failed to create flashcard", error);
       }
 
@@ -83,6 +95,18 @@ export class FlashcardService {
       }
 
       logger.error("Unexpected error in create", error as Error);
+
+      // Check for specific database constraint errors
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('violates foreign key constraint "flashcards_user_id_fkey"')) {
+        throw new DatabaseError(
+          import.meta.env?.DEV
+            ? "Mock user not found in database. Please run 'supabase db reset' to seed the development user."
+            : "Failed to create flashcard",
+          error
+        );
+      }
+
       throw new DatabaseError("Unexpected database error", error);
     }
   }

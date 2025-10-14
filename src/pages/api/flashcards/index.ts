@@ -91,11 +91,23 @@ export async function POST(context: APIContext): Promise<Response> {
       const flashcardService = new FlashcardService(supabase);
       flashcard = await flashcardService.create(user.id, { front, back });
     } catch (error) {
+      postLogger.error("Caught error in flashcard creation", error, {
+        userId: user.id,
+        errorType: typeof error,
+        errorName: error?.constructor?.name,
+        errorMessage: (error as any)?.message,
+        isDatabaseError: error instanceof DatabaseError
+      });
+
       if (error instanceof DatabaseError) {
-        postLogger.error("Database error", error, { userId: user.id });
-        return errorResponse(500, "INTERNAL_ERROR", "Failed to create flashcard");
+        // For debugging, always show the actual error message
+        const errorMessage = error.message || "Failed to create flashcard (DatabaseError)";
+        return errorResponse(500, "INTERNAL_ERROR", errorMessage);
       }
-      throw error;
+
+      // Handle other types of errors
+      const errorMessage = (error as any)?.message || "Failed to create flashcard (unknown error)";
+      return errorResponse(500, "INTERNAL_ERROR", errorMessage);
     }
 
     postLogger.info("Successfully created flashcard", {

@@ -53,6 +53,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
       email: "mjk.wisniewski@gmail.com",
     };
 
+    // Note: In dev mode, we rely on the seed.sql file to create the mock user
+    // If you encounter foreign key constraint errors, run: supabase db reset
+
     // Set mock user in context for all requests
     context.locals.user = mockUser;
 

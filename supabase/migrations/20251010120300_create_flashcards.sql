@@ -122,3 +122,30 @@ for delete
 to anon
 using (auth.uid() = user_id);
 
+-- create function to ensure mock user exists for development
+-- this is used by the middleware to create a mock user when in dev mode
+create or replace function ensure_mock_user(user_id uuid, user_email text)
+returns void as $$
+begin
+  insert into auth.users (
+    id,
+    aud,
+    role,
+    email,
+    email_confirmed_at,
+    confirmed_at,
+    created_at,
+    updated_at
+  ) values (
+    user_id,
+    'authenticated',
+    'authenticated',
+    user_email,
+    now(),
+    now(),
+    now(),
+    now()
+  ) on conflict (id) do nothing;
+end;
+$$ language plpgsql security definer;
+

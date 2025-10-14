@@ -31,7 +31,7 @@ export function AuthProvider({ children, initialUser = null }: AuthProviderProps
 
   const mockUser: UserDTO | null = DEV_MOCK_AUTH
     ? {
-        id: "4e61008f-4aee-42b0-a8fa-66408c1b6bb0",
+        id: "2c87435e-48a2-4467-9a6b-e6c7524e730e",
         email: "mjk.wisniewski@gmail.com",
         created_at: new Date().toISOString(),
       }
