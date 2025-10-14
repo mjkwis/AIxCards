@@ -4,20 +4,16 @@ import type { AstroCookies } from "astro";
 
 import type { Database } from "../db/database.types.ts";
 
-// Server-side environment variables (SSR only)
+// Environment variables (available both in SSR and browser via vite.define)
 const supabaseUrl = import.meta.env.SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.SUPABASE_KEY;
-
-// Client-side environment variables (available in browser)
-const publicSupabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_KEY;
 
 /**
  * Client-side Supabase client for browser usage
  * Used in React components and client-side code
- * Uses PUBLIC_ prefixed env vars that are available in the browser
+ * SUPABASE_URL and SUPABASE_KEY are made available in browser via vite.define in astro.config.mjs
  */
-export const supabaseClient = createClient<Database>(publicSupabaseUrl, publicSupabaseAnonKey);
+export const supabaseClient = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 /**
  * Cookie options for Supabase SSR
