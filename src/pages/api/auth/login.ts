@@ -121,49 +121,28 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
       throw error;
     }
 
-    // 4. Set refresh token as httpOnly cookie for security
-    // This prevents XSS attacks from stealing the refresh token
-    const refreshToken = authResult.session.refresh_token;
+    // 4. Set session in Supabase SSR (this will set proper cookies automatically)
+    const { error: sessionError } = await locals.supabase.auth.setSession({
+      access_token: authResult.session.access_token,
+      refresh_token: authResult.session.refresh_token,
+    });
 
-    // Calculate cookie expiry (7 days)
-    const cookieMaxAge = 60 * 60 * 24 * 7; // 7 days in seconds
+    if (sessionError) {
+      console.error("Failed to set session:", sessionError);
+      return errorResponse(500, "SESSION_ERROR", "Failed to establish session");
+    }
 
-    // Note: In production, ensure 'secure' is true (HTTPS only)
-    // For localhost development, secure should be false
-    const isProduction = import.meta.env.PROD;
-
-    // Create response with auth data
+    // 5. Return auth data with rate limit headers
     const resetAt = loginRateLimiter.getResetAt(rateLimitKey, "auth:login");
-    const response = new Response(JSON.stringify(authResult), {
+    return new Response(JSON.stringify(authResult), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        // Add rate limit headers for transparency
         "X-RateLimit-Limit": "10",
         "X-RateLimit-Remaining": loginRateLimiter.getRemaining(rateLimitKey, "auth:login").toString(),
         "X-RateLimit-Reset": resetAt ? Math.floor(resetAt.getTime() / 1000).toString() : "",
       },
     });
-
-    // Set refresh token cookie
-    // httpOnly: true - prevents JavaScript access (XSS protection)
-    // secure: true (production) - only sent over HTTPS
-    // sameSite: 'lax' - CSRF protection while allowing normal navigation
-    // path: '/' - available for all routes
-    const cookieHeader = [
-      `sb-refresh-token=${refreshToken}`,
-      `Max-Age=${cookieMaxAge}`,
-      `Path=/`,
-      `HttpOnly`,
-      `SameSite=Lax`,
-      isProduction ? `Secure` : "",
-    ]
-      .filter(Boolean)
-      .join("; ");
-
-    response.headers.append("Set-Cookie", cookieHeader);
-
-    return response;
   } catch (error) {
     // Catch-all for unexpected errors
     console.error("Unexpected error in login endpoint:", error);

@@ -3,10 +3,12 @@
  * Dashboard Layout
  *
  * Protected layout for authenticated dashboard pages
+ * Wraps everything in Providers so Navbar and page content share context
  */
 
 import Layout from "./Layout.astro";
 import Navbar from "@/components/navigation/Navbar.astro";
+import { DashboardContent } from "@/components/layouts/DashboardContent";
 
 interface Props {
   title: string;
@@ -19,45 +21,37 @@ const currentPath = Astro.url.pathname;
 // Get user from locals (set by middleware)
 const user = Astro.locals.user;
 
-// If no user, redirect to login
+// If no user, redirect to login (this should never happen as middleware already checks)
 if (!user) {
   return Astro.redirect(`/login?redirect=${encodeURIComponent(currentPath)}`);
 }
+
+const dashboardLinks = [
+  { href: "/dashboard/generate", label: "Generuj fiszki" },
+  { href: "/dashboard/flashcards", label: "Moje fiszki" },
+  { href: "/dashboard/study", label: "Sesja nauki" },
+  { href: "/dashboard/stats", label: "Statystyki" },
+];
+
+const linksWithActive = dashboardLinks.map((link) => ({
+  ...link,
+  active: currentPath === link.href,
+}));
 ---
 
 <Layout title={title} description={description}>
+  <Fragment slot="head">
+    <!-- Pass user data to client-side via meta tag for React components -->
+    <meta name="user-data" content={JSON.stringify(user)} />
+  </Fragment>
+
   <div class="min-h-screen flex flex-col">
     <Navbar variant="protected" currentPath={currentPath} />
 
-    <main class="flex-1 container mx-auto px-4 py-8">
-      <slot />
-    </main>
+    <DashboardContent client:only="react" user={user} links={linksWithActive}>
+      <main class="flex-1 container mx-auto px-4 py-8">
+        <slot />
+      </main>
+    </DashboardContent>
   </div>
-
-  {/* Wrap with providers for React components */}
-  <script>
-    import { Providers } from "@/components/providers/Providers";
-    import { createElement } from "react";
-    import { createRoot } from "react-dom/client";
-
-    // Get user data from meta tag
-    const userMeta = document.querySelector('meta[name="user-data"]');
-    const userData = userMeta ? JSON.parse(userMeta.getAttribute("content") || "null") : null;
-
-    // Find all React component roots and wrap them with Providers
-    document.addEventListener("DOMContentLoaded", () => {
-      const reactRoots = document.querySelectorAll("[data-react-root]");
-      reactRoots.forEach((root) => {
-        const Component = (root as any).__reactComponent;
-        const props = (root as any).__reactProps || {};
-
-        if (Component) {
-          createRoot(root).render(createElement(Providers, { initialUser: userData }, createElement(Component, props)));
-        }
-      });
-    });
-  </script>
-
-  {/* Pass user data to client-side via meta tag */}
-  <meta name="user-data" content={JSON.stringify(user)} slot="head" />
 </Layout>

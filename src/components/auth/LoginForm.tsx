@@ -45,15 +45,30 @@ export function LoginForm() {
       // Redirect after successful login
       const params = new URLSearchParams(window.location.search);
       const redirect = params.get("redirect") || "/dashboard/generate";
-      window.location.href = redirect;
+
+      // Small delay to ensure session is persisted
+      setTimeout(() => {
+        window.location.href = redirect;
+      }, 200);
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
-      const message = axiosError.response?.data?.error?.message || "Nie udało się zalogować. Sprawdź swoje dane.";
+      const status = axiosError.response?.status;
+      const errorCode = axiosError.response?.data?.error?.code;
+
+      // Determine error message based on status/code
+      const getErrorMessage = () => {
+        if (status === 401 || errorCode === "INVALID_CREDENTIALS") {
+          return "Nieprawidłowy email lub hasło";
+        } else if (status === 429 || errorCode === "RATE_LIMIT_EXCEEDED") {
+          return "Zbyt wiele prób logowania. Spróbuj ponownie później.";
+        }
+        return axiosError.response?.data?.error?.message || "Nie udało się zalogować. Sprawdź swoje dane.";
+      };
 
       toast({
         variant: "destructive",
         title: "Błąd logowania",
-        description: message,
+        description: getErrorMessage(),
       });
       setIsLoading(false);
     }
@@ -143,12 +158,20 @@ export function LoginForm() {
         {isLoading ? "Logowanie..." : "Zaloguj się"}
       </Button>
 
-      <p className="text-sm text-center text-muted-foreground">
-        Nie masz konta?{" "}
-        <a href="/register" className="text-primary hover:underline">
-          Zarejestruj się
-        </a>
-      </p>
+      <div className="space-y-2">
+        <p className="text-sm text-center text-muted-foreground">
+          <a href="/reset-password" className="text-primary hover:underline">
+            Nie pamiętasz hasła?
+          </a>
+        </p>
+
+        <p className="text-sm text-center text-muted-foreground">
+          Nie masz konta?{" "}
+          <a href="/register" className="text-primary hover:underline">
+            Zarejestruj się
+          </a>
+        </p>
+      </div>
     </form>
   );
 }

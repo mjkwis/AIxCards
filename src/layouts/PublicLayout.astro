@@ -36,24 +36,4 @@ const { title, description } = Astro.props;
       </div>
     </footer>
   </div>
-
-  {/* Wrap with providers for React components */}
-  <script>
-    import { Providers } from "@/components/providers/Providers";
-    import { createElement } from "react";
-    import { createRoot } from "react-dom/client";
-
-    // Find all React component roots and wrap them with Providers
-    document.addEventListener("DOMContentLoaded", () => {
-      const reactRoots = document.querySelectorAll("[data-react-root]");
-      reactRoots.forEach((root) => {
-        const Component = (root as any).__reactComponent;
-        const props = (root as any).__reactProps || {};
-
-        if (Component) {
-          createRoot(root).render(createElement(Providers, { initialUser: null }, createElement(Component, props)));
-        }
-      });
-    });
-  </script>
 </Layout>

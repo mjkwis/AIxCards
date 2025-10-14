@@ -1,28 +1,29 @@
 /**
- * Register Form Component
+ * Update Password Form Component
  *
- * Form for user registration with email and password validation
+ * Form for setting a new password after clicking reset link
  */
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/hooks/use-toast";
+import { apiClient } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { AxiosError } from "axios";
 import type { ErrorResponse } from "@/types";
 
-const registerSchema = z
+const updatePasswordSchema = z
   .object({
-    email: z.string().email("Nieprawidłowy adres email").trim().toLowerCase(),
     password: z
       .string()
       .min(8, "Hasło musi mieć co najmniej 8 znaków")
+      .max(128, "Hasło nie może przekraczać 128 znaków")
       .regex(/[A-Z]/, "Hasło musi zawierać co najmniej jedną wielką literę")
+      .regex(/[a-z]/, "Hasło musi zawierać co najmniej jedną małą literę")
       .regex(/[0-9]/, "Hasło musi zawierać co najmniej jedną cyfrę"),
     confirmPassword: z.string(),
   })
@@ -31,10 +32,9 @@ const registerSchema = z
     path: ["confirmPassword"],
   });
 
-type RegisterFormData = z.infer<typeof registerSchema>;
+type UpdatePasswordFormData = z.infer<typeof updatePasswordSchema>;
 
-export function RegisterForm() {
-  const { register: registerUser } = useAuth();
+export function UpdatePasswordForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -45,8 +45,8 @@ export function RegisterForm() {
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+  } = useForm<UpdatePasswordFormData>({
+    resolver: zodResolver(updatePasswordSchema),
     mode: "onChange",
   });
 
@@ -56,40 +56,40 @@ export function RegisterForm() {
   const requirements = {
     minLength: password.length >= 8,
     hasUpperCase: /[A-Z]/.test(password),
+    hasLowerCase: /[a-z]/.test(password),
     hasNumber: /[0-9]/.test(password),
   };
 
-  const onSubmit = async (data: RegisterFormData) => {
+  const onSubmit = async (data: UpdatePasswordFormData) => {
     setIsLoading(true);
     try {
-      await registerUser(data.email, data.password);
+      await apiClient.post("/auth/password/update", { password: data.password });
 
       toast({
-        title: "Konto utworzone!",
-        description: "Przekierowujemy Cię do aplikacji...",
+        title: "Hasło zmienione!",
+        description: "Twoje hasło zostało zaktualizowane. Przekierowujemy Cię do logowania...",
       });
 
-      // Wait for Supabase to persist session, then redirect
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Redirect to dashboard after successful registration
-      window.location.href = "/dashboard/generate";
+      // Redirect to login after successful password update
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       const status = axiosError.response?.status;
       const errorCode = axiosError.response?.data?.error?.code;
-      let message = axiosError.response?.data?.error?.message || "Nie udało się utworzyć konta. Spróbuj ponownie.";
+      let message = "Nie udało się zaktualizować hasła. Spróbuj ponownie.";
 
       // Handle specific error codes
-      if (status === 409 || errorCode === "EMAIL_ALREADY_REGISTERED") {
-        message = "Podany adres email jest już zarejestrowany. Spróbuj się zalogować.";
-      } else if (status === 429 || errorCode === "RATE_LIMIT_EXCEEDED") {
-        message = "Zbyt wiele prób rejestracji. Spróbuj ponownie później.";
+      if (status === 401 || errorCode === "UNAUTHORIZED") {
+        message = "Link resetujący wygasł lub jest nieprawidłowy. Poproś o nowy link.";
+      } else if (status === 400) {
+        message = "Hasło nie spełnia wymagań bezpieczeństwa.";
       }
 
       toast({
         variant: "destructive",
-        title: "Błąd rejestracji",
+        title: "Błąd",
         description: message,
       });
       setIsLoading(false);
@@ -99,25 +99,7 @@ export function RegisterForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="twoj@email.pl"
-          autoComplete="email"
-          {...register("email")}
-          aria-invalid={errors.email ? "true" : "false"}
-          aria-describedby={errors.email ? "email-error" : undefined}
-        />
-        {errors.email && (
-          <p id="email-error" className="text-sm text-destructive">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="password">Hasło</Label>
+        <Label htmlFor="password">Nowe hasło</Label>
         <div className="relative">
           <Input
             id="password"
@@ -176,6 +158,9 @@ export function RegisterForm() {
           <li className={requirements.hasUpperCase ? "text-green-600" : "text-muted-foreground"}>
             {requirements.hasUpperCase ? "✓" : "○"} Jedna wielka litera
           </li>
+          <li className={requirements.hasLowerCase ? "text-green-600" : "text-muted-foreground"}>
+            {requirements.hasLowerCase ? "✓" : "○"} Jedna mała litera
+          </li>
           <li className={requirements.hasNumber ? "text-green-600" : "text-muted-foreground"}>
             {requirements.hasNumber ? "✓" : "○"} Jedna cyfra
           </li>
@@ -183,7 +168,7 @@ export function RegisterForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Powtórz hasło</Label>
+        <Label htmlFor="confirmPassword">Powtórz nowe hasło</Label>
         <div className="relative">
           <Input
             id="confirmPassword"
@@ -243,15 +228,15 @@ export function RegisterForm() {
       </div>
 
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Tworzenie konta..." : "Zarejestruj się"}
+        {isLoading ? "Aktualizowanie hasła..." : "Ustaw nowe hasło"}
       </Button>
 
       <p className="text-sm text-center text-muted-foreground">
-        Masz już konto?{" "}
         <a href="/login" className="text-primary hover:underline">
-          Zaloguj się
+          Powrót do logowania
         </a>
       </p>
     </form>
   );
 }
+

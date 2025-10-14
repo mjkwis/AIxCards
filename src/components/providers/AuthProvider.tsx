@@ -2,11 +2,13 @@
  * Authentication Context Provider
  *
  * Manages user authentication state across the application
+ * Integrates with Supabase Auth and provides access token management
  */
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import type { UserDTO } from "@/types";
-import { apiClient } from "@/lib/api-client";
+import { apiClient, initializeApiClient } from "@/lib/api-client";
+import { supabaseClient } from "@/db/supabase.client";
 
 interface AuthContextValue {
   user: UserDTO | null;
@@ -20,40 +22,33 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-// DEV MODE: Use mock user when authentication is not implemented
-const DEV_MOCK_AUTH = import.meta.env.DEV;
-
 interface AuthProviderProps {
   children: ReactNode;
   initialUser?: UserDTO | null;
 }
 
 export function AuthProvider({ children, initialUser = null }: AuthProviderProps) {
-  const mockUser: UserDTO | null = DEV_MOCK_AUTH
-    ? {
-        id: "2c87435e-48a2-4467-9a6b-e6c7524e730e",
-        email: "mjk.wisniewski@gmail.com",
-        created_at: new Date().toISOString(),
-      }
-    : null;
+  const [user, setUser] = useState<UserDTO | null>(initialUser);
+  const [isLoading, setIsLoading] = useState(!initialUser);
 
-  const [user, setUser] = useState<UserDTO | null>(initialUser || mockUser);
-  const [isLoading, setIsLoading] = useState(!initialUser && !DEV_MOCK_AUTH);
-
-  useEffect(() => {
-    // Skip fetching in dev mode - use mock user
-    if (DEV_MOCK_AUTH) {
-      setIsLoading(false);
-      return;
+  /**
+   * Get current access token from Supabase session
+   * Used by apiClient interceptor to add Bearer token to requests
+   */
+  const getAccessToken = async (): Promise<string | null> => {
+    try {
+      const {
+        data: { session },
+      } = await supabaseClient.auth.getSession();
+      return session?.access_token ?? null;
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to get access token:", error);
+      return null;
     }
+  };
 
-    // If we don't have initial user, try to fetch current user
-    if (!initialUser) {
-      fetchCurrentUser();
-    }
-  }, [initialUser]);
-
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = useCallback(async () => {
     try {
       const response = await apiClient.get<{ user: UserDTO }>("/auth/account");
       setUser(response.data.user);
@@ -62,49 +57,79 @@ export function AuthProvider({ children, initialUser = null }: AuthProviderProps
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const checkSessionAndFetchUser = useCallback(async () => {
+    try {
+      // First check if we have a valid session
+      const {
+        data: { session },
+      } = await supabaseClient.auth.getSession();
+
+      // Only fetch user if we have a session
+      if (session?.access_token) {
+        await fetchCurrentUser();
+      } else {
+        // No session, user is not logged in
+        setUser(null);
+        setIsLoading(false);
+      }
+    } catch {
+      setUser(null);
+      setIsLoading(false);
+    }
+  }, [fetchCurrentUser]);
+
+  useEffect(() => {
+    // Initialize API client with access token provider
+    initializeApiClient(getAccessToken);
+
+    // If we don't have initial user, try to fetch current user
+    // Only do this if we potentially have a session (check for access token first)
+    if (!initialUser) {
+      checkSessionAndFetchUser();
+    }
+  }, [initialUser, checkSessionAndFetchUser]);
 
   const login = async (email: string, password: string) => {
-    if (DEV_MOCK_AUTH) {
-      // eslint-disable-next-line no-console
-      console.warn("[DEV] Mock login - authentication not implemented");
-      setUser(mockUser);
-      return;
-    }
     const response = await apiClient.post("/auth/login", { email, password });
+
+    // Set session in Supabase client for client-side auth
+    const { session } = response.data;
+    if (session?.access_token && session?.refresh_token) {
+      await supabaseClient.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      });
+    }
+
     setUser(response.data.user);
   };
 
   const register = async (email: string, password: string) => {
-    if (DEV_MOCK_AUTH) {
-      // eslint-disable-next-line no-console
-      console.warn("[DEV] Mock register - authentication not implemented");
-      setUser(mockUser);
-      return;
-    }
     const response = await apiClient.post("/auth/register", { email, password });
+
+    // Set session in Supabase client for client-side auth
+    const { session } = response.data;
+    if (session?.access_token && session?.refresh_token) {
+      await supabaseClient.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      });
+    }
+
     setUser(response.data.user);
   };
 
   const logout = async () => {
-    if (DEV_MOCK_AUTH) {
-      // eslint-disable-next-line no-console
-      console.warn("[DEV] Mock logout - authentication not implemented");
-      window.location.href = "/";
-      return;
-    }
     await apiClient.post("/auth/logout");
+    // Clear session in Supabase client
+    await supabaseClient.auth.signOut();
     setUser(null);
     window.location.href = "/login";
   };
 
   const deleteAccount = async () => {
-    if (DEV_MOCK_AUTH) {
-      // eslint-disable-next-line no-console
-      console.warn("[DEV] Mock delete account - authentication not implemented");
-      window.location.href = "/";
-      return;
-    }
     await apiClient.delete("/auth/account");
     setUser(null);
     window.location.href = "/";

@@ -2,69 +2,39 @@
  * Astro Middleware
  *
  * Handles:
- * - Supabase client initialization with SSR support
- * - Authentication for API routes (JWT validation)
+ * - Supabase client initialization with SSR support (getAll/setAll pattern)
+ * - Authentication for dashboard pages (SSR cookie-based)
+ * - Authentication for API routes (JWT Bearer token)
  * - Rate limiting for specific endpoints
  * - Adding rate limit headers to responses
  */
 
 import { defineMiddleware } from "astro:middleware";
-import { createServerClient } from "@supabase/ssr";
-import type { Database } from "../db/database.types";
+import { createSupabaseServerInstance } from "../db/supabase.client";
 import { errorResponse } from "../lib/helpers/error-response";
 import { rateLimitService } from "../lib/services/rate-limit.service";
 import { RateLimitError } from "../lib/errors/rate-limit.error";
 
+/**
+ * Public API endpoints that don't require Bearer token authentication
+ * All other /api/* routes require valid JWT token in Authorization header
+ */
+const PUBLIC_API_PATHS = [
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/password/reset",
+  "/api/auth/password/update",
+];
+
 export const onRequest = defineMiddleware(async (context, next) => {
-  // DEV MODE: Use mock user when authentication is not implemented
-  const DEV_MOCK_AUTH = import.meta.env.DEV; // Uses Astro's built-in DEV flag
-
   // 1. Initialize Supabase client with SSR support
-  // In DEV mode, use Service Role Key to bypass RLS since we don't have real auth sessions
-  // In PROD mode, use the regular anon key with proper SSR cookie handling
-  const supabaseKey = DEV_MOCK_AUTH
-    ? import.meta.env.SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_KEY
-    : import.meta.env.SUPABASE_KEY;
-
-  const supabase = createServerClient<Database>(import.meta.env.SUPABASE_URL, supabaseKey, {
-    cookies: {
-      get: (key) => context.cookies.get(key)?.value,
-      set: (key, value, options) => {
-        context.cookies.set(key, value, options);
-      },
-      remove: (key, options) => {
-        context.cookies.delete(key, options);
-      },
-    },
-    auth: DEV_MOCK_AUTH
-      ? {
-          autoRefreshToken: false,
-          persistSession: false,
-        }
-      : undefined,
+  // Uses getAll/setAll pattern as required by @supabase/ssr
+  const supabase = createSupabaseServerInstance({
+    cookies: context.cookies,
+    headers: context.request.headers,
   });
 
   context.locals.supabase = supabase;
-
-  if (DEV_MOCK_AUTH) {
-    // Create mock user for development
-    const mockUser = {
-      id: "2c87435e-48a2-4467-9a6b-e6c7524e730e",
-      email: "mjk.wisniewski@gmail.com",
-    };
-
-    // Note: In dev mode, we rely on the seed.sql file to create the mock user
-    // If you encounter foreign key constraint errors, run: supabase db reset
-
-    // Set mock user in context for all requests
-    context.locals.user = mockUser;
-
-    // Continue to endpoint without authentication checks
-    const response = await next();
-    return response;
-  }
-
-  // PRODUCTION MODE: Full authentication flow
 
   // 2. Check authentication for dashboard pages (SSR cookie-based)
   const isDashboardPage = context.url.pathname.startsWith("/dashboard");
@@ -84,14 +54,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
     context.locals.user = {
       id: session.user.id,
       email: session.user.email ?? "",
+      created_at: session.user.created_at,
     };
   }
 
   // 3. Check if this is an API route that requires authentication
   const isApiRoute = context.url.pathname.startsWith("/api/");
-  const isAuthRoute = context.url.pathname.startsWith("/api/auth/");
+  const isPublicApiPath = PUBLIC_API_PATHS.includes(context.url.pathname);
 
-  if (isApiRoute && !isAuthRoute) {
+  // Debug logging
+  if (isApiRoute) {
+    console.log(`[Middleware] API Route: ${context.url.pathname}, isPublic: ${isPublicApiPath}`);
+  }
+
+  if (isApiRoute && !isPublicApiPath) {
     // Extract and validate JWT token from Authorization header
     const authHeader = context.request.headers.get("Authorization");
 
@@ -113,6 +89,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     context.locals.user = {
       id: user.id,
       email: user.email ?? "",
+      created_at: user.created_at,
     };
 
     // 4. Rate limiting for generation-requests endpoint

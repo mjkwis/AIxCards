@@ -6,15 +6,9 @@
  */
 
 import PublicLayout from "@/layouts/PublicLayout.astro";
-import { LoginForm } from "@/components/auth/LoginForm";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoginFormWrapper } from "@/components/auth/LoginFormWrapper";
 
-// DEV MODE: Always redirect to dashboard
-if (import.meta.env.DEV) {
-  return Astro.redirect("/dashboard/generate");
-}
-
-// PRODUCTION: If user is already logged in, redirect to dashboard
+// If user is already logged in, redirect to dashboard
 const {
   data: { session },
 } = await Astro.locals.supabase.auth.getSession();
@@ -31,17 +25,7 @@ if (session?.user) {
         <p class="text-muted-foreground">Zaloguj się, aby kontynuować naukę</p>
       </div>
 
-      <div data-react-root>
-        <Card>
-          <CardHeader>
-            <CardTitle>Logowanie</CardTitle>
-            <CardDescription> Wprowadź swój email i hasło, aby się zalogować </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <LoginForm client:load />
-          </CardContent>
-        </Card>
-      </div>
+      <LoginFormWrapper client:visible />
     </div>
   </div>
 </PublicLayout>

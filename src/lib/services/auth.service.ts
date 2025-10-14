@@ -14,6 +14,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../db/database.types";
 import type { AuthResponse, UserDTO, SessionDTO } from "../../types";
+import { DatabaseError } from "../errors/database.error";
 
 /**
  * Custom error types for authentication operations

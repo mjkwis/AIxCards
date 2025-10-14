@@ -70,6 +70,11 @@ Kryteria akceptacji:
 - Po podaniu prawidłowych danych logowania użytkownik zostaje przekierowany do widoku generowania fiszek.
 - Błędne dane logowania wyświetlają komunikat o nieprawidłowych danych.
 - Dane dotyczące logowania przechowywane są w bezpieczny sposób.
+- Każdy enpoint powinien być zabezpieczony, w przypadku braku aktywnej sesji zalogowanego użytkownika powinno nastąpić przekierowanie na stronę logowania.
+- Użytkownik jest w stanie zmienić swoje hasło.
+- Informację o statusie czy użytkownik jest zalogowany powinniśmy używać token JWT.
+- Użytkownik jest w stanie się wylogować ze swojego konta.
+- Proces uwierzytelniania oparty o mechanizm Supabase Auth.
 
 ID: US-003
 Tytuł: Generowanie fiszek przy użyciu AI

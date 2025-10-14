@@ -5,6 +5,8 @@
  * Top navigation bar with support for public and protected views
  */
 
+import { NavbarActions } from '../navigation/NavbarActions';
+
 interface Props {
   variant?: 'public' | 'protected';
   currentPath?: string;
@@ -23,6 +25,9 @@ const linksWithActive = dashboardLinks.map(link => ({
   ...link,
   active: currentPath === link.href,
 }));
+
+// Get user from locals for protected variant
+const user = variant === 'protected' ? (Astro.locals.user ?? null) : null;
 ---
 
 <header class="border-b bg-background">
@@ -55,37 +60,9 @@ const linksWithActive = dashboardLinks.map(link => ({
           </div>
 
           {/* User Dropdown & Mobile Menu */}
-          <div class="flex items-center gap-2">
-            <div class="hidden md:block" id="user-dropdown-container"></div>
-            <div id="mobile-drawer-container"></div>
+          <div class="flex items-center gap-2" id="navbar-actions-container">
+            <slot name="navbar-actions" />
           </div>
-
-          {/* Client-side components will be mounted here */}
-          <script define:vars={{ linksWithActive }}>
-            import { UserDropdown } from '../navigation/UserDropdown';
-            import { MobileDrawer } from '../navigation/MobileDrawer';
-            import { createElement } from 'react';
-            import { createRoot } from 'react-dom/client';
-
-            // Mount UserDropdown
-            const dropdownContainer = document.getElementById('user-dropdown-container');
-            if (dropdownContainer) {
-              createRoot(dropdownContainer).render(createElement(UserDropdown));
-            }
-
-            // Mount MobileDrawer with links
-            const drawerContainer = document.getElementById('mobile-drawer-container');
-            if (drawerContainer && linksWithActive) {
-              const links = linksWithActive.map(link => ({
-                href: link.href,
-                label: link.label,
-                active: link.active,
-              }));
-              createRoot(drawerContainer).render(
-                createElement(MobileDrawer, { links })
-              );
-            }
-          </script>
         </>
       ) : (
         <div class="flex items-center gap-4">

@@ -1,4 +1,74 @@
 /**
+ * GET /api/auth/account
+ *
+ * Get current user's account information
+ *
+ * This endpoint returns the authenticated user's basic account information.
+ * Used by the frontend to verify authentication status and get user data.
+ *
+ * Features:
+ * - User identity verification through JWT
+ * - Returns minimal user data (id, email, created_at)
+ * - Used for client-side auth state synchronization
+ *
+ * Security:
+ * - Protected endpoint (requires valid JWT Bearer token)
+ * - Middleware validates token and populates locals.user
+ * - Returns only current user's data
+ */
+
+import type { APIRoute } from "astro";
+import { errorResponse } from "../../../lib/helpers/error-response";
+import type { UserDTO } from "../../../types";
+
+/**
+ * GET handler for retrieving current user account
+ *
+ * Request:
+ * - Headers: Authorization: Bearer {access_token}
+ *
+ * Success Response (200 OK):
+ * - user: UserDTO { id, email, created_at }
+ *
+ * Error Responses:
+ * - 401: Missing or invalid authentication token (handled by middleware)
+ * - 500: Internal server error
+ *
+ * Note: This endpoint is protected by middleware which validates the JWT token.
+ * The user object is available in locals.user with the authenticated user's data.
+ */
+export const GET: APIRoute = async ({ locals }) => {
+  try {
+    // 1. Get authenticated user from middleware
+    // Middleware has already verified the JWT token and populated locals.user
+    if (!locals.user?.id) {
+      return errorResponse(401, "AUTH_REQUIRED", "Valid authentication token is required");
+    }
+
+    // 2. Return user data from locals (already verified by middleware)
+    // No need to call Supabase again - middleware already validated the JWT token
+    const user: UserDTO = {
+      id: locals.user.id,
+      email: locals.user.email,
+      created_at: locals.user.created_at,
+    };
+
+    // 3. Return user data
+    return new Response(JSON.stringify({ user }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (error) {
+    // Catch-all for unexpected errors
+    console.error("Unexpected error in account endpoint:", error);
+
+    return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
+  }
+};
+
+/**
  * DELETE /api/auth/account
  *
  * Delete the current user's account and all associated data
@@ -29,9 +99,7 @@
  * - Logs deletion for audit trail
  */
 
-import type { APIRoute } from "astro";
 import { supabaseAdmin } from "../../../db/supabase-admin.client";
-import { errorResponse } from "../../../lib/helpers/error-response";
 
 /**
  * DELETE handler for account deletion
