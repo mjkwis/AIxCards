@@ -237,7 +237,7 @@ export class OpenRouterService {
     this.currentModel = options?.model || import.meta.env.OPENROUTER_MODEL || "openai/gpt-4-turbo";
     this.apiUrl = options?.apiUrl || "https://openrouter.ai/api/v1/chat/completions";
     this.timeout = options?.timeout || 30000;
-    this.httpReferer = options?.httpReferer || import.meta.env.SITE || "http://localhost:4321";
+    this.httpReferer = options?.httpReferer || import.meta.env.SITE_URL || "http://localhost:3000";
     this.appTitle = options?.appTitle || "10x-cards";
 
     // Load default parameters

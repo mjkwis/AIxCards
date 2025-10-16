@@ -1090,7 +1090,7 @@ export class MetricsService {
 2. Enable Email Provider
 3. Configure Site URL: https://your-domain.com
 4. Configure Redirect URLs:
-   - http://localhost:4321/auth/callback (dev)
+   - http://localhost:3000/auth/callback (dev)
    - https://your-domain.com/auth/callback (prod)
 5. JWT Settings:
    - JWT Expiry: 3600 (1 hour)
@@ -1108,7 +1108,7 @@ export class MetricsService {
 # .env
 SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_anon_key
-SITE_URL=http://localhost:4321
+SITE_URL=http://localhost:3000
 NODE_ENV=development
 
 # Production additional
@@ -1304,7 +1304,7 @@ export class AuthService {
         password,
         options: {
           // Email redirect URL for confirmation (if enabled)
-          emailRedirectTo: `${import.meta.env.SITE_URL || "http://localhost:4321"}/auth/callback`,
+          emailRedirectTo: `${import.meta.env.SITE_URL || "http://localhost:3000"}/auth/callback`,
 
           // Additional user metadata (optional)
           data: {
@@ -2003,7 +2003,7 @@ describe("AuthService", () => {
 // tests/api/auth/register.test.ts
 describe("POST /api/auth/register", () => {
   it("should return 400 for invalid email", async () => {
-    const response = await fetch("http://localhost:4321/api/auth/register", {
+    const response = await fetch("http://localhost:3000/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -2018,7 +2018,7 @@ describe("POST /api/auth/register", () => {
   });
 
   it("should return 400 for weak password", async () => {
-    const response = await fetch("http://localhost:4321/api/auth/register", {
+    const response = await fetch("http://localhost:3000/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -2034,7 +2034,7 @@ describe("POST /api/auth/register", () => {
 
   it("should register new user successfully", async () => {
     const uniqueEmail = `user${Date.now()}@example.com`;
-    const response = await fetch("http://localhost:4321/api/auth/register", {
+    const response = await fetch("http://localhost:3000/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -2059,14 +2059,14 @@ describe("POST /api/auth/register", () => {
     const email = "existing@example.com";
 
     // First registration
-    await fetch("http://localhost:4321/api/auth/register", {
+    await fetch("http://localhost:3000/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password: "SecurePass123" }),
     });
 
     // Second registration with same email
-    const response = await fetch("http://localhost:4321/api/auth/register", {
+    const response = await fetch("http://localhost:3000/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password: "SecurePass123" }),
@@ -2080,7 +2080,7 @@ describe("POST /api/auth/register", () => {
   it("should enforce rate limiting", async () => {
     // Make 5 requests (limit)
     for (let i = 0; i < 5; i++) {
-      await fetch("http://localhost:4321/api/auth/register", {
+      await fetch("http://localhost:3000/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -2091,7 +2091,7 @@ describe("POST /api/auth/register", () => {
     }
 
     // 6th request should be rate limited
-    const response = await fetch("http://localhost:4321/api/auth/register", {
+    const response = await fetch("http://localhost:3000/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -2106,7 +2106,7 @@ describe("POST /api/auth/register", () => {
   });
 
   it("should include rate limit headers", async () => {
-    const response = await fetch("http://localhost:4321/api/auth/register", {
+    const response = await fetch("http://localhost:3000/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

@@ -143,6 +143,56 @@ export class RateLimitService {
   clearAll(): void {
     store.clear();
   }
+
+  /**
+   * Check password reset rate limit
+   * 3 attempts per 15 minutes per IP+Email combination
+   * 
+   * @param ip - IP address of the requester
+   * @param email - Email address for password reset
+   * @throws RateLimitError if rate limit is exceeded
+   */
+  async checkPasswordResetRateLimit(ip: string, email: string): Promise<void> {
+    const key = `rate_limit:password_reset:${ip}:${email}`;
+    const limit = 3;
+    const windowMs = 900000; // 15 minutes
+    const now = new Date();
+
+    const entry = store.get(key);
+
+    if (!entry || entry.resetAt < now) {
+      store.set(key, {
+        count: 1,
+        resetAt: new Date(now.getTime() + windowMs),
+      });
+      return;
+    }
+
+    if (entry.count >= limit) {
+      throw new RateLimitError(entry.resetAt);
+    }
+
+    entry.count++;
+    store.set(key, entry);
+  }
+
+  /**
+   * Gets the number of remaining password reset attempts
+   * 
+   * @param ip - IP address of the requester
+   * @param email - Email address for password reset
+   * @returns Number of attempts remaining in current window
+   */
+  getRemainingPasswordReset(ip: string, email: string): number {
+    const key = `rate_limit:password_reset:${ip}:${email}`;
+    const entry = store.get(key);
+
+    if (!entry || entry.resetAt < new Date()) {
+      return 3;
+    }
+
+    return Math.max(0, 3 - entry.count);
+  }
 }
 
 /**

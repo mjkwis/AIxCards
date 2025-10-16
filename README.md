@@ -68,8 +68,8 @@ To set up and run the project on your local machine, follow these steps.
     OPENROUTER_API_KEY=your_openrouter_api_key
     OPENROUTER_MODEL=openai/gpt-4o-mini  # Optional, recommended for Structured Outputs support
     
-    # Site URL for OpenRouter referer tracking
-    SITE=http://localhost:3000  # Optional
+    # Site Configuration
+    SITE_URL=http://localhost:3000  # For password reset redirects and OpenRouter referer tracking
     ```
     
     **How to get Supabase credentials:**
@@ -87,6 +87,13 @@ To set up and run the project on your local machine, follow these steps.
       - `openai/gpt-4o` (more capable, higher quality)
       - `anthropic/claude-3-5-sonnet` (alternative option)
       - See [OpenRouter Models](https://openrouter.ai/models) for full list
+    
+    **Supabase Email Configuration (for Password Reset):**
+    - Go to Authentication → Email Templates in Supabase Dashboard
+    - Configure the "Reset Password" email template
+    - Set redirect URL to: `http://localhost:3000/update-password` (dev) or `https://your-domain.com/update-password` (prod)
+    - Set token expiry to 900 seconds (15 minutes)
+    - **Note:** Email sending requires production Supabase configuration and won't work in local development without additional SMTP setup
 
 4.  **Run the development server:**
     ```bash
@@ -106,6 +113,48 @@ The `package.json` file includes the following scripts for managing the applicat
 | `npm run lint`     | Lints the codebase using ESLint.                  |
 | `npm run lint:fix` | Automatically fixes linting issues.               |
 | `npm run format`   | Formats the code using Prettier.                  |
+
+## Testing Password Reset Flow (Development Mode)
+
+Since email sending requires production SMTP configuration, use the mock reset endpoint for development testing:
+
+### Step 1: Generate Reset Link
+
+```bash
+curl -X POST http://localhost:3000/api/auth/password/mock-reset \
+  -H "Content-Type: application/json" \
+  -d '{"email":"your-email@example.com"}'
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Mock reset link generated (development only)",
+  "resetLink": "http://localhost:3000/update-password#access_token=...",
+  "instructions": "Copy the link and paste it in your browser address bar"
+}
+```
+
+### Step 2: Use the Reset Link
+
+1. Copy the `resetLink` value
+2. Paste it into your browser address bar
+3. You'll be redirected to `/update-password`
+4. The token from URL is automatically processed by Supabase
+
+### Step 3: Set New Password
+
+1. Enter your new password (min 8 chars, 1 uppercase, 1 lowercase, 1 number)
+2. Confirm password
+3. Click "Ustaw nowe hasło"
+4. You'll be logged out and redirected to `/login`
+
+### Step 4: Login with New Password
+
+Use your email and new password to login - it should work!
+
+**Note:** This mock endpoint is **only available in development mode**. In production, users will receive actual password reset emails.
 
 ## Project Scope
 

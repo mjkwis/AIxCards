@@ -76,7 +76,7 @@ interface OpenRouterServiceOptions {
   
   /** 
    * HTTP Referer dla statystyk OpenRouter
-   * Domyślnie: import.meta.env.SITE lub "http://localhost:4321"
+   * Domyślnie: import.meta.env.SITE_URL lub "http://localhost:3000"
    */
   httpReferer?: string;
   
@@ -1399,7 +1399,7 @@ export class OpenRouterService {
     this.currentModel = options?.model || import.meta.env.OPENROUTER_MODEL || "openai/gpt-4-turbo";
     this.apiUrl = options?.apiUrl || "https://openrouter.ai/api/v1/chat/completions";
     this.timeout = options?.timeout || 30000;
-    this.httpReferer = options?.httpReferer || import.meta.env.SITE || "http://localhost:4321";
+    this.httpReferer = options?.httpReferer || import.meta.env.SITE_URL || "http://localhost:3000";
     this.appTitle = options?.appTitle || "10x-cards";
     
     // Załaduj domyślne parametry
@@ -1980,8 +1980,8 @@ Utwórz lub zaktualizuj plik `.env` w katalogu głównym projektu:
 OPENROUTER_API_KEY=sk-or-v1-your-api-key-here
 OPENROUTER_MODEL=openai/gpt-4-turbo
 
-# Site URL for OpenRouter referer tracking
-SITE=https://yourdomain.com
+# Site Configuration
+SITE_URL=https://yourdomain.com
 ```
 
 Dodaj do `.env.example`:
@@ -1990,7 +1990,9 @@ Dodaj do `.env.example`:
 # OpenRouter Configuration
 OPENROUTER_API_KEY=
 OPENROUTER_MODEL=openai/gpt-4-turbo
-SITE=http://localhost:4321
+
+# Site Configuration
+SITE_URL=http://localhost:3000
 ```
 
 ### Krok 15: Aktualizacja TypeScript Env Types
@@ -2001,7 +2003,7 @@ W `src/env.d.ts` dodaj:
 interface ImportMetaEnv {
   readonly OPENROUTER_API_KEY: string;
   readonly OPENROUTER_MODEL: string;
-  readonly SITE: string;
+  readonly SITE_URL?: string;
   // ... inne zmienne
 }
 ```

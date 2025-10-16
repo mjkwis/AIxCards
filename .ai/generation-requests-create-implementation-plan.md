@@ -723,7 +723,7 @@ export class OpenRouterAIService implements IAIService {
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": import.meta.env.SITE_URL || "http://localhost:4321",
+          "HTTP-Referer": import.meta.env.SITE_URL || "http://localhost:3000",
           "X-Title": "10x-cards",
         },
         body: JSON.stringify({
@@ -1076,7 +1076,7 @@ GET /api/generation-requests/job/:jobId
 
 ```env
 # .env - MVP doesn't require any AI API keys
-SITE_URL=http://localhost:4321
+SITE_URL=http://localhost:3000
 ```
 
 **Production (OpenRouterAIService):**

@@ -86,8 +86,34 @@ export const LoginSchema = z.object({
 });
 
 /**
+ * Reset Password Request command validation schema
+ *
+ * Used for: POST /api/auth/password/reset-request
+ *
+ * Validates email for password reset request.
+ * Always returns success to prevent email enumeration attacks.
+ */
+export const ResetPasswordRequestSchema = z.object({
+  email: emailSchema,
+});
+
+/**
+ * Update Password command validation schema
+ *
+ * Used for: POST /api/auth/password/update
+ *
+ * Validates new password when user clicks reset link.
+ * Requires same strength validation as registration.
+ */
+export const UpdatePasswordSchema = z.object({
+  password: passwordSchema,
+});
+
+/**
  * TypeScript type inference from Zod schemas
  * These types can be used for type-safe validation
  */
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
+export type ResetPasswordRequestInput = z.infer<typeof ResetPasswordRequestSchema>;
+export type UpdatePasswordInput = z.infer<typeof UpdatePasswordSchema>;

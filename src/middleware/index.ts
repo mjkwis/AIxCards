@@ -22,9 +22,28 @@ import { RateLimitError } from "../lib/errors/rate-limit.error";
 const PUBLIC_API_PATHS = [
   "/api/auth/login",
   "/api/auth/register",
-  "/api/auth/password/reset",
+  "/api/auth/password/reset-request",
   "/api/auth/password/update",
+  ...(import.meta.env.DEV ? ["/api/auth/password/mock-reset"] : []),
 ];
+
+/**
+ * Extract client IP address from request
+ * Checks X-Forwarded-For, X-Real-IP, and falls back to socket address
+ */
+function getClientIp(request: Request): string {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0].trim();
+  }
+
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp.trim();
+  }
+
+  return "unknown";
+}
 
 export const onRequest = defineMiddleware(async (context, next) => {
   // 1. Initialize Supabase client with SSR support
@@ -36,7 +55,55 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   context.locals.supabase = supabase;
 
-  // 2. Check authentication for dashboard pages (SSR cookie-based)
+  // 2. Handle password reset request endpoint (rate limiting before auth check)
+  const pathname = context.url.pathname;
+  const method = context.request.method;
+
+  if (pathname === "/api/auth/password/reset-request" && method === "POST") {
+    const clientIp = getClientIp(context.request);
+
+    // Parse body to get email for rate limiting
+    let email = "";
+    try {
+      const bodyText = await context.request.text();
+      const body = JSON.parse(bodyText);
+      email = body.email?.toLowerCase()?.trim() || "";
+
+      // Restore body for route handler by creating new request
+      context.request = new Request(context.request.url, {
+        method: context.request.method,
+        headers: context.request.headers,
+        body: bodyText,
+      });
+    } catch (e) {
+      // Invalid JSON - let route handler deal with it
+    }
+
+    if (email) {
+      try {
+        await rateLimitService.checkPasswordResetRateLimit(clientIp, email);
+
+        const remaining = rateLimitService.getRemainingPasswordReset(clientIp, email);
+        context.locals.rateLimitRemaining = remaining;
+      } catch (error) {
+        if (error instanceof RateLimitError) {
+          return errorResponse(
+            429,
+            "RATE_LIMIT_EXCEEDED",
+            "Too many password reset attempts. Please try again in 15 minutes.",
+            {
+              limit: 3,
+              window_minutes: 15,
+              reset_at: error.resetAt.toISOString(),
+            }
+          );
+        }
+        throw error;
+      }
+    }
+  }
+
+  // 3. Check authentication for dashboard pages (SSR cookie-based)
   const isDashboardPage = context.url.pathname.startsWith("/dashboard");
 
   if (isDashboardPage) {
@@ -58,9 +125,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     };
   }
 
-  // 3. Check if this is an API route that requires authentication
-  const isApiRoute = context.url.pathname.startsWith("/api/");
-  const isPublicApiPath = PUBLIC_API_PATHS.includes(context.url.pathname);
+  // 4. Check if this is an API route that requires authentication
+  const isApiRoute = pathname.startsWith("/api/");
+  const isPublicApiPath = PUBLIC_API_PATHS.includes(pathname);
 
   // Debug logging
   if (isApiRoute) {
@@ -92,8 +159,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
       created_at: user.created_at,
     };
 
-    // 4. Rate limiting for generation-requests endpoint
-    if (context.url.pathname === "/api/generation-requests" && context.request.method === "POST") {
+    // 5. Rate limiting for generation-requests endpoint
+    if (pathname === "/api/generation-requests" && method === "POST") {
       try {
         await rateLimitService.check(user.id, "generation-requests");
 
@@ -118,10 +185,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  // 5. Continue to endpoint
+  // 6. Continue to endpoint
   const response = await next();
 
-  // 6. Add rate limit headers to response (if available)
+  // 7. Add rate limit headers to response (if available)
   if (context.locals.rateLimitRemaining !== undefined) {
     response.headers.set("X-RateLimit-Limit", "10");
     response.headers.set("X-RateLimit-Remaining", context.locals.rateLimitRemaining.toString());

@@ -1239,7 +1239,7 @@ export class AIService {
         headers: {
           Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": import.meta.env.SITE || "http://localhost:4321",
+          "HTTP-Referer": import.meta.env.SITE_URL || "http://localhost:3000",
           "X-Title": "10x-cards",
         },
         body: JSON.stringify({
@@ -1703,7 +1703,7 @@ interface ImportMetaEnv {
   readonly SUPABASE_KEY: string;
   readonly OPENROUTER_API_KEY: string;
   readonly OPENROUTER_MODEL: string;
-  readonly SITE?: string;
+  readonly SITE_URL?: string;
 }
 
 interface ImportMeta {
@@ -1951,7 +1951,7 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_KEY=your_production_anon_key
 OPENROUTER_API_KEY=your_production_openrouter_key
 OPENROUTER_MODEL=openai/gpt-4-turbo
-SITE=https://your-production-domain.com
+SITE_URL=https://your-production-domain.com
 NODE_ENV=production
 ```
 

@@ -143,7 +143,7 @@ Teraz wszystkie strony działają jednakowo w DEV i PROD - sprawdzają sesję pr
 
 ### Test 1: Rejestracja nowego użytkownika
 
-1. Otwórz `http://localhost:4321/register`
+1. Otwórz `http://localhost:3000/register`
 2. Wprowadź email i hasło (zgodnie z wymaganiami: min 8 znaków, 1 duża, 1 mała, 1 cyfra)
 3. Kliknij "Zarejestruj się"
 4. **Oczekiwany rezultat:**
@@ -153,7 +153,7 @@ Teraz wszystkie strony działają jednakowo w DEV i PROD - sprawdzają sesję pr
 
 ### Test 2: Logowanie
 
-1. Otwórz `http://localhost:4321/login`
+1. Otwórz `http://localhost:3000/login`
 2. Wprowadź dane zarejestrowanego użytkownika
 3. Kliknij "Zaloguj się"
 4. **Oczekiwany rezultat:**
@@ -164,7 +164,7 @@ Teraz wszystkie strony działają jednakowo w DEV i PROD - sprawdzają sesję pr
 ### Test 3: Ochrona dashboard (SSR)
 
 1. Wyloguj się (jeśli jesteś zalogowany)
-2. Spróbuj otworzyć `http://localhost:4321/dashboard/generate`
+2. Spróbuj otworzyć `http://localhost:3000/dashboard/generate`
 3. **Oczekiwany rezultat:**
    - Redirect do `/login?redirect=/dashboard/generate`
    - Po zalogowaniu: redirect z powrotem do `/dashboard/generate`
@@ -188,13 +188,13 @@ Teraz wszystkie strony działają jednakowo w DEV i PROD - sprawdzają sesję pr
 **Public (nie wymagają Bearer):**
 ```bash
 # Login
-curl -X POST http://localhost:4321/api/auth/login \
+curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"Test1234"}'
 # Oczekiwane: 200 { user, session }
 
 # Register
-curl -X POST http://localhost:4321/api/auth/register \
+curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"new@example.com","password":"Test1234"}'
 # Oczekiwane: 201 { user, session }
@@ -203,20 +203,20 @@ curl -X POST http://localhost:4321/api/auth/register \
 **Protected (wymagają Bearer):**
 ```bash
 # Account (bez tokenu)
-curl -X GET http://localhost:4321/api/auth/account
+curl -X GET http://localhost:3000/api/auth/account
 # Oczekiwane: 401 "Authentication token is required"
 
 # Account (z tokenem)
-curl -X GET http://localhost:4321/api/auth/account \
+curl -X GET http://localhost:3000/api/auth/account \
   -H "Authorization: Bearer <your_access_token>"
 # Oczekiwane: 200 { user }
 
 # Flashcards (bez tokenu)
-curl -X GET http://localhost:4321/api/flashcards
+curl -X GET http://localhost:3000/api/flashcards
 # Oczekiwane: 401
 
 # Flashcards (z tokenem)
-curl -X GET http://localhost:4321/api/flashcards \
+curl -X GET http://localhost:3000/api/flashcards \
   -H "Authorization: Bearer <your_access_token>"
 # Oczekiwane: 200 { flashcards, pagination }
 ```
@@ -225,7 +225,7 @@ curl -X GET http://localhost:4321/api/flashcards \
 
 1. Zaloguj się
 2. Zamknij kartę przeglądarki
-3. Otwórz nową kartę i przejdź do `http://localhost:4321/dashboard/generate`
+3. Otwórz nową kartę i przejdź do `http://localhost:3000/dashboard/generate`
 4. **Oczekiwany rezultat:**
    - Sesja zachowana (refresh token w cookie)
    - Automatyczne załadowanie dashboardu bez logowania
@@ -241,7 +241,7 @@ curl -X GET http://localhost:4321/api/flashcards \
 ### Test 8: Redirect po logowaniu
 
 1. Wyloguj się
-2. Spróbuj otworzyć `http://localhost:4321/dashboard/flashcards`
+2. Spróbuj otworzyć `http://localhost:3000/dashboard/flashcards`
 3. Zostaniesz przekierowany do `/login?redirect=/dashboard/flashcards`
 4. Zaloguj się
 5. **Oczekiwany rezultat:**
