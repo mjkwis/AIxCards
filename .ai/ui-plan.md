@@ -1,8 +1,8 @@
-# Architektura UI dla 10x-cards
+# Architektura UI dla AIxCards
 
 ## 1. Przegląd struktury UI
 
-Aplikacja 10x-cards składa się z publicznych stron (landing, logowanie, rejestracja) oraz chronionego obszaru „Dashboard” z czterema głównymi widokami: Generuj fiszki, Moje fiszki, Sesja nauki i Statystyki. Nawigacja odbywa się przez top navbar (desktop) i drawer (mobile). Interaktywne funkcje realizowane są w komponentach React (wyspy Astro), z zarządzaniem stanem: React Context (auth) i React Query (dane). Architektura zapewnia dostępność (WCAG AA), pełną responsywność (mobile-first) i bezpieczeństwo (JWT, ograniczenia uprawnień, walidacja runtime). W UI wykorzystujemy Shadcn/ui, Tailwind 4 i formularze oparte o React Hook Form + Zod.
+Aplikacja AIxCards składa się z publicznych stron (landing, logowanie, rejestracja) oraz chronionego obszaru „Dashboard” z czterema głównymi widokami: Generuj fiszki, Moje fiszki, Sesja nauki i Statystyki. Nawigacja odbywa się przez top navbar (desktop) i drawer (mobile). Interaktywne funkcje realizowane są w komponentach React (wyspy Astro), z zarządzaniem stanem: React Context (auth) i React Query (dane). Architektura zapewnia dostępność (WCAG AA), pełną responsywność (mobile-first) i bezpieczeństwo (JWT, ograniczenia uprawnień, walidacja runtime). W UI wykorzystujemy Shadcn/ui, Tailwind 4 i formularze oparte o React Hook Form + Zod.
 
 ## 2. Lista widoków
 

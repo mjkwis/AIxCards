@@ -4,7 +4,7 @@
 
 **Endpoint:** `POST /api/auth/register`
 
-**Cel:** Rejestracja nowego konta użytkownika w systemie 10x-cards. Endpoint pozwala użytkownikom na utworzenie konta poprzez podanie adresu email i hasła. Po pomyślnej rejestracji użytkownik otrzymuje tokeny JWT, które umożliwiają natychmiastowe zalogowanie bez konieczności osobnego wywołania endpointu login.
+**Cel:** Rejestracja nowego konta użytkownika w systemie AIxCards. Endpoint pozwala użytkownikom na utworzenie konta poprzez podanie adresu email i hasła. Po pomyślnej rejestracji użytkownik otrzymuje tokeny JWT, które umożliwiają natychmiastowe zalogowanie bez konieczności osobnego wywołania endpointu login.
 
 **Funkcjonalność:**
 
@@ -1021,7 +1021,7 @@ export const supabase = createClient(url, key, {
   },
   global: {
     headers: {
-      "x-application-name": "10x-cards",
+      "x-application-name": "AIxCards",
     },
   },
 });

@@ -4,7 +4,7 @@
 
 **Endpoint:** `POST /api/auth/login`
 
-**Cel:** Uwierzytelnienie istniejącego użytkownika w systemie 10x-cards. Endpoint pozwala zalogowanym użytkownikom na uzyskanie dostępu do aplikacji poprzez podanie adresu email i hasła. Po pomyślnym uwierzytelnieniu użytkownik otrzymuje tokeny JWT umożliwiające dostęp do chronionych zasobów.
+**Cel:** Uwierzytelnienie istniejącego użytkownika w systemie AIxCards. Endpoint pozwala zalogowanym użytkownikom na uzyskanie dostępu do aplikacji poprzez podanie adresu email i hasła. Po pomyślnym uwierzytelnieniu użytkownik otrzymuje tokeny JWT umożliwiające dostęp do chronionych zasobów.
 
 **Funkcjonalność:**
 
@@ -770,7 +770,7 @@ export const supabase = createClient(url, key, {
   },
   global: {
     headers: {
-      "x-application-name": "10x-cards",
+      "x-application-name": "AIxCards",
     },
   },
 });

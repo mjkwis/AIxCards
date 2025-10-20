@@ -1,8 +1,8 @@
-# Dokument wymagań produktu (PRD) – 10x-cards
+# Dokument wymagań produktu (PRD) – AIxCards
 
 ## 1. Przegląd produktu
 
-Projekt 10x-cards ma na celu umożliwienie użytkownikom szybkiego tworzenia i zarządzania zestawami fiszek edukacyjnych. Aplikacja wykorzystuje modele LLM (poprzez API) do generowania sugestii fiszek na podstawie dostarczonego tekstu.
+Projekt AIxCards ma na celu umożliwienie użytkownikom szybkiego tworzenia i zarządzania zestawami fiszek edukacyjnych. Aplikacja wykorzystuje modele LLM (poprzez API) do generowania sugestii fiszek na podstawie dostarczonego tekstu.
 
 ## 2. Problem użytkownika
 

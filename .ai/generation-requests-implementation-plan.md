@@ -1240,7 +1240,7 @@ export class AIService {
           Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
           "HTTP-Referer": import.meta.env.SITE_URL || "http://localhost:3000",
-          "X-Title": "10x-cards",
+          "X-Title": "AIxCards",
         },
         body: JSON.stringify({
           model: this.model,

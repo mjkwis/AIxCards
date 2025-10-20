@@ -4,7 +4,7 @@
 
 **Endpoint:** `POST /api/auth/logout`
 
-**Cel:** Wylogowanie aktualnie zalogowanego użytkownika z systemu 10x-cards. Endpoint invaliduje aktualną sesję użytkownika, usuwa tokeny JWT i czyści cookies. Jest to kluczowa operacja bezpieczeństwa, która kończy dostęp użytkownika do chronionych zasobów.
+**Cel:** Wylogowanie aktualnie zalogowanego użytkownika z systemu AIxCards. Endpoint invaliduje aktualną sesję użytkownika, usuwa tokeny JWT i czyści cookies. Jest to kluczowa operacja bezpieczeństwa, która kończy dostęp użytkownika do chronionych zasobów.
 
 **Funkcjonalność:**
 

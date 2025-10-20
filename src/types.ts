@@ -1,5 +1,5 @@
 /**
- * Shared TypeScript Types for 10x-cards Application
+ * Shared TypeScript Types for AIxCards Application
  *
  * This file contains all DTO (Data Transfer Object) and Command Model types
  * used for API communication between frontend and backend.

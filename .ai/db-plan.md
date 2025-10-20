@@ -1,4 +1,4 @@
-# Schemat bazy danych PostgreSQL – 10x-cards
+# Schemat bazy danych PostgreSQL – AIxCards
 
 ## 1. Tabele z kolumnami, typami danych i ograniczeniami
 

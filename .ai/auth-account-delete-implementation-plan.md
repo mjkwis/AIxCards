@@ -4,7 +4,7 @@
 
 **Endpoint:** `DELETE /api/auth/account`
 
-**Cel:** Trwałe usunięcie konta użytkownika wraz z wszystkimi powiązanymi danymi z systemu 10x-cards. Endpoint realizuje prawo użytkownika do bycia zapomnianym (RODO/GDPR compliance) poprzez usunięcie konta użytkownika z tabeli `auth.users` oraz wszystkich powiązanych danych dzięki CASCADE constraints.
+**Cel:** Trwałe usunięcie konta użytkownika wraz z wszystkimi powiązanymi danymi z systemu AIxCards. Endpoint realizuje prawo użytkownika do bycia zapomnianym (RODO/GDPR compliance) poprzez usunięcie konta użytkownika z tabeli `auth.users` oraz wszystkich powiązanych danych dzięki CASCADE constraints.
 
 **Funkcjonalność:**
 
