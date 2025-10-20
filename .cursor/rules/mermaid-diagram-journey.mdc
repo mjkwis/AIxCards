@@ -5,9 +5,9 @@ alwaysApply: false
 ---
 # Mermaid Diagram - User Journey
 
-Jesteś specjalistą UX, którego zadaniem jest utworzenie diagramu Mermaid w celu wizualizacji podróży użytkownika dla modułu logowania i rejestracji. Diagram powinien zostać utworzony w następującym pliku: DESTINATION
+You are a UX specialist whose task is to create a Mermaid diagram to visualize the user journey for the login and registration module. The diagram should be created in the following file: DESTINATION
 
-Będziesz musiał odnieść się do następujących plików w celu poznania istniejących wymagań:
+You will need to refer to the following files to understand existing requirements:
 
 <file_references>
 [project-prd.md](mdc:.ai/project-prd.md)
@@ -17,119 +17,119 @@ Będziesz musiał odnieść się do następujących plików w celu poznania istn
 .ai/diagrams/journey.md
 </destination>
 
-Twoim zadaniem jest analiza specyfikacji modułu logowania i rejestracji oraz utworzenie kompleksowego diagramu Mermaid, który dokładnie przedstawia podróż użytkownika. Diagram powinien być w języku polskim.
+Your task is to analyze the login and registration module specification and create a comprehensive Mermaid diagram that accurately represents the user journey. The diagram should be in English.
 
-Przed utworzeniem diagramu, przeanalizuj wymagania i zaplanuj swoje podejście. Umieść swoją analizę wewnątrz tagów <user_journey_analysis>. W tej analizie:
+Before creating the diagram, analyze the requirements and plan your approach. Place your analysis within <user_journey_analysis> tags. In this analysis:
 
-1. Wypisz wszystkie ścieżki użytkownika wymienione w plikach referencyjnych.
-2. Zidentyfikuj główne podróże i ich odpowiadające stany.
-3. Określ punkty decyzyjne i alternatywne ścieżki.
-4. Dostarcz krótki opis celu każdego stanu.
+1. List all user paths mentioned in the reference files.
+2. Identify main journeys and their corresponding states.
+3. Determine decision points and alternative paths.
+4. Provide a brief description of each state's purpose.
 
-Kiedy będziesz gotowy do utworzenia diagramu, postępuj zgodnie z poniższymi wytycznymi:
+When you're ready to create the diagram, follow these guidelines:
 
-1. Rozpocznij diagram od następującej składni:
+1. Start the diagram with the following syntax:
 
    ```mermaid
    stateDiagram-v2
    ```
 
-2. Uwzględnij następujące elementy w swoim diagramie:
+2. Include the following elements in your diagram:
 
-   - Ścieżki użytkownika oparte na istniejących wymaganiach
-   - Korzystanie z aplikacji jako niezalogowany użytkownik
-   - Dostęp do głównej funkcjonalności aplikacji
-   - Logowanie się
-   - Tworzenie konta
-   - Odzyskiwanie hasła
-   - Podróż użytkownika na wysokim poziomie zgodna z wymaganiami projektu i HISTORIAMI UŻYTKOWNIKA
-   - Punkty decyzyjne i alternatywne ścieżki
-   - Przepływ po weryfikacji e-mail
-   - Skupienie się na ścieżkach biznesowych, a nie aspektach technicznych
+   - User paths based on existing requirements
+   - Using the application as an unauthenticated user
+   - Access to main application functionality
+   - Logging in
+   - Account creation
+   - Password recovery
+   - High-level user journey consistent with project requirements and USER STORIES
+   - Decision points and alternative paths
+   - Flow after email verification
+   - Focus on business paths, not technical aspects
 
-3. Przestrzegaj tych zasad składni Mermaid:
+3. Follow these Mermaid syntax rules:
 
-   - Stany początkowe i końcowe muszą być poprawnie zdefiniowane:
+   - Initial and final states must be correctly defined:
      ```
-     [*] --> StronaGlowna
-     StronaGlowna --> [*]
+     [*] --> HomePage
+     HomePage --> [*]
      ```
-   - Używaj stanów złożonych do grupowania powiązanych stanów:
+   - Use composite states to group related states:
      ```
-     state "Proces Rejestracji" as Rejestracja {
-       [*] --> FormularzRejestracji
-       FormularzRejestracji --> WalidacjaDanych
-       WalidacjaDanych --> WyslanieMaila
+     state "Registration Process" as Registration {
+       [*] --> RegistrationForm
+       RegistrationForm --> DataValidation
+       DataValidation --> EmailSending
      }
      ```
-   - Dla rozgałęzień decyzyjnych, używaj poprawnej składni:
+   - For decision branches, use correct syntax:
      ```
-     state if_weryfikacja <<choice>>
-     WeryfikacjaTokena --> if_weryfikacja
-     if_weryfikacja --> TokenPoprawny: Token OK
-     if_weryfikacja --> TokenNiepoprawny: Token błędny
+     state if_verification <<choice>>
+     TokenVerification --> if_verification
+     if_verification --> TokenValid: Token OK
+     if_verification --> TokenInvalid: Token invalid
      ```
-   - Używaj notatek dla dodatkowych informacji:
+   - Use notes for additional information:
      ```
-     FormularzLogowania: Użytkownik może się zalogować
-     note right of FormularzLogowania
-       Formularz zawiera pola email i hasło
-       oraz link do odzyskiwania hasła
+     LoginForm: User can log in
+     note right of LoginForm
+       Form contains email and password fields
+       and password recovery link
      end note
      ```
-   - Dla stanów równoległych, używaj poprawnej składni:
+   - For parallel states, use correct syntax:
 
      ```
      state fork_state <<fork>>
      state join_state <<join>>
 
-     Rejestracja --> fork_state
-     fork_state --> WyslanieMaila
-     fork_state --> AktualizacjaBazy
-     WyslanieMaila --> join_state
-     AktualizacjaBazy --> join_state
-     join_state --> StanKoncowy
+     Registration --> fork_state
+     fork_state --> EmailSending
+     fork_state --> DatabaseUpdate
+     EmailSending --> join_state
+     DatabaseUpdate --> join_state
+     join_state --> FinalState
      ```
 
-   - Używaj przestrzeni nazw do organizowania złożonych diagramów:
+   - Use namespaces to organize complex diagrams:
      ```
-     state "Autentykacja" as Autentykacja {
-       state "Logowanie" as Logowanie {
-         // stany dla procesu logowania
+     state "Authentication" as Authentication {
+       state "Login" as Login {
+         // states for login process
        }
-       state "Rejestracja" as Rejestracja {
-         // stany dla procesu rejestracji
+       state "Registration" as Registration {
+         // states for registration process
        }
      }
      ```
-   - Dla historii stanu, używaj poprawnej składni:
+   - For state history, use correct syntax:
      ```
-     state "Panel użytkownika" as Panel {
-       [*] --> historia
-       state historia <<history>>
+     state "User Panel" as Panel {
+       [*] --> history
+       state history <<history>>
      }
      ```
-   - Dla przejść z wydarzeniami i warunkami, używaj poprawnej składni:
+   - For transitions with events and conditions, use correct syntax:
      ```
-     StanA --> StanB: Przycisk Dalej [dane poprawne]
+     StateA --> StateB: Next Button [data valid]
      ```
-   - Unikaj używania adresów URL, adresów endpointów, nawiasów, długich nazw funkcji lub złożonych wyrażeń w nazwach stanów:
-     ŹLE: [Strona Główna<br/>(Kreator Reguł)]
-     DOBRZE: [Kreator Reguł]
-   - Używaj spójnego nazewnictwa w całym dokumencie
-   - Unikaj długich etykiet, które mogą powodować problemy z renderowaniem
+   - Avoid using URLs, endpoint addresses, parentheses, long function names, or complex expressions in state names:
+     BAD: [Main Page<br/>(Rule Creator)]
+     GOOD: [Rule Creator]
+   - Use consistent naming throughout the document
+   - Avoid long labels that may cause rendering issues
 
-4. Unikaj tych typowych błędów:
-   - Brak deklaracji sekcji Mermaid i typu diagramu na początku
-   - Niepoprawne stany decyzyjne (brakujący choice, fork, join)
-   - Brakujące stany początkowe i końcowe ([*])
-   - Niespójne nazewnictwo stanów
-   - Niezamknięte zagnieżdżone stany (brakujący zamykający nawias klamrowy)
-   - Zbyt złożone diagramy bez odpowiedniego grupowania stanów
-   - Niepoprawne etykiety przejść
-   - Przekraczanie limitów długości linii
-   - Brak pustych linii przed i po bloku kodu Mermaid
+4. Avoid these common mistakes:
+   - Missing Mermaid section declaration and diagram type at the beginning
+   - Incorrect decision states (missing choice, fork, join)
+   - Missing initial and final states ([*])
+   - Inconsistent state naming
+   - Unclosed nested states (missing closing brace)
+   - Overly complex diagrams without proper state grouping
+   - Incorrect transition labels
+   - Exceeding line length limits
+   - Missing empty lines before and after Mermaid code block
 
-Po utworzeniu diagramu, przejrzyj go dokładnie, aby upewnić się, że nie ma błędów składniowych ani problemów z renderowaniem. Wprowadź niezbędne poprawki, aby poprawić przejrzystość i dokładność.
+After creating the diagram, review it carefully to ensure there are no syntax errors or rendering issues. Make necessary corrections to improve clarity and accuracy.
 
-Kiedy będziesz gotowy do przedstawienia końcowego diagramu, użyj tagów <mermaid_diagram> do jego otoczenia.
+When you're ready to present the final diagram, use <mermaid_diagram> tags to surround it.

@@ -4,22 +4,22 @@
 
 **Endpoint:** `DELETE /api/auth/account`
 
-**Cel:** Trwałe usunięcie konta użytkownika wraz z wszystkimi powiązanymi danymi z systemu AIxCards. Endpoint realizuje prawo użytkownika do bycia zapomnianym (RODO/GDPR compliance) poprzez usunięcie konta użytkownika z tabeli `auth.users` oraz wszystkich powiązanych danych dzięki CASCADE constraints.
+**Purpose:** Permanent deletion of user account along with all associated data from the AIxCards system. The endpoint implements the user's right to be forgotten (GDPR compliance) by removing the user account from the `auth.users` table and all related data through CASCADE constraints.
 
-**Funkcjonalność:**
+**Functionality:**
 
-- Wymaganie validnego JWT tokenu (użytkownik musi być zalogowany)
-- Walidacja tożsamości użytkownika
-- Usunięcie wszystkich flashcards użytkownika (CASCADE)
-- Usunięcie wszystkich generation_requests użytkownika (CASCADE)
-- Usunięcie użytkownika z auth.users (Supabase Auth)
-- Invalidacja wszystkich sesji użytkownika
-- Usunięcie refresh token cookie
-- Zwrócenie pustej odpowiedzi 204 No Content
+- Require valid JWT token (user must be logged in)
+- User identity validation
+- Delete all user flashcards (CASCADE)
+- Delete all user generation_requests (CASCADE)
+- Delete user from auth.users (Supabase Auth)
+- Invalidate all user sessions
+- Remove refresh token cookie
+- Return empty 204 No Content response
 
-**User Stories:** Wymagane dla GDPR/RODO compliance - prawo do bycia zapomnianym
+**User Stories:** Required for GDPR compliance - right to be forgotten
 
-**Bezpieczeństwo:** Endpoint chroniony, wymaga autentykacji, irreversible operation z konfirmacją
+**Security:** Protected endpoint, requires authentication, irreversible operation with confirmation
 
 ---
 

@@ -3,49 +3,49 @@ description:
 globs: 
 alwaysApply: false
 ---
-Jesteś doświadczonym inżynierem QA, którego zadaniem jest stworzenie kompleksowego planu testów dla projektu programistycznego. Przeanalizuj poniższe informacje o projekcie:
+You are an experienced QA engineer whose task is to create a comprehensive test plan for a software project. Analyze the following project information:
 
-<kod_projektu>
+<project_code>
 
-</kod_projektu>
+</project_code>
 
-<stos_technologiczny>
+<tech_stack>
 [tech-stack.md](mdc:.ai/tech-stack.md)
-</stos_technologiczny>
+</tech_stack>
 
-Twoim zadaniem jest wygenerowanie szczegółowego planu testów, który będzie dostosowany do specyfiki projektu, uwzględniając wykorzystywane technologie, strukturę kodu oraz kluczowe elementy repozytorium. Plan testów powinien być napisany w języku polskim.
+Your task is to generate a detailed test plan that will be tailored to the project's specifics, taking into account the technologies used, code structure, and key repository elements. The test plan should be written in English.
 
-Przed stworzeniem planu testów, przeprowadź dogłębną analizę projektu wewnątrz bloku <analiza_projektu> w swoim bloku myślowym. W analizie uwzględnij:
+Before creating the test plan, conduct a thorough project analysis within the <project_analysis> block in your thinking block. Include in the analysis:
 
-1. Kluczowe komponenty projektu wynikające z analizy kodu:
-   - Wymień i opisz główne komponenty projektu
-2. Specyfikę stosu technologicznego i jego wpływ na strategię testowania:
-   - Przeanalizuj każdy element stosu technologicznego i jego implikacje dla testowania
-3. Priorytety testowe bazujące na strukturze repozytorium:
-   - Zidentyfikuj i uszereguj obszary testowe według ważności
-4. Potencjalne obszary ryzyka wymagające szczególnej uwagi w testach:
-   - Wymień potencjalne ryzyka i uzasadnij, dlaczego wymagają specjalnej uwagi
+1. Key project components resulting from code analysis:
+   - List and describe the main project components
+2. Technology stack specifics and their impact on testing strategy:
+   - Analyze each element of the technology stack and its implications for testing
+3. Testing priorities based on repository structure:
+   - Identify and rank testing areas by importance
+4. Potential risk areas requiring special attention in tests:
+   - List potential risks and justify why they require special attention
 
-Po zakończeniu analizy, stwórz plan testów wewnątrz bloku <plan_testów>. Plan powinien zawierać:
+After completing the analysis, create a test plan within the <test_plan> block. The plan should include:
 
-1. Wprowadzenie i cele testowania
-2. Zakres testów
-3. Typy testów do przeprowadzenia (np. testy jednostkowe, integracyjne, wydajnościowe)
-4. Scenariusze testowe dla kluczowych funkcjonalności
-5. Środowisko testowe
-6. Narzędzia do testowania
-7. Harmonogram testów
-8. Kryteria akceptacji testów
-9. Role i odpowiedzialności w procesie testowania
-10. Procedury raportowania błędów
+1. Introduction and testing objectives
+2. Test scope
+3. Types of tests to be performed (e.g., unit tests, integration tests, performance tests)
+4. Test scenarios for key functionalities
+5. Test environment
+6. Testing tools
+7. Test schedule
+8. Test acceptance criteria
+9. Roles and responsibilities in the testing process
+10. Bug reporting procedures
 
-Pamiętaj, aby plan testów był:
-- Dokładnie dostosowany do kontekstu projektu
-- Uwzględniał specyfikę wykorzystywanych technologii
-- Priorytetyzował kluczowe elementy repozytorium
-- Był napisany w języku polskim
-- Prezentował wysoką jakość i profesjonalizm
+Remember that the test plan should be:
+- Precisely tailored to the project context
+- Consider the specifics of the technologies used
+- Prioritize key repository elements
+- Be written in English
+- Present high quality and professionalism
 
-Rozpocznij od analizy, a następnie przejdź do tworzenia planu testów. Twój końcowy wynik powinien składać się tylko z planu testów i nie powinien powielać ani streszczać żadnej pracy wykonanej w bloku analizy projektu.
+Start with the analysis, then proceed to creating the test plan. Your final result should consist only of the test plan and should not duplicate or summarize any work done in the project analysis block.
 
-Przedstaw ten plan w formacie Markdown.
+Present this plan in Markdown format.

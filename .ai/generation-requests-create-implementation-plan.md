@@ -1,26 +1,26 @@
 # API Endpoint Implementation Plan: POST /api/generation-requests
 
-## 1. Przegląd punktu końcowego
+## 1. Endpoint Overview
 
 **Endpoint:** `POST /api/generation-requests`
 
-**Cel:** Główny endpoint aplikacji - generowanie fiszek przez AI na podstawie tekstu źródłowego. Endpoint przyjmuje tekst (1000-10000 znaków), przekazuje go do AI service (mock dla MVP), parsuje odpowiedź i zapisuje wygenerowane fiszki w bazie danych ze statusem `pending_review`.
+**Purpose:** Main application endpoint - AI flashcard generation based on source text. The endpoint accepts text (1000-10000 characters), passes it to AI service (mock for MVP), parses the response and saves generated flashcards in the database with `pending_review` status.
 
-**Funkcjonalność:**
+**Functionality:**
 
-- Walidacja długości tekstu źródłowego (1000-10000 chars)
-- Rate limiting (10 requests/hour per user) - ochrona przed nadużyciami
-- **Integracja z AI service (MOCK dla MVP)** ← deterministyczne dane testowe
-- Parsing odpowiedzi AI do struktury flashcard
-- Bulk insert flashcards (transakcja)
-- Zwrócenie generation request + wszystkich wygenerowanych flashcards
-- Error handling dla AI failures
+- Source text length validation (1000-10000 chars)
+- Rate limiting (10 requests/hour per user) - protection against abuse
+- **AI service integration (MOCK for MVP)** ← deterministic test data
+- Parsing AI response to flashcard structure
+- Bulk insert flashcards (transaction)
+- Return generation request + all generated flashcards
+- Error handling for AI failures
 
 **User Stories:** US-003, US-004 (Core MVP functionality)
 
-**Bezpieczeństwo:** Endpoint chroniony (wymaga auth), rate limiting (10/hour)
+**Security:** Protected endpoint (requires auth), rate limiting (10/hour)
 
-**⚠️ MVP Note:** Dla MVP używamy **MockAIService** - prawdziwa integracja z OpenRouter.ai będzie dodana później.
+**⚠️ MVP Note:** For MVP we use **MockAIService** - real OpenRouter.ai integration will be added later.
 
 ---
 

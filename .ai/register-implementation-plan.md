@@ -1,24 +1,24 @@
 # API Endpoint Implementation Plan: POST /api/auth/register
 
-## 1. Przegląd punktu końcowego
+## 1. Endpoint Overview
 
 **Endpoint:** `POST /api/auth/register`
 
-**Cel:** Rejestracja nowego konta użytkownika w systemie AIxCards. Endpoint pozwala użytkownikom na utworzenie konta poprzez podanie adresu email i hasła. Po pomyślnej rejestracji użytkownik otrzymuje tokeny JWT, które umożliwiają natychmiastowe zalogowanie bez konieczności osobnego wywołania endpointu login.
+**Purpose:** Registration of a new user account in the AIxCards system. The endpoint allows users to create an account by providing an email address and password. After successful registration, the user receives JWT tokens that enable immediate login without the need for a separate login endpoint call.
 
-**Funkcjonalność:**
+**Functionality:**
 
-- Walidacja formatu email i siły hasła
-- Utworzenie konta użytkownika przez Supabase Auth
-- Automatyczne utworzenie rekordu w tabeli `auth.users` (zarządzane przez Supabase)
-- Generowanie JWT tokens (access_token i refresh_token)
-- Zwrócenie danych użytkownika i sesji
-- Implementacja rate limiting dla ochrony przed atakami
-- Opcjonalna weryfikacja email (konfigurowana w Supabase)
+- Email format and password strength validation
+- User account creation through Supabase Auth
+- Automatic record creation in `auth.users` table (managed by Supabase)
+- JWT tokens generation (access_token and refresh_token)
+- Return user data and session
+- Rate limiting implementation for attack protection
+- Optional email verification (configured in Supabase)
 
-**User Stories:** Podstawowa funkcjonalność wymagana dla wszystkich user stories wymagających autentykacji
+**User Stories:** Basic functionality required for all user stories requiring authentication
 
-**Bezpieczeństwo:** Endpoint publiczny, ale z rate limiting i strong password requirements
+**Security:** Public endpoint, but with rate limiting and strong password requirements
 
 ---
 

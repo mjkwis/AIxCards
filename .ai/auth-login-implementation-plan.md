@@ -1,24 +1,24 @@
 # API Endpoint Implementation Plan: POST /api/auth/login
 
-## 1. Przegląd punktu końcowego
+## 1. Endpoint Overview
 
 **Endpoint:** `POST /api/auth/login`
 
-**Cel:** Uwierzytelnienie istniejącego użytkownika w systemie AIxCards. Endpoint pozwala zalogowanym użytkownikom na uzyskanie dostępu do aplikacji poprzez podanie adresu email i hasła. Po pomyślnym uwierzytelnieniu użytkownik otrzymuje tokeny JWT umożliwiające dostęp do chronionych zasobów.
+**Purpose:** Authentication of an existing user in the AIxCards system. The endpoint allows logged-in users to gain access to the application by providing an email address and password. After successful authentication, the user receives JWT tokens enabling access to protected resources.
 
-**Funkcjonalność:**
+**Functionality:**
 
-- Walidacja formatu email i obecności hasła
-- Uwierzytelnienie użytkownika przez Supabase Auth
-- Weryfikacja credentials (email + password)
-- Generowanie JWT tokens (access_token i refresh_token)
-- Zwrócenie danych użytkownika i sesji
-- Implementacja rate limiting dla ochrony przed brute force
-- Ustawienie httpOnly cookie dla refresh token
+- Email format and password presence validation
+- User authentication through Supabase Auth
+- Credentials verification (email + password)
+- JWT tokens generation (access_token and refresh_token)
+- Return user data and session
+- Rate limiting implementation for brute force protection
+- Setting httpOnly cookie for refresh token
 
-**User Stories:** Wymagane dla wszystkich user stories wymagających dostępu do chronionych zasobów
+**User Stories:** Required for all user stories requiring access to protected resources
 
-**Bezpieczeństwo:** Endpoint publiczny, ale z agresywnym rate limiting (10 prób/15 min) dla ochrony przed brute force attacks
+**Security:** Public endpoint, but with aggressive rate limiting (10 attempts/15 min) for brute force attack protection
 
 ---
 

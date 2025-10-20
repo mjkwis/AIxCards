@@ -1,12 +1,12 @@
-# Schemat bazy danych PostgreSQL – AIxCards
+# PostgreSQL Database Schema – AIxCards
 
-## 1. Tabele z kolumnami, typami danych i ograniczeniami
+## 1. Tables with columns, data types and constraints
 
-### 1.1. Tabela: `auth.users` (Supabase wbudowana)
+### 1.1. Table: `auth.users` (Supabase built-in)
 
-Tabela zarządzana przez Supabase Auth. Nie wymaga tworzenia w migracji.
+Table managed by Supabase Auth. Does not require creation in migration.
 
-**Kluczowe kolumny:**
+**Key columns:**
 
 - `id` (UUID) – PRIMARY KEY
 - `email` (TEXT)
@@ -14,7 +14,7 @@ Tabela zarządzana przez Supabase Auth. Nie wymaga tworzenia w migracji.
 
 ---
 
-### 1.2. Typy wyliczeniowe (ENUM)
+### 1.2. Enumeration types (ENUM)
 
 #### `flashcard_source_enum`
 

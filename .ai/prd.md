@@ -1,33 +1,33 @@
-# Dokument wymagań produktu (PRD) – AIxCards
+# Product Requirements Document (PRD) – AIxCards
 
-## 1. Przegląd produktu
+## 1. Product Overview
 
-Projekt AIxCards ma na celu umożliwienie użytkownikom szybkiego tworzenia i zarządzania zestawami fiszek edukacyjnych. Aplikacja wykorzystuje modele LLM (poprzez API) do generowania sugestii fiszek na podstawie dostarczonego tekstu.
+The AIxCards project aims to enable users to quickly create and manage educational flashcard sets. The application uses LLM models (via API) to generate flashcard suggestions based on provided text.
 
-## 2. Problem użytkownika
+## 2. User Problem
 
-Manualne tworzenie wysokiej jakości fiszek wymaga dużych nakładów czasu i wysiłku, co zniechęca do korzystania z efektywnej metody nauki, jaką jest spaced repetition. Celem rozwiązania jest skrócenie czasu potrzebnego na tworzenie odpowiednich pytań i odpowiedzi oraz uproszczenie procesu zarządzania materiałem do nauki.
+Manual creation of high-quality flashcards requires significant time and effort investment, which discourages the use of the effective learning method that is spaced repetition. The solution's goal is to reduce the time needed to create appropriate questions and answers and simplify the process of managing learning material.
 
-## 3. Wymagania funkcjonalne
+## 3. Functional Requirements
 
-1. Automatyczne generowanie fiszek:
-   - Użytkownik wkleja dowolny tekst (np. fragment podręcznika).
-   - Aplikacja wysyła tekst do modelu LLM za pośrednictwem API.
-   - Model LLM proponuje zestaw fiszek (pytania i odpowiedzi).
-   - Fiszki są przedstawiane użytkownikowi w formie listy z możliwością akceptacji, edycji lub odrzucenia.
+1. Automatic flashcard generation:
+   - User pastes any text (e.g., textbook fragment).
+   - Application sends text to LLM model via API.
+   - LLM model suggests a set of flashcards (questions and answers).
+   - Flashcards are presented to the user in list form with the ability to accept, edit or reject.
 
-2. Ręczne tworzenie i zarządzanie fiszkami:
-   - Formularz do ręcznego tworzenia fiszek (przód i tył fiszki).
-   - Opcje edycji i usuwania istniejących fiszek.
-   - Ręczne tworzenie i wyświetlanie w ramach widoku listy "Moje fiszki"
+2. Manual flashcard creation and management:
+   - Form for manual flashcard creation (front and back of flashcard).
+   - Options to edit and delete existing flashcards.
+   - Manual creation and display within the "My Flashcards" list view
 
-3. Podstawowy system uwierzytelniania i kont użytkowników:
-   - Rejestracja i logowanie.
-   - Możliwość usunięcia konta i powiązanych fiszek na życzenie.
+3. Basic authentication system and user accounts:
+   - Registration and login.
+   - Ability to delete account and associated flashcards on request.
 
-4. Integracja z algorytmem powtórek:
-   - Zapewnienie mechanizmu przypisywania fiszek do harmonogramu powtórek (korzystanie z gotowego algorytmu).
-   - Brak dodatkowych metadanych i zaawansowanych funkcji powiadomień w MVP.
+4. Integration with repetition algorithm:
+   - Providing mechanism for assigning flashcards to repetition schedule (using ready-made algorithm).
+   - No additional metadata and advanced notification features in MVP.
 
 5. Przechowywanie i skalowalność:
    - Dane o fiszkach i użytkownikach przechowywane w sposób zapewniający skalowalność i bezpieczeństwo.

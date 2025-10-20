@@ -5,15 +5,15 @@ alwaysApply: false
 ---
 # Shadcn UI Components
 
-Ten projekt wykorzystuje @shadcn/ui dla komponentów interfejsu użytkownika. Są to pięknie zaprojektowane, dostępne komponenty, które można dostosować do swojej aplikacji.
+This project uses @shadcn/ui for user interface components. These are beautifully designed, accessible components that you can customize for your application.
 
-## Odszukiwanie zainstalowanych komponentów
+## Finding installed components
 
-Komponenty są dostępne w folderze `src/components/ui`, zgodnie z aliasami z pliku `components.json`
+Components are available in the `src/components/ui` folder, according to the aliases from the `components.json` file
 
-## Wykorzystanie komponentu
+## Using components
 
-Zaimportuj komponent zgodnie ze skonfigurowanym aliasem `@/`
+Import components according to the configured `@/` alias
 
 ```tsx
 import { Button } from "@/components/ui/button"
@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 ```
 
-Przykładowe wykorzsytanie komponnetów:
+Example component usage:
 
 ```tsx
 <Button variant="outline">Click me</Button>
@@ -40,26 +40,26 @@ Przykładowe wykorzsytanie komponnetów:
 </Card>
 ```
 
-## Instalowanie dodatkowych komponentów
+## Installing additional components
 
-Wiele innych komponentów jest dostępnych, ale nie są one obecnie zainstalowane. Pełną listę można znaleźć na stronie https://ui.shadcn.com/r
+Many other components are available, but they are not currently installed. The full list can be found at https://ui.shadcn.com/r
 
-Aby zainstalować nowy komponent, wykorzystaj shadcn CLI
+To install a new component, use the shadcn CLI
 
 
 ```bash
 npx shadcn@latest add [component-name]
 ```
 
-Przykładowo, aby dodać komponent accordion
+For example, to add the accordion component
 
 ```bash
 npx shadcn@latest add accordion
 ```
 
-Ważne: `npx shadcn-ui@latest` zostało wycofane, korzystaj z `npx shadcn@latest`
+Important: `npx shadcn-ui@latest` has been deprecated, use `npx shadcn@latest`
 
-Niektóre popularne komponenty to:
+Some popular components include:
 
 - Accordion
 - Alert
@@ -96,4 +96,4 @@ Niektóre popularne komponenty to:
 
 ## Component Styling
 
-Ten projekt wykorzystuje wariant stylu „new-york” z kolorem bazowym "neutral" i zmiennymi CSS do tworzenia motywów, zgodnie z konfiguracją w sekcji `components.json`.
+This project uses the "new-york" style variant with "neutral" base color and CSS variables for theming, according to the configuration in the `components.json` section.

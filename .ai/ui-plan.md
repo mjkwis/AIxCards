@@ -1,33 +1,33 @@
-# Architektura UI dla AIxCards
+# UI Architecture for AIxCards
 
-## 1. Przegląd struktury UI
+## 1. UI Structure Overview
 
-Aplikacja AIxCards składa się z publicznych stron (landing, logowanie, rejestracja) oraz chronionego obszaru „Dashboard” z czterema głównymi widokami: Generuj fiszki, Moje fiszki, Sesja nauki i Statystyki. Nawigacja odbywa się przez top navbar (desktop) i drawer (mobile). Interaktywne funkcje realizowane są w komponentach React (wyspy Astro), z zarządzaniem stanem: React Context (auth) i React Query (dane). Architektura zapewnia dostępność (WCAG AA), pełną responsywność (mobile-first) i bezpieczeństwo (JWT, ograniczenia uprawnień, walidacja runtime). W UI wykorzystujemy Shadcn/ui, Tailwind 4 i formularze oparte o React Hook Form + Zod.
+The AIxCards application consists of public pages (landing, login, registration) and a protected "Dashboard" area with four main views: Generate Flashcards, My Flashcards, Study Session and Statistics. Navigation is done through top navbar (desktop) and drawer (mobile). Interactive features are implemented in React components (Astro islands), with state management: React Context (auth) and React Query (data). The architecture ensures accessibility (WCAG AA), full responsiveness (mobile-first) and security (JWT, permission restrictions, runtime validation). In the UI we use Shadcn/ui, Tailwind 4 and forms based on React Hook Form + Zod.
 
-## 2. Lista widoków
+## 2. View List
 
-- Nazwy, ścieżki, cele, informacje, komponenty oraz względy UX/a11y/security przedstawiono dla każdego widoku.
+- Names, paths, goals, information, components and UX/a11y/security considerations are presented for each view.
 
 ### 2.1 Landing Page
-- Nazwa widoku: Landing Page
-- Ścieżka widoku: `/`
-- Główny cel: Przedstawić wartość produktu i skierować użytkownika do logowania/rejestracji.
-- Kluczowe informacje do wyświetlenia:
-  - Hero z wartością i CTA (Zaloguj się/Rejestracja)
-  - Krótki opis: generowanie fiszek AI, powtórki SM-2
-  - Linki pomocnicze (polityka prywatności, kontakt)
-- Kluczowe komponenty widoku:
-  - Navbar (wersja publiczna), Hero, Feature list, Footer
-- UX, dostępność i względy bezpieczeństwa:
-  - Kontrast, semantyka (`<main>`, `<nav>`, `<section>`)
-  - Duże przyciski CTA, focus ring, klawiaturowa nawigacja
-  - Brak wrażliwych danych; brak interakcji z API
+- View name: Landing Page
+- View path: `/`
+- Main goal: Present product value and direct user to login/registration.
+- Key information to display:
+  - Hero with value and CTA (Login/Registration)
+  - Brief description: AI flashcard generation, SM-2 repetitions
+  - Helper links (privacy policy, contact)
+- Key view components:
+  - Navbar (public version), Hero, Feature list, Footer
+- UX, accessibility and security considerations:
+  - Contrast, semantics (`<main>`, `<nav>`, `<section>`)
+  - Large CTA buttons, focus ring, keyboard navigation
+  - No sensitive data; no API interactions
 
-### 2.2 Logowanie
-- Nazwa widoku: Logowanie
-- Ścieżka widoku: `/login`
-- Główny cel: Uwierzytelnienie użytkownika i przekierowanie do dashboardu.
-- Kluczowe informacje do wyświetlenia:
+### 2.2 Login
+- View name: Login
+- View path: `/login`
+- Main goal: User authentication and redirect to dashboard.
+- Key information to display:
   - Formularz: email, hasło, link do rejestracji
   - Komunikaty błędów walidacji i uwierzytelnienia
 - Kluczowe komponenty widoku:

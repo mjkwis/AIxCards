@@ -5,9 +5,9 @@ alwaysApply: false
 ---
 # Mermaid Diagram - Auth Architecture
 
-Jesteś specjalistą ds. bezpieczeństwa, którego zadaniem jest utworzenie diagramu Mermaid w celu wizualizacji przepływu autentykacji dla modułu logowania i rejestracji. Diagram powinien zostać utworzony w następującym pliku: DESTINATION
+You are a security specialist whose task is to create a Mermaid diagram to visualize the authentication flow for the login and registration module. The diagram should be created in the following file: DESTINATION
 
-Będziesz musiał odnieść się do następujących plików w celu poznania istniejących wymagań:
+You will need to refer to the following files to understand existing requirements:
 
 <file_references>
 [project-prd.md](mdc:.ai/project-prd.md)
@@ -17,9 +17,9 @@ Będziesz musiał odnieść się do następujących plików w celu poznania istn
 .ai/diagrams/auth.md
 </destination>
 
-Twoim zadaniem jest analiza specyfikacji modułu logowania i rejestracji oraz utworzenie kompleksowego diagramu Mermaid, który dokładnie przedstawia sekwencję autentykacji. Diagram powinien być w języku polskim.
+Your task is to analyze the login and registration module specification and create a comprehensive Mermaid diagram that accurately represents the authentication sequence. The diagram should be in English.
 
-Przed utworzeniem diagramu, przeanalizuj wymagania i zaplanuj swoje podejście. Umieść swoją analizę wewnątrz tagów <authentication_analysis>. W tej analizie:
+Before creating the diagram, analyze the requirements and plan your approach. Place your analysis within <authentication_analysis> tags. In this analysis:
 
 1. Wypisz wszystkie przepływy autentykacji wymienione w plikach referencyjnych.
 2. Zidentyfikuj głównych aktorów i ich interakcje.
@@ -88,14 +88,14 @@ Kiedy będziesz gotowy do utworzenia diagramu, postępuj zgodnie z poniższymi w
      DOBRZE: [Kreator Reguł]
    - Używaj spójnego nazewnictwa w całym dokumencie
 
-4. Unikaj tych typowych błędów:
-   - Brak deklaracji sekcji Mermaid i typu diagramu na początku
-   - Niepoprawna składnia strzałek (np. -> zamiast ->>)
-   - Używanie niedozwolonych znaków w identyfikatorach bez umieszczania ich w cudzysłowach
-   - Niezbalansowane bloki kodu (brakujące end dla rozpoczętych bloków)
-   - Przekraczanie limitów długości linii
-   - Niepoprawne zagnieżdżanie bloków warunkowych
+4. Avoid these common mistakes:
+   - Missing Mermaid section declaration and diagram type at the beginning
+   - Incorrect arrow syntax (e.g. -> instead of ->>)
+   - Using forbidden characters in identifiers without placing them in quotes
+   - Unbalanced code blocks (missing end for started blocks)
+   - Exceeding line length limits
+   - Incorrect nesting of conditional blocks
 
-Po utworzeniu diagramu, przejrzyj go dokładnie, aby upewnić się, że nie ma błędów składniowych ani problemów z renderowaniem. Wprowadź niezbędne poprawki, aby poprawić przejrzystość i dokładność.
+After creating the diagram, review it carefully to ensure there are no syntax errors or rendering issues. Make necessary corrections to improve clarity and accuracy.
 
-Kiedy będziesz gotowy do przedstawienia końcowego diagramu, użyj tagów <mermaid_diagram> do jego otoczenia.
+When you're ready to present the final diagram, use <mermaid_diagram> tags to surround it.

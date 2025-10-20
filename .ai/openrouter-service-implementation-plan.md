@@ -1,23 +1,23 @@
-# Plan Implementacji Usługi OpenRouter
+# OpenRouter Service Implementation Plan
 
-## 1. Opis Usługi
+## 1. Service Description
 
-### 1.1 Cel i Odpowiedzialność
+### 1.1 Purpose and Responsibility
 
-`OpenRouterService` to warstwa abstrakcji zapewniająca ujednolicony interfejs do komunikacji z API OpenRouter. Usługa ta będzie odpowiedzialna za:
+`OpenRouterService` is an abstraction layer providing a unified interface for communication with the OpenRouter API. This service will be responsible for:
 
-- **Zarządzanie komunikacją z API OpenRouter** - wysyłanie żądań i odbieranie odpowiedzi
-- **Strukturyzację żądań** - budowanie poprawnych payloadów zgodnych z specyfikacją OpenRouter API
-- **Walidację odpowiedzi** - weryfikację i parsowanie odpowiedzi z wykorzystaniem JSON Schema
-- **Obsługę błędów** - przechwytywanie i transformację błędów API na błędy domenowe aplikacji
-- **Zarządzanie konfiguracją** - centralne zarządzanie kluczem API, nazwą modelu i parametrami
-- **Logowanie** - szczegółowe logowanie wszystkich operacji dla celów debugowania i monitorowania
+- **Managing communication with OpenRouter API** - sending requests and receiving responses
+- **Request structuring** - building correct payloads compliant with OpenRouter API specification
+- **Response validation** - verification and parsing of responses using JSON Schema
+- **Error handling** - catching and transforming API errors into application domain errors
+- **Configuration management** - centralized management of API key, model name and parameters
+- **Logging** - detailed logging of all operations for debugging and monitoring purposes
 
-### 1.2 Architektura
+### 1.2 Architecture
 
-Usługa będzie warstwą pośrednią między:
-- **Warstwa wyższa** (np. `AIService`) - która definiuje domenową logikę generowania flashcards
-- **Warstwa niższa** (OpenRouter API) - która dostarcza surowe możliwości LLM
+The service will be an intermediate layer between:
+- **Upper layer** (e.g. `AIService`) - which defines domain logic for flashcard generation
+- **Lower layer** (OpenRouter API) - which provides raw LLM capabilities
 
 ```
 AIService (domena biznesowa)

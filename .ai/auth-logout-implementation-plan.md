@@ -4,19 +4,19 @@
 
 **Endpoint:** `POST /api/auth/logout`
 
-**Cel:** Wylogowanie aktualnie zalogowanego użytkownika z systemu AIxCards. Endpoint invaliduje aktualną sesję użytkownika, usuwa tokeny JWT i czyści cookies. Jest to kluczowa operacja bezpieczeństwa, która kończy dostęp użytkownika do chronionych zasobów.
+**Purpose:** Logout of currently logged-in user from the AIxCards system. The endpoint invalidates the current user session, removes JWT tokens and clears cookies. This is a key security operation that terminates user access to protected resources.
 
-**Funkcjonalność:**
+**Functionality:**
 
-- Wymaganie validnego JWT tokenu (użytkownik musi być zalogowany)
-- Invalidacja aktualnej sesji w Supabase Auth
-- Usunięcie refresh token z httpOnly cookie
-- Opcjonalne: Blacklist access token (jeśli implementowane)
-- Zwrócenie pustej odpowiedzi 204 No Content
+- Require valid JWT token (user must be logged in)
+- Invalidate current session in Supabase Auth
+- Remove refresh token from httpOnly cookie
+- Optional: Blacklist access token (if implemented)
+- Return empty 204 No Content response
 
-**User Stories:** Wymagane dla bezpiecznego zakończenia sesji użytkownika
+**User Stories:** Required for secure user session termination
 
-**Bezpieczeństwo:** Endpoint chroniony (wymaga autentykacji), brak rate limiting (użytkownik może się wylogować ile razy chce)
+**Security:** Protected endpoint (requires authentication), no rate limiting (user can logout as many times as they want)
 
 ---
 
