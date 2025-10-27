@@ -8,8 +8,9 @@
 
 -- create table for storing ai generation requests
 -- this table tracks all source texts submitted for flashcard generation
+-- using gen_random_uuid() which is built-in since PostgreSQL 13
 create table generation_requests (
-    id uuid primary key default uuid_generate_v4(),
+    id uuid primary key default gen_random_uuid(),
     user_id uuid not null references auth.users(id) on delete cascade,
     source_text text not null,
     created_at timestamptz not null default now(),

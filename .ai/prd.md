@@ -1,8 +1,8 @@
-# Product Requirements Document (PRD) – AIxCards
+# Product Requirements Document (PRD) – 10xCards
 
 ## 1. Product Overview
 
-The AIxCards project aims to enable users to quickly create and manage educational flashcard sets. The application uses LLM models (via API) to generate flashcard suggestions based on provided text.
+The 10xCards project aims to enable users to quickly create and manage educational flashcard sets. The application uses LLM models (via API) to generate flashcard suggestions based on provided text.
 
 ## 2. User Problem
 

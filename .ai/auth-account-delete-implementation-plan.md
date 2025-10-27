@@ -4,7 +4,7 @@
 
 **Endpoint:** `DELETE /api/auth/account`
 
-**Purpose:** Permanent deletion of user account along with all associated data from the AIxCards system. The endpoint implements the user's right to be forgotten (GDPR compliance) by removing the user account from the `auth.users` table and all related data through CASCADE constraints.
+**Purpose:** Permanent deletion of user account along with all associated data from the 10xCards system. The endpoint implements the user's right to be forgotten (GDPR compliance) by removing the user account from the `auth.users` table and all related data through CASCADE constraints.
 
 **Functionality:**
 

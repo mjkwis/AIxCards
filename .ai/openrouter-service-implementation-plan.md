@@ -82,7 +82,7 @@ interface OpenRouterServiceOptions {
   
   /** 
    * Nazwa aplikacji dla statystyk OpenRouter
-   * Domyślnie: "AIxCards"
+   * Domyślnie: "10xCards"
    */
   appTitle?: string;
   
@@ -1400,7 +1400,7 @@ export class OpenRouterService {
     this.apiUrl = options?.apiUrl || "https://openrouter.ai/api/v1/chat/completions";
     this.timeout = options?.timeout || 30000;
     this.httpReferer = options?.httpReferer || import.meta.env.SITE_URL || "http://localhost:3000";
-    this.appTitle = options?.appTitle || "AIxCards";
+    this.appTitle = options?.appTitle || "10xCards";
     
     // Załaduj domyślne parametry
     this.defaultParams = {

@@ -1,8 +1,8 @@
-# UI Architecture for AIxCards
+# UI Architecture for 10xCards
 
 ## 1. UI Structure Overview
 
-The AIxCards application consists of public pages (landing, login, registration) and a protected "Dashboard" area with four main views: Generate Flashcards, My Flashcards, Study Session and Statistics. Navigation is done through top navbar (desktop) and drawer (mobile). Interactive features are implemented in React components (Astro islands), with state management: React Context (auth) and React Query (data). The architecture ensures accessibility (WCAG AA), full responsiveness (mobile-first) and security (JWT, permission restrictions, runtime validation). In the UI we use Shadcn/ui, Tailwind 4 and forms based on React Hook Form + Zod.
+The 10xCards application consists of public pages (landing, login, registration) and a protected "Dashboard" area with four main views: Generate Flashcards, My Flashcards, Study Session and Statistics. Navigation is done through top navbar (desktop) and drawer (mobile). Interactive features are implemented in React components (Astro islands), with state management: React Context (auth) and React Query (data). The architecture ensures accessibility (WCAG AA), full responsiveness (mobile-first) and security (JWT, permission restrictions, runtime validation). In the UI we use Shadcn/ui, Tailwind 4 and forms based on React Hook Form + Zod.
 
 ## 2. View List
 

@@ -673,7 +673,7 @@ await supabase.auth.signOut({ scope: 'global' });
 ```
 Subject: Password Changed
 Body: 
-Your password for AIxCards has been changed.
+Your password for 10xCards has been changed.
 If this wasn't you, please contact us immediately.
 ```
 
@@ -855,8 +855,8 @@ const isDev = import.meta.env.DEV;
 ---
 
 <PublicLayout 
-  title="Set New Password - AIxCards" 
-  description="Set a new password for your AIxCards account"
+  title="Set New Password - 10xCards" 
+  description="Set a new password for your 10xCards account"
 >
   <div class="container mx-auto px-4 py-16">
     <div class="max-w-md mx-auto">
@@ -962,7 +962,7 @@ await apiClient.post("/auth/password/reset-request", { email: data.email });
 **Default Template:**
 ```html
 <h2>Reset Your Password</h2>
-<p>We received a request to reset the password for your AIxCards account.</p>
+<p>We received a request to reset the password for your 10xCards account.</p>
 <p>Click the link below to set a new password:</p>
 <p><a href="{{ .ConfirmationURL }}">Reset Password</a></p>
 <p>This link is valid for 15 minutes.</p>

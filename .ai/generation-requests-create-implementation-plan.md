@@ -724,7 +724,7 @@ export class OpenRouterAIService implements IAIService {
           Authorization: `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
           "HTTP-Referer": import.meta.env.SITE_URL || "http://localhost:3000",
-          "X-Title": "AIxCards",
+          "X-Title": "10xCards",
         },
         body: JSON.stringify({
           model: "openai/gpt-3.5-turbo",

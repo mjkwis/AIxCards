@@ -1,4 +1,4 @@
-# PostgreSQL Database Schema – AIxCards
+# PostgreSQL Database Schema – 10xCards
 
 ## 1. Tables with columns, data types and constraints
 

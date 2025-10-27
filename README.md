@@ -1,4 +1,4 @@
-# AIxCards
+# 10xCards
 
 ## Table of Contents
 
@@ -12,7 +12,7 @@
 
 ## Project Description
 
-AIxCards is a web application designed to streamline the creation and management of educational flashcards. It leverages Large Language Models (LLMs) via an API to automatically generate flashcard suggestions from user-provided text, significantly reducing the time and effort required for manual creation. The core goal is to make the effective learning method of spaced repetition more accessible by simplifying the process of creating high-quality study materials.
+10xCards is a web application designed to streamline the creation and management of educational flashcards. It leverages Large Language Models (LLMs) via an API to automatically generate flashcard suggestions from user-provided text, significantly reducing the time and effort required for manual creation. The core goal is to make the effective learning method of spaced repetition more accessible by simplifying the process of creating high-quality study materials.
 
 ## Tech Stack
 
@@ -40,7 +40,7 @@ To set up and run the project on your local machine, follow these steps.
 
     ```bash
     git clone <your-repository-url>
-    cd AIxCards
+    cd 10xCards
     ```
 
 2.  **Install dependencies:**

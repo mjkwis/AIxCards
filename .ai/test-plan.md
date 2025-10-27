@@ -1,9 +1,9 @@
-# Plan testów – AIxCards
+# Plan testów – 10xCards
 
 ## 1. Wprowadzenie i cele testowania
 
 ### 1.1 Cel dokumentu
-Niniejszy dokument przedstawia kompleksowy plan testów dla aplikacji AIxCards – systemu do tworzenia i zarządzania fiszkami edukacyjnymi z wykorzystaniem AI. Plan obejmuje testowanie wszystkich kluczowych funkcjonalności, ze szczególnym uwzględnieniem nowo zaimplementowanego systemu resetowania hasła.
+Niniejszy dokument przedstawia kompleksowy plan testów dla aplikacji 10xCards – systemu do tworzenia i zarządzania fiszkami edukacyjnymi z wykorzystaniem AI. Plan obejmuje testowanie wszystkich kluczowych funkcjonalności, ze szczególnym uwzględnieniem nowo zaimplementowanego systemu resetowania hasła.
 
 ### 1.2 Cele testowania
 - **Weryfikacja funkcjonalna:** Potwierdzenie, że wszystkie funkcje działają zgodnie z wymaganiami PRD
@@ -14,7 +14,7 @@ Niniejszy dokument przedstawia kompleksowy plan testów dla aplikacji AIxCards �
 - **Zgodność z RODO:** Weryfikacja przetwarzania danych osobowych
 
 ### 1.3 Zakres stosowania
-Plan jest przeznaczony dla zespołu deweloperskiego, QA oraz DevOps odpowiedzialnych za rozwój i wdrożenie aplikacji AIxCards.
+Plan jest przeznaczony dla zespołu deweloperskiego, QA oraz DevOps odpowiedzialnych za rozwój i wdrożenie aplikacji 10xCards.
 
 ---
 
@@ -1003,14 +1003,14 @@ CREATE POLICY "Users can only see their own flashcards"
 - **Rate limiting:** In-memory (Map)
 
 #### Staging (QA)
-- **URL:** `https://staging.aixcards.com`
+- **URL:** `https://staging.10xCards.com`
 - **Baza danych:** Supabase Cloud (test project)
 - **AI:** OpenRouter (ograniczony budget)
 - **Email:** MailHog lub Supabase Email
 - **Rate limiting:** Redis
 
 #### Production (PROD)
-- **URL:** `https://aixcards.com`
+- **URL:** `https://10xCards.com`
 - **Baza danych:** Supabase Cloud (production project)
 - **AI:** OpenRouter (production API key)
 - **Email:** Supabase Email (SendGrid/AWS SES)
@@ -1342,7 +1342,7 @@ Hasło nie jest faktycznie zapisywane w bazie w trybie DEV (tylko symulowane).
 
 ### 13.1 Kluczowe cele testowania
 
-Niniejszy plan testów zapewnia kompleksowe pokrycie wszystkich aspektów aplikacji AIxCards, ze szczególnym naciskiem na:
+Niniejszy plan testów zapewnia kompleksowe pokrycie wszystkich aspektów aplikacji 10xCards, ze szczególnym naciskiem na:
 
 1. **Bezpieczeństwo autentykacji** - weryfikacja JWT, RLS, rate limiting
 2. **Poprawność algorytmu SM-2** - critical dla core value proposition

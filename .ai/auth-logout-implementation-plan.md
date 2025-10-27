@@ -4,7 +4,7 @@
 
 **Endpoint:** `POST /api/auth/logout`
 
-**Purpose:** Logout of currently logged-in user from the AIxCards system. The endpoint invalidates the current user session, removes JWT tokens and clears cookies. This is a key security operation that terminates user access to protected resources.
+**Purpose:** Logout of currently logged-in user from the 10xCards system. The endpoint invalidates the current user session, removes JWT tokens and clears cookies. This is a key security operation that terminates user access to protected resources.
 
 **Functionality:**
 

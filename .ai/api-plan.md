@@ -1,4 +1,4 @@
-# REST API Plan for AIxCards
+# REST API Plan for 10xCards
 
 ## 1. Resources
 
@@ -1200,4 +1200,4 @@ For development and testing:
 
 ---
 
-This API plan provides a complete, production-ready specification for the AIxCards application, addressing all requirements from the PRD while leveraging the full capabilities of the database schema and tech stack.
+This API plan provides a complete, production-ready specification for the 10xCards application, addressing all requirements from the PRD while leveraging the full capabilities of the database schema and tech stack.

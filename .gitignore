@@ -1,11 +1,14 @@
-# build output
-dist/
-
-# generated types
-.astro/
-
 # dependencies
 node_modules/
+
+# build output
+dist/
+.astro/
+
+# generated files
+.env
+.env.local
+.env.production
 
 # logs
 npm-debug.log*
@@ -13,12 +16,24 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# environment variables
+# environment files
 .env
+.env.test
 .env.production
 
 # macOS-specific files
 .DS_Store
 
-# jetbrains setting folder
+# test results
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+.vitest/
+
+# IDE
+.vscode/
 .idea/
+
+# Supabase
+supabase/.temp/

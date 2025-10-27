@@ -4,7 +4,7 @@
 
 **Endpoint:** `POST /api/auth/login`
 
-**Purpose:** Authentication of an existing user in the AIxCards system. The endpoint allows logged-in users to gain access to the application by providing an email address and password. After successful authentication, the user receives JWT tokens enabling access to protected resources.
+**Purpose:** Authentication of an existing user in the 10xCards system. The endpoint allows logged-in users to gain access to the application by providing an email address and password. After successful authentication, the user receives JWT tokens enabling access to protected resources.
 
 **Functionality:**
 
@@ -770,7 +770,7 @@ export const supabase = createClient(url, key, {
   },
   global: {
     headers: {
-      "x-application-name": "AIxCards",
+      "x-application-name": "10xCards",
     },
   },
 });

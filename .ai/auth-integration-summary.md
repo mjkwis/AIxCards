@@ -1,4 +1,4 @@
-# Podsumowanie integracji autentykacji - AIxCards
+# Podsumowanie integracji autentykacji - 10xCards
 
 **Data:** 2025-10-14  
 **Zakres:** Integracja procesu logowania z backendem Astro zgodnie z auth-spec.md
