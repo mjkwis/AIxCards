@@ -30,9 +30,10 @@ export async function loginUser(page: Page, email?: string, password?: string) {
     password: password || TEST_USER.password,
   };
 
-  await page.fill('input[name="email"]', credentials.email);
-  await page.fill('input[name="password"]', credentials.password);
-  await page.click('button[type="submit"]');
+  // Use accessible selectors following Playwright best practices
+  await page.getByLabel("Email").fill(credentials.email);
+  await page.getByLabel("Hasło").fill(credentials.password);
+  await page.getByRole("button", { name: /zaloguj/i }).click();
 
   // Wait for navigation to dashboard
   await page.waitForURL("/dashboard/**", { timeout: 10000 });
@@ -51,10 +52,17 @@ export async function registerUser(page: Page, email?: string, password?: string
     password: password || "TestPassword123!",
   };
 
-  await page.fill('input[name="email"]', credentials.email);
-  await page.fill('input[name="password"]', credentials.password);
-  await page.fill('input[name="confirmPassword"]', credentials.password);
-  await page.click('button[type="submit"]');
+  // Use accessible selectors following Playwright best practices
+  await page.getByLabel("Email").fill(credentials.email);
+  await page.getByLabel("Hasło", { exact: true }).fill(credentials.password);
+  await page.getByLabel("Powtórz hasło").fill(credentials.password);
+
+  // Wait for password validation to complete
+  await expect(page.locator('text="✓ Co najmniej 8 znaków"')).toBeVisible();
+  await expect(page.locator('text="✓ Jedna wielka litera"')).toBeVisible();
+  await expect(page.locator('text="✓ Jedna cyfra"')).toBeVisible();
+
+  await page.getByRole("button", { name: "Zarejestruj się" }).click();
 
   // Wait for navigation to dashboard (auto-login after registration)
   await page.waitForURL("/dashboard/**", { timeout: 10000 });
@@ -66,19 +74,20 @@ export async function registerUser(page: Page, email?: string, password?: string
  * Logout helper function
  */
 export async function logoutUser(page: Page) {
-  // Open user dropdown
-  await page.click('[data-testid="user-dropdown-trigger"]').catch(() => {
-    // Fallback if data-testid not available
-    return page.click("button:has-text('test@example.com')");
-  });
+  // Open user dropdown - use testid or fallback to accessible selector
+  const userDropdown = page
+    .locator('[data-testid="user-dropdown-trigger"]')
+    .or(page.getByRole("button", { name: /test@example\.com/i }));
+  await userDropdown.click();
 
-  // Click logout
-  await page.click('[data-testid="logout-button"]').catch(() => {
-    return page.click("button:has-text('Wyloguj')");
-  });
+  // Click logout using testid or accessible selector
+  const logoutButton = page
+    .locator('[data-testid="logout-button"]')
+    .or(page.getByRole("menuitem", { name: /wyloguj/i }));
+  await logoutButton.click();
 
-  // Wait for navigation to homepage
-  await page.waitForURL("/", { timeout: 5000 });
+  // Wait for navigation to homepage or login page
+  await page.waitForURL(/\/(login)?$/, { timeout: 5000 });
 }
 
 /**

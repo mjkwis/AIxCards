@@ -1,6 +1,7 @@
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactElement, ReactNode } from 'react';
+import { AuthProvider } from '@/components/providers/AuthProvider';
 
 /**
  * Create a new QueryClient for each test to avoid state pollution
@@ -30,7 +31,9 @@ export function AllTheProviders({ children }: AllTheProvidersProps) {
   const queryClient = createTestQueryClient();
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>{children}</AuthProvider>
+    </QueryClientProvider>
   );
 }
 

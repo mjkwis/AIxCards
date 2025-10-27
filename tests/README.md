@@ -61,9 +61,12 @@ npm run test:e2e:debug
 **📚 Dokumentacja E2E:**
 - [Quick Start Guide](./e2e/QUICKSTART.md) - Szybki start w 5 minut
 - [Pełna dokumentacja E2E](./e2e/README.md) - Szczegółowy opis testów, fixtures, i best practices
+- [Playwright Best Practices](./e2e/PLAYWRIGHT-BEST-PRACTICES.md) - ⭐ **Quick reference dla selektorów i patterns**
+- [E2E Test Improvements](./e2e/E2E-TEST-IMPROVEMENTS.md) - Szczegóły ostatnich poprawek (2025-10-27)
+- [Changelog](./e2e/CHANGELOG-AUTH-TESTS.md) - Historia zmian w testach autentykacji
 
 **Zaimplementowane scenariusze E2E (~80 testów):**
-- ✅ Autentykacja (rejestracja, logowanie, reset hasła, wylogowanie, usuwanie konta)
+- ✅ Autentykacja (rejestracja, logowanie, reset hasła, wylogowanie, usuwanie konta) - **Zaktualizowane 2025-10-27**
 - ✅ Generowanie fiszek AI (happy path, walidacja, zarządzanie, rate limiting)
 - ✅ Zarządzanie fiszkami (CRUD, filtrowanie, sortowanie, paginacja)
 - ✅ Sesja nauki (start, przebieg, oceny jakości, zakończenie)
@@ -174,11 +177,13 @@ test('should mock API response', async ({ page }) => {
 - Mockuj zależności zewnętrzne
 
 ### Testy E2E
+- **Używaj accessible selectors (role, label)** - Zobacz [PLAYWRIGHT-BEST-PRACTICES.md](./e2e/PLAYWRIGHT-BEST-PRACTICES.md)
 - Testuj krytyczne ścieżki użytkownika
-- Używaj selektorów semantycznych (role, label)
 - Nie testuj szczegółów implementacji
-- Czekaj na elementy zamiast używać sleep/timeout
-- Grupuj testy logicznie
+- Czekaj na elementy zamiast używać sleep/timeout (`waitForURL`, `expect().toBeVisible()`)
+- Grupuj testy logicznie w `test.describe()`
+- Dodawaj timeouts do asercji: `{ timeout: 5000 }`
+- Używaj regex dla flexibility: `/zaloguj/i`
 
 ### Mockowanie
 - Mockuj API zewnętrzne (OpenRouter)

@@ -10,6 +10,7 @@ Właśnie ukończyłem pełną implementację testów E2E dla projektu AIxCards:
 - **Fixtures i helpery** do łatwego pisania nowych testów
 - **Kompletna dokumentacja** (README, Quick Start, Implementation Summary)
 - **CI/CD ready** konfiguracja dla GitHub Actions
+- **✨ Zaktualizowane 2025-10-27:** 25 testów autentykacji według Playwright best practices
 
 ## 🚀 Co musisz teraz zrobić
 
@@ -116,6 +117,8 @@ git push
 - **[Quick Start](./tests/e2e/QUICKSTART.md)** - Jak uruchomić testy w 5 minut
 - **[Full README](./tests/e2e/README.md)** - Pełna dokumentacja, fixtures, best practices
 - **[Implementation Summary](./tests/e2e/IMPLEMENTATION-SUMMARY.md)** - Co zostało zaimplementowane
+- **⭐ [Playwright Best Practices](./tests/e2e/PLAYWRIGHT-BEST-PRACTICES.md)** - Quick reference dla selektorów
+- **[Troubleshooting](./tests/e2e/TROUBLESHOOTING.md)** - Rozwiązywanie typowych problemów
 
 ## 📝 Checklist przed mergem
 

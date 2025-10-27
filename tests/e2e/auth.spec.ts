@@ -11,16 +11,21 @@ test.describe("Authentication - Registration", () => {
     const user = generateTestUser();
     await page.goto("/register");
 
-    // Fill registration form
-    await page.fill('input[name="email"]', user.email);
-    await page.fill('input[name="password"]', user.password);
-    await page.fill('input[name="confirmPassword"]', user.password);
+    // Fill registration form using accessible labels
+    await page.getByLabel("Email").fill(user.email);
+    await page.getByLabel("Hasło", { exact: true }).fill(user.password);
+    await page.getByLabel("Powtórz hasło").fill(user.password);
 
-    // Submit form
-    await page.click('button[type="submit"]');
+    // Wait for all password requirements to be met (green checkmarks)
+    await expect(page.locator('text="✓ Co najmniej 8 znaków"')).toBeVisible();
+    await expect(page.locator('text="✓ Jedna wielka litera"')).toBeVisible();
+    await expect(page.locator('text="✓ Jedna cyfra"')).toBeVisible();
 
-    // Should redirect to dashboard after successful registration
-    await expect(page).toHaveURL(/\/dashboard\/generate/, { timeout: 10000 });
+    // Submit form using role-based selector
+    await page.getByRole("button", { name: "Zarejestruj się" }).click();
+
+    // Wait for navigation to complete
+    await page.waitForURL(/\/dashboard\/generate/, { timeout: 10000 });
 
     // Verify user is logged in (navbar should show user email or dropdown)
     const userDropdown = page.locator('[data-testid="user-dropdown-trigger"]').or(
@@ -32,44 +37,49 @@ test.describe("Authentication - Registration", () => {
   test("should show validation error for invalid email", async ({ page }) => {
     await page.goto("/register");
 
-    // Fill with invalid email
-    await page.fill('input[name="email"]', "invalid-email");
-    await page.fill('input[name="password"]', "TestPassword123!");
-    await page.fill('input[name="confirmPassword"]', "TestPassword123!");
+    // Fill with invalid email using accessible labels
+    await page.getByLabel("Email").fill("invalid-email");
+    await page.getByLabel("Hasło", { exact: true }).fill("TestPassword123!");
+    await page.getByLabel("Powtórz hasło").fill("TestPassword123!");
 
     // Try to submit
-    await page.click('button[type="submit"]');
+    await page.getByRole("button", { name: "Zarejestruj się" }).click();
 
     // Should show validation error
-    await expect(page.locator("text=/invalid.*email/i")).toBeVisible();
+    await expect(page.getByText(/nieprawidłowy.*adres.*email/i)).toBeVisible({ timeout: 5000 });
   });
 
   test("should show validation error for short password", async ({ page }) => {
     await page.goto("/register");
 
     const user = generateTestUser();
-    await page.fill('input[name="email"]', user.email);
-    await page.fill('input[name="password"]', "short");
-    await page.fill('input[name="confirmPassword"]', "short");
+    await page.getByLabel("Email").fill(user.email);
+    await page.getByLabel("Hasło", { exact: true }).fill("short");
+    await page.getByLabel("Powtórz hasło").fill("short");
 
-    await page.click('button[type="submit"]');
+    // Password requirements should still show red circles (not met)
+    await expect(page.locator('text="○ Co najmniej 8 znaków"')).toBeVisible();
+
+    // Try to submit
+    await page.getByRole("button", { name: "Zarejestruj się" }).click();
 
     // Should show password length error
-    await expect(page.locator("text=/password.*at least/i")).toBeVisible();
+    await expect(page.getByText(/hasło.*co najmniej.*8.*znaków/i)).toBeVisible({ timeout: 5000 });
   });
 
   test("should show error when passwords don't match", async ({ page }) => {
     await page.goto("/register");
 
     const user = generateTestUser();
-    await page.fill('input[name="email"]', user.email);
-    await page.fill('input[name="password"]', "TestPassword123!");
-    await page.fill('input[name="confirmPassword"]', "DifferentPassword123!");
+    await page.getByLabel("Email").fill(user.email);
+    await page.getByLabel("Hasło", { exact: true }).fill("TestPassword123!");
+    await page.getByLabel("Powtórz hasło").fill("DifferentPassword123!");
 
-    await page.click('button[type="submit"]');
+    // Try to submit
+    await page.getByRole("button", { name: "Zarejestruj się" }).click();
 
     // Should show password mismatch error
-    await expect(page.locator("text=/password.*match/i")).toBeVisible();
+    await expect(page.getByText(/hasła.*identyczne/i)).toBeVisible({ timeout: 5000 });
   });
 
   test("should show error when registering with existing email", async ({ page }) => {
@@ -83,13 +93,15 @@ test.describe("Authentication - Registration", () => {
 
     // Try to register again with same email
     await page.goto("/register");
-    await page.fill('input[name="email"]', user.email);
-    await page.fill('input[name="password"]', user.password);
-    await page.fill('input[name="confirmPassword"]', user.password);
-    await page.click('button[type="submit"]');
+    await page.getByLabel("Email").fill(user.email);
+    await page.getByLabel("Hasło", { exact: true }).fill(user.password);
+    await page.getByLabel("Powtórz hasło").fill(user.password);
+    await page.getByRole("button", { name: "Zarejestruj się" }).click();
 
-    // Should show error that email already exists
-    await expect(page.locator("text=/already.*exists/i").or(page.locator("text=/already.*registered/i"))).toBeVisible();
+    // Should show error that email already exists (toast or error message)
+    await expect(
+      page.getByText(/już.*zarejestrowany/i).or(page.getByText(/adres.*email.*istnieje/i))
+    ).toBeVisible({ timeout: 10000 });
   });
 });
 
@@ -101,35 +113,39 @@ test.describe("Authentication - Login", () => {
     const email = process.env.E2E_USERNAME || "test@example.com";
     const password = process.env.E2E_PASSWORD || "TestPassword123!";
 
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="password"]', password);
-    await page.click('button[type="submit"]');
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Hasło").fill(password);
+    await page.getByRole("button", { name: /zaloguj/i }).click();
 
-    // Should redirect to dashboard
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
+    // Wait for navigation to complete
+    await page.waitForURL(/\/dashboard/, { timeout: 10000 });
   });
 
   test("should show error for invalid email", async ({ page }) => {
     await page.goto("/login");
 
-    await page.fill('input[name="email"]', "nonexistent@example.com");
-    await page.fill('input[name="password"]', "WrongPassword123!");
-    await page.click('button[type="submit"]');
+    await page.getByLabel("Email").fill("nonexistent@example.com");
+    await page.getByLabel("Hasło").fill("WrongPassword123!");
+    await page.getByRole("button", { name: /zaloguj/i }).click();
 
-    // Should show authentication error
-    await expect(page.locator("text=/invalid.*credentials/i").or(page.locator("text=/incorrect/i"))).toBeVisible();
+    // Should show authentication error (toast or error message)
+    await expect(
+      page.getByText(/nieprawidłowe.*dane/i).or(page.getByText(/błąd.*logowania/i))
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test("should show error for wrong password", async ({ page }) => {
     await page.goto("/login");
 
     const email = process.env.E2E_USERNAME || "test@example.com";
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="password"]', "WrongPassword123!");
-    await page.click('button[type="submit"]');
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Hasło").fill("WrongPassword123!");
+    await page.getByRole("button", { name: /zaloguj/i }).click();
 
     // Should show authentication error
-    await expect(page.locator("text=/invalid.*credentials/i").or(page.locator("text=/incorrect/i"))).toBeVisible();
+    await expect(
+      page.getByText(/nieprawidłowe.*dane/i).or(page.getByText(/błąd.*logowania/i))
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test("should redirect to login when accessing protected route without auth", async ({ page }) => {
@@ -137,7 +153,7 @@ test.describe("Authentication - Login", () => {
     await page.goto("/dashboard/generate");
 
     // Should be redirected to login
-    await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
+    await page.waitForURL(/\/login/, { timeout: 5000 });
   });
 
   test("should restore target URL after login (redirect parameter)", async ({ page }) => {
@@ -147,16 +163,16 @@ test.describe("Authentication - Login", () => {
     // Should redirect to login with redirect param
     await page.waitForURL(/\/login/, { timeout: 5000 });
 
-    // Login
+    // Login using accessible selectors
     const email = process.env.E2E_USERNAME || "test@example.com";
     const password = process.env.E2E_PASSWORD || "TestPassword123!";
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="password"]', password);
-    await page.click('button[type="submit"]');
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Hasło").fill(password);
+    await page.getByRole("button", { name: /zaloguj/i }).click();
 
     // Should redirect back to the originally requested page
     // Note: This might redirect to /dashboard/generate as default - adjust based on implementation
-    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
+    await page.waitForURL(/\/dashboard/, { timeout: 10000 });
   });
 });
 
@@ -194,31 +210,31 @@ test.describe("Authentication - Password Reset", () => {
   test("should display password reset request form", async ({ page }) => {
     await page.goto("/reset-password");
 
-    // Check form elements
+    // Check form elements using accessible selectors
     await expect(page.getByLabel(/email/i)).toBeVisible();
-    await expect(page.getByRole("button", { name: /send.*reset.*link/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /wyślij.*link/i })).toBeVisible();
   });
 
   test("should show validation error for invalid email format", async ({ page }) => {
     await page.goto("/reset-password");
 
-    await page.fill('input[name="email"]', "invalid-email");
-    await page.click('button[type="submit"]');
+    await page.getByLabel(/email/i).fill("invalid-email");
+    await page.getByRole("button", { name: /wyślij.*link/i }).click();
 
     // Should show validation error
-    await expect(page.locator("text=/invalid.*email/i")).toBeVisible();
+    await expect(page.getByText(/nieprawidłowy.*email/i)).toBeVisible({ timeout: 5000 });
   });
 
   test("should show success message after requesting password reset", async ({ page }) => {
     await page.goto("/reset-password");
 
     const email = process.env.E2E_USERNAME || "test@example.com";
-    await page.fill('input[name="email"]', email);
-    await page.click('button[type="submit"]');
+    await page.getByLabel(/email/i).fill(email);
+    await page.getByRole("button", { name: /wyślij.*link/i }).click();
 
     // Should show success message (even for non-existent emails for security)
     await expect(
-      page.locator("text=/check.*email/i").or(page.locator("text=/reset.*link.*sent/i"))
+      page.getByText(/sprawdź.*email/i).or(page.getByText(/link.*wysłany/i))
     ).toBeVisible({ timeout: 10000 });
   });
 
@@ -228,11 +244,11 @@ test.describe("Authentication - Password Reset", () => {
     await page.goto("/update-password");
 
     // Check form elements (might redirect if no token)
-    const passwordInput = page.locator('input[name="password"]');
-    if (await passwordInput.isVisible()) {
+    const passwordInput = page.getByLabel("Nowe hasło", { exact: false });
+    if (await passwordInput.isVisible({ timeout: 2000 }).catch(() => false)) {
       await expect(passwordInput).toBeVisible();
-      await expect(page.locator('input[name="confirmPassword"]')).toBeVisible();
-      await expect(page.getByRole("button", { name: /update.*password/i })).toBeVisible();
+      await expect(page.getByLabel("Powtórz hasło")).toBeVisible();
+      await expect(page.getByRole("button", { name: /zaktualizuj.*hasło/i })).toBeVisible();
     }
   });
 });
@@ -243,36 +259,37 @@ test.describe("Authentication - Account Deletion", () => {
     const user = generateTestUser();
     await registerUser(page, user.email, user.password);
 
-    // Navigate to account settings or user dropdown
-    await page.click('[data-testid="user-dropdown-trigger"]').catch(() => {
-      return page.click(`text=${user.email}`);
-    });
+    // Navigate to account settings or user dropdown using accessible selectors
+    const userDropdown = page.locator('[data-testid="user-dropdown-trigger"]').or(page.getByText(user.email));
+    await userDropdown.click();
 
-    // Click delete account option
-    await page.click('[data-testid="delete-account-button"]').catch(() => {
-      return page.click("text=/delete.*account/i");
-    });
+    // Click delete account option using role-based or testid selector
+    const deleteButton = page
+      .locator('[data-testid="delete-account-button"]')
+      .or(page.getByRole("menuitem", { name: /usuń.*konto/i }));
+    await deleteButton.click();
 
     // Confirm deletion in dialog
     // Look for confirmation checkbox or button
-    const confirmCheckbox = page.locator('input[type="checkbox"][name="confirm"]');
-    if (await confirmCheckbox.isVisible()) {
+    const confirmCheckbox = page.getByRole("checkbox", { name: /potwierd/i });
+    if (await confirmCheckbox.isVisible({ timeout: 2000 }).catch(() => false)) {
       await confirmCheckbox.check();
     }
 
-    await page.click('button:has-text("Delete")').or(page.getByRole("button", { name: /confirm.*delete/i }));
+    // Click final delete button
+    await page.getByRole("button", { name: /usuń/i }).click();
 
     // Should redirect to homepage after deletion
-    await expect(page).toHaveURL("/", { timeout: 10000 });
+    await page.waitForURL("/", { timeout: 10000 });
 
     // Try to login with deleted account - should fail
     await page.goto("/login");
-    await page.fill('input[name="email"]', user.email);
-    await page.fill('input[name="password"]', user.password);
-    await page.click('button[type="submit"]');
+    await page.getByLabel("Email").fill(user.email);
+    await page.getByLabel("Hasło").fill(user.password);
+    await page.getByRole("button", { name: /zaloguj/i }).click();
 
     // Should show error that account doesn't exist
-    await expect(page.locator("text=/invalid.*credentials/i")).toBeVisible();
+    await expect(page.getByText(/nieprawidłowe.*dane/i)).toBeVisible({ timeout: 10000 });
   });
 });
 

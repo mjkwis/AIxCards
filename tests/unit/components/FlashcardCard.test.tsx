@@ -24,7 +24,15 @@ vi.mock("@/lib/api-client", () => ({
   apiClient: {
     delete: vi.fn(),
     post: vi.fn(),
+    get: vi.fn(),
+    put: vi.fn(),
+    patch: vi.fn(),
+    interceptors: {
+      request: { use: vi.fn(), eject: vi.fn() },
+      response: { use: vi.fn(), eject: vi.fn() },
+    },
   },
+  initializeApiClient: vi.fn(),
 }));
 
 // Mock Toast - musimy użyć stałej funkcji, nie tworzyć nowej za każdym razem
