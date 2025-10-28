@@ -139,7 +139,7 @@ export function UserDropdown({ user }: UserDropdownProps) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="gap-2">
+          <Button variant="ghost" className="gap-2" data-testid="user-dropdown-trigger">
             <span className="hidden sm:inline-block">{user.email}</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -168,10 +168,13 @@ export function UserDropdown({ user }: UserDropdownProps) {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLogout}>Wyloguj się</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout} data-testid="logout-button">
+            Wyloguj się
+          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setShowDeleteDialog(true)}
             className="text-destructive focus:text-destructive"
+            data-testid="delete-account-button"
           >
             Usuń konto
           </DropdownMenuItem>

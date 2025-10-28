@@ -1,0 +1,79 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - navigation "Główna nawigacja" [ref=e5]:
+        - link "10xCards" [ref=e6] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e7]:
+          - link "Zaloguj się" [ref=e8] [cursor=pointer]:
+            - /url: /login
+          - link "Rozpocznij za darmo" [ref=e9] [cursor=pointer]:
+            - /url: /register
+    - text: "---"
+    - main [ref=e10]:
+      - generic [ref=e12]:
+        - generic [ref=e13]:
+          - heading "Rozpocznij za darmo" [level=1] [ref=e14]
+          - paragraph [ref=e15]: Utwórz konto i zacznij naukę z fiszkami AI
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - generic [ref=e18]:
+              - heading "Rejestracja" [level=3] [ref=e19]
+              - paragraph [ref=e20]: Wprowadź swoje dane, aby utworzyć konto
+            - generic [ref=e22]:
+              - generic [ref=e23]:
+                - text: Email
+                - textbox "Email" [ref=e24]:
+                  - /placeholder: twoj@email.pl
+              - generic [ref=e25]:
+                - text: Hasło
+                - generic [ref=e26]:
+                  - textbox "Hasło" [ref=e27]:
+                    - /placeholder: ••••••••
+                  - button "Pokaż hasło" [ref=e28]:
+                    - img
+                    - generic [ref=e29]: Pokaż hasło
+                - list [ref=e30]:
+                  - listitem [ref=e31]: ○ Co najmniej 8 znaków
+                  - listitem [ref=e32]: ○ Jedna wielka litera
+                  - listitem [ref=e33]: ○ Jedna cyfra
+              - generic [ref=e34]:
+                - text: Powtórz hasło
+                - generic [ref=e35]:
+                  - textbox "Powtórz hasło" [ref=e36]:
+                    - /placeholder: ••••••••
+                  - button "Pokaż hasło" [ref=e37]:
+                    - img
+                    - generic [ref=e38]: Pokaż hasło
+              - button "Zarejestruj się" [ref=e39]
+              - paragraph [ref=e40]:
+                - text: Masz już konto?
+                - link "Zaloguj się" [ref=e41] [cursor=pointer]:
+                  - /url: /login
+          - region "Notifications (F8)":
+            - list
+    - contentinfo [ref=e42]:
+      - generic [ref=e44]:
+        - paragraph [ref=e45]: © 2025 10xCards. Wszystkie prawa zastrzeżone.
+        - generic [ref=e46]:
+          - link "Polityka prywatności" [ref=e47] [cursor=pointer]:
+            - /url: /privacy
+          - link "Kontakt" [ref=e48] [cursor=pointer]:
+            - /url: /contact
+  - generic [ref=e51]:
+    - button "Menu" [ref=e52]:
+      - img [ref=e54]
+      - generic: Menu
+    - button "Inspect" [ref=e58]:
+      - img [ref=e60]
+      - generic: Inspect
+    - button "Audit" [ref=e62]:
+      - img [ref=e64]
+      - generic: Audit
+    - button "Settings" [ref=e67]:
+      - img [ref=e69]
+      - generic: Settings
+```

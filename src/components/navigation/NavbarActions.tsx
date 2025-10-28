@@ -27,7 +27,7 @@ export function NavbarActions({ user, links }: NavbarActionsProps) {
       <div className="hidden md:block">
         <UserDropdown user={user} />
       </div>
-      <MobileDrawer links={links} />
+      <MobileDrawer links={links} user={user} />
       <Toaster />
     </>
   );

@@ -47,7 +47,7 @@ export function RegisterForm() {
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    mode: "onChange",
+    mode: "onBlur",
   });
 
   const password = watch("password", "");
@@ -73,7 +73,7 @@ export function RegisterForm() {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Redirect to dashboard after successful registration
-      window.location.href = "/dashboard/generate";
+      window.location.replace("/dashboard/generate");
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       const status = axiosError.response?.status;
@@ -97,7 +97,7 @@ export function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input

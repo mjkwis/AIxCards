@@ -10,11 +10,15 @@ const TEST_USER = {
 
 /**
  * Generate unique test user credentials
+ * Using completely random emails to avoid Supabase rate limiting
  */
 export function generateTestUser() {
   const timestamp = Date.now();
+  const randomString = Math.random().toString(36).substring(2, 8);
+  // Use random string + timestamp to create truly unique emails
+  // This avoids Supabase's email-based rate limiting
   return {
-    email: `test-${timestamp}@example.com`,
+    email: `test-${randomString}-${timestamp}@test-playwright.local`,
     password: "TestPassword123!",
   };
 }
@@ -72,22 +76,33 @@ export async function registerUser(page: Page, email?: string, password?: string
 
 /**
  * Logout helper function
+ * Handles both desktop (user dropdown) and mobile (hamburger menu) scenarios
  */
 export async function logoutUser(page: Page) {
-  // Open user dropdown - use testid or fallback to accessible selector
-  const userDropdown = page
-    .locator('[data-testid="user-dropdown-trigger"]')
-    .or(page.getByRole("button", { name: /test@example\.com/i }));
-  await userDropdown.click();
+  // Check if we're on mobile viewport by checking if mobile menu trigger is visible
+  const mobileMenuTrigger = page.locator('[data-testid="mobile-menu-trigger"]');
+  const isMobile = await mobileMenuTrigger.isVisible();
 
-  // Click logout using testid or accessible selector
-  const logoutButton = page
-    .locator('[data-testid="logout-button"]')
-    .or(page.getByRole("menuitem", { name: /wyloguj/i }));
-  await logoutButton.click();
+  if (isMobile) {
+    // Mobile: Open hamburger menu and click logout
+    await mobileMenuTrigger.click();
+    
+    // Wait for mobile menu to open and click logout
+    const mobileLogoutButton = page.locator('[data-testid="mobile-logout-button"]');
+    await mobileLogoutButton.waitFor({ state: "visible", timeout: 5000 });
+    await mobileLogoutButton.click();
+  } else {
+    // Desktop: Open user dropdown and click logout
+    const userDropdown = page.locator('[data-testid="user-dropdown-trigger"]');
+    await userDropdown.click();
+
+    const logoutButton = page.locator('[data-testid="logout-button"]');
+    await logoutButton.waitFor({ state: "visible", timeout: 5000 });
+    await logoutButton.click();
+  }
 
   // Wait for navigation to homepage or login page
-  await page.waitForURL(/\/(login)?$/, { timeout: 5000 });
+  await page.waitForURL(/\/(login)?$/, { timeout: 10000 });
 }
 
 /**

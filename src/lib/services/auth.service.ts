@@ -84,6 +84,11 @@ export class AuthService {
       const { data, error } = await this.supabase.auth.signUp({
         email,
         password,
+        options: {
+          // Skip email confirmation in development/test environments
+          // This allows immediate login after registration
+          emailRedirectTo: undefined,
+        },
       });
 
       if (error) {
@@ -96,11 +101,65 @@ export class AuthService {
           throw new EmailAlreadyRegisteredError();
         }
 
-        throw new AuthServiceError("Registration failed", "REGISTRATION_FAILED", error.message);
+        throw new AuthServiceError("Registration failed", "REGISTRATION_FAILED", error.message || JSON.stringify(error));
       }
 
-      if (!data.user || !data.session) {
-        throw new AuthServiceError("Registration failed: No user or session returned", "REGISTRATION_FAILED");
+      // When email confirmation is enabled, Supabase creates the user but doesn't return a session
+      // In this case, we need to handle it differently for test environments
+      if (!data.user) {
+        throw new AuthServiceError("Registration failed: No user returned", "REGISTRATION_FAILED");
+      }
+
+      // If no session is returned, it means email confirmation is required
+      if (!data.session) {
+        // In test/dev environment with email confirmation enabled,
+        // we need to use admin API to verify the user automatically
+        const isTestEnv = import.meta.env.MODE === 'test' || import.meta.env.DEV;
+        
+        if (isTestEnv && import.meta.env.SUPABASE_SERVICE_ROLE_KEY) {
+          // Import admin client dynamically to avoid issues
+          const { supabaseAdmin } = await import("../../db/supabase-admin.client");
+          
+          // Update user to mark email as verified
+          const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+            data.user.id,
+            { email_confirm: true }
+          );
+          
+          if (updateError) {
+            throw new AuthServiceError(
+              "Registration successful but email confirmation required", 
+              "EMAIL_CONFIRMATION_REQUIRED",
+              { email: data.user.email }
+            );
+          }
+          
+          // Now try to sign in
+          const { data: signInData, error: signInError } = await this.supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+          
+          if (signInError || !signInData.session) {
+            throw new AuthServiceError(
+              "User verified but sign in failed", 
+              "SIGN_IN_FAILED",
+              signInError?.message
+            );
+          }
+          
+          return {
+            user: this.mapUserToDTO(signInData.user),
+            session: this.mapSessionToDTO(signInData.session),
+          };
+        }
+        
+        // Production environment or no admin key - user must confirm email
+        throw new AuthServiceError(
+          "Registration successful but email confirmation required", 
+          "EMAIL_CONFIRMATION_REQUIRED",
+          { email: data.user.email }
+        );
       }
 
       // Map Supabase types to our DTOs

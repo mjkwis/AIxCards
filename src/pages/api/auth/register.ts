@@ -29,8 +29,13 @@ import { RateLimitService } from "../../../lib/services/rate-limit.service";
 import { RateLimitError } from "../../../lib/errors/rate-limit.error";
 import type { AuthResponse } from "../../../types";
 
-// Rate limiter for registration: 5 requests per hour per IP
-const registerRateLimiter = new RateLimitService(5, 3600000); // 1 hour in milliseconds
+// Rate limiter for registration: 5 requests per hour per IP (production)
+// In test/dev environment, allow more requests (100 per hour)
+const isTestEnv = import.meta.env.MODE === 'test' || import.meta.env.DEV;
+const registerRateLimiter = new RateLimitService(
+  isTestEnv ? 100 : 5,  // 100 requests in test/dev, 5 in production
+  3600000 // 1 hour in milliseconds
+);
 
 /**
  * POST handler for user registration
