@@ -1,4 +1,4 @@
-# 10xCards
+# 10xCards.pl
 
 ## Table of Contents
 
