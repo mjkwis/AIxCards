@@ -39,7 +39,7 @@ export async function POST(context: APIContext): Promise<Response> {
     let requestBody;
     try {
       requestBody = await context.request.json();
-    } catch (error) {
+    } catch {
       logger.info("Invalid JSON in request body");
       return errorResponse(400, "VALIDATION_ERROR", "Invalid request format");
     }

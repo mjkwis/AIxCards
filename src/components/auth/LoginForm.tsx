@@ -44,11 +44,11 @@ export function LoginForm() {
 
       // Redirect after successful login
       const params = new URLSearchParams(window.location.search);
-      const redirect = params.get("redirect") || "/dashboard/generate";
+      const redirectUrl = params.get("redirect") || "/dashboard/generate";
 
       // Small delay to ensure session is persisted
       setTimeout(() => {
-        window.location.href = redirect;
+        window.location.href = redirectUrl;
       }, 200);
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;

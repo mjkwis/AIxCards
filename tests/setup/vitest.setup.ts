@@ -1,17 +1,17 @@
-import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
-import { afterEach, vi } from 'vitest';
+import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach, vi } from "vitest";
 
 // Mock environment variables for Supabase
 import.meta.env = {
   ...import.meta.env,
-  SUPABASE_URL: 'https://test.supabase.co',
-  SUPABASE_KEY: 'test-anon-key',
+  SUPABASE_URL: "https://test.supabase.co",
+  SUPABASE_KEY: "test-anon-key",
   PROD: false,
 };
 
 // Mock API client module FIRST (before Supabase client that uses AuthProvider)
-vi.mock('@/lib/api-client', () => {
+vi.mock("@/lib/api-client", () => {
   const mockApiClient = {
     get: vi.fn().mockResolvedValue({ data: {} }),
     post: vi.fn().mockResolvedValue({ data: {} }),
@@ -31,7 +31,7 @@ vi.mock('@/lib/api-client', () => {
 });
 
 // Mock Supabase client module
-vi.mock('@/db/supabase.client', () => {
+vi.mock("@/db/supabase.client", () => {
   const mockSupabaseClient = {
     auth: {
       getSession: vi.fn().mockResolvedValue({
@@ -60,10 +60,10 @@ vi.mock('@/db/supabase.client', () => {
     supabaseClient: mockSupabaseClient,
     createSupabaseServerInstance: vi.fn(() => mockSupabaseClient),
     cookieOptions: {
-      path: '/',
+      path: "/",
       secure: false,
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: "lax",
     },
   };
 });
@@ -74,7 +74,7 @@ afterEach(() => {
 });
 
 // Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query) => ({
     matches: false,
@@ -109,4 +109,3 @@ global.ResizeObserver = class ResizeObserver {
 
 // Suppress console errors in tests (optional)
 // vi.spyOn(console, 'error').mockImplementation(() => {});
-

@@ -9,7 +9,7 @@ import type { Database } from "../../../src/db/database.types";
  *
  * Tests cover:
  * - Successful deletion
- * - Database errors  
+ * - Database errors
  * - RLS ownership verification
  * - CASCADE behavior (ON DELETE SET NULL)
  * - Proper error handling and logging
@@ -99,9 +99,7 @@ describe("GenerationRequestService.delete()", () => {
 
       // Act & Assert
       await expect(service.delete("user-id", "request-id")).rejects.toThrow(DatabaseError);
-      await expect(service.delete("user-id", "request-id")).rejects.toThrow(
-        "Failed to delete generation request"
-      );
+      await expect(service.delete("user-id", "request-id")).rejects.toThrow("Failed to delete generation request");
     });
 
     it("should include original error in DatabaseError", async () => {
@@ -295,7 +293,7 @@ describe("GenerationRequestService.delete()", () => {
       // Arrange
       let callCount = 0;
       const originalThen = mockQuery.then;
-      
+
       mockQuery.then = (resolve: any) => {
         callCount++;
         if (callCount === 1) {
@@ -323,7 +321,7 @@ describe("GenerationRequestService.delete()", () => {
       expect(results[0].status).toBe("fulfilled");
       expect(results[1].status).toBe("rejected");
       expect(results[2].status).toBe("rejected");
-      
+
       // Restore
       mockQuery.then = originalThen;
     });

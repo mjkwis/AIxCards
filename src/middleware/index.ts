@@ -75,7 +75,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         headers: context.request.headers,
         body: bodyText,
       });
-    } catch (e) {
+    } catch {
       // Invalid JSON - let route handler deal with it
     }
 
@@ -131,6 +131,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   // Debug logging
   if (isApiRoute) {
+    // eslint-disable-next-line no-console
     console.log(`[Middleware] API Route: ${context.url.pathname}, isPublic: ${isPublicApiPath}`);
   }
 

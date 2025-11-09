@@ -147,7 +147,7 @@ export class RateLimitService {
   /**
    * Check password reset rate limit
    * 3 attempts per 15 minutes per IP+Email combination
-   * 
+   *
    * @param ip - IP address of the requester
    * @param email - Email address for password reset
    * @throws RateLimitError if rate limit is exceeded
@@ -178,7 +178,7 @@ export class RateLimitService {
 
   /**
    * Gets the number of remaining password reset attempts
-   * 
+   *
    * @param ip - IP address of the requester
    * @param email - Email address for password reset
    * @returns Number of attempts remaining in current window

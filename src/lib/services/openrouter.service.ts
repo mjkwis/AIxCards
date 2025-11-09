@@ -72,7 +72,7 @@ export interface Message {
 /**
  * JSON Schema for structured responses
  */
-export interface JsonSchema<T = unknown> {
+export interface JsonSchema {
   /** Schema name */
   name: string;
   /** Schema description */
@@ -658,7 +658,7 @@ export class OpenRouterService {
     try {
       const parsed = JSON.parse(content);
       return parsed as T;
-    } catch (error) {
+    } catch {
       throw new OpenRouterInvalidResponseError(
         "Failed to parse JSON response. Expected structured JSON but received invalid format.",
         content

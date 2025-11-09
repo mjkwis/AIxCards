@@ -101,7 +101,11 @@ export class AuthService {
           throw new EmailAlreadyRegisteredError();
         }
 
-        throw new AuthServiceError("Registration failed", "REGISTRATION_FAILED", error.message || JSON.stringify(error));
+        throw new AuthServiceError(
+          "Registration failed",
+          "REGISTRATION_FAILED",
+          error.message || JSON.stringify(error),
+        );
       }
 
       // When email confirmation is enabled, Supabase creates the user but doesn't return a session
@@ -114,49 +118,48 @@ export class AuthService {
       if (!data.session) {
         // In test/dev environment with email confirmation enabled,
         // we need to use admin API to verify the user automatically
-        const isTestEnv = import.meta.env.MODE === 'test' || import.meta.env.DEV;
-        
+        const isTestEnv = import.meta.env.MODE === "test" || import.meta.env.DEV;
+
         if (isTestEnv && import.meta.env.SUPABASE_SERVICE_ROLE_KEY) {
           // Import admin client dynamically to avoid issues
           const { supabaseAdmin } = await import("../../db/supabase-admin.client");
-          
+
           // Update user to mark email as verified
-          const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-            data.user.id,
-            { email_confirm: true }
-          );
-          
+          const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(data.user.id, {
+            email_confirm: true,
+          });
+
           if (updateError) {
             throw new AuthServiceError(
-              "Registration successful but email confirmation required", 
+              "Registration successful but email confirmation required",
               "EMAIL_CONFIRMATION_REQUIRED",
               { email: data.user.email }
             );
           }
-          
+
           // Now try to sign in
           const { data: signInData, error: signInError } = await this.supabase.auth.signInWithPassword({
             email,
             password,
           });
-          
+
           if (signInError || !signInData.session) {
             throw new AuthServiceError(
-              "User verified but sign in failed", 
+              "User verified but sign in failed",
               "SIGN_IN_FAILED",
-              signInError?.message
+              signInError?.message,
             );
           }
-          
+
           return {
             user: this.mapUserToDTO(signInData.user),
             session: this.mapSessionToDTO(signInData.session),
           };
         }
-        
+
         // Production environment or no admin key - user must confirm email
         throw new AuthServiceError(
-          "Registration successful but email confirmation required", 
+          "Registration successful but email confirmation required",
           "EMAIL_CONFIRMATION_REQUIRED",
           { email: data.user.email }
         );

@@ -36,12 +36,9 @@ export function ResetPasswordRequestForm() {
   });
 
   const onSubmit = async (data: ResetPasswordRequestFormData) => {
-    console.log("🔧 FRONTEND DEBUG: Reset form submitted", { email: data.email });
     setIsLoading(true);
     try {
-      console.log("🔧 FRONTEND DEBUG: Calling API /auth/password/reset-request");
       await apiClient.post("/auth/password/reset-request", { email: data.email });
-      console.log("🔧 FRONTEND DEBUG: API call successful");
 
       setIsSuccess(true);
       toast({
@@ -49,11 +46,9 @@ export function ResetPasswordRequestForm() {
         description: "Jeśli podany email istnieje w systemie, wysłaliśmy na niego link do resetowania hasła.",
       });
     } catch (error) {
-      console.log("🔧 FRONTEND DEBUG: API call failed", error);
       const axiosError = error as AxiosError<ErrorResponse>;
       const status = axiosError.response?.status;
       const errorCode = axiosError.response?.data?.error?.code;
-      console.log("🔧 FRONTEND DEBUG: Error details", { status, errorCode, responseData: axiosError.response?.data });
 
       let message = "Nie udało się wysłać linku. Spróbuj ponownie.";
 
@@ -156,4 +151,3 @@ export function ResetPasswordRequestForm() {
     </form>
   );
 }
-

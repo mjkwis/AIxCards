@@ -52,7 +52,10 @@ export async function POST(context: APIContext): Promise<Response> {
     if (import.meta.env.DEV) {
       try {
         // Try to get user from Supabase first
-        const { data: { user: supabaseUser }, error: authError } = await supabase.auth.getUser();
+        const {
+          data: { user: supabaseUser },
+          error: authError,
+        } = await supabase.auth.getUser();
 
         if (supabaseUser && !authError) {
           user = supabaseUser;
@@ -60,50 +63,56 @@ export async function POST(context: APIContext): Promise<Response> {
         } else {
           // Extract email from referer URL (it has the #access_token with email param)
           console.log("🔧 UPDATE DEBUG: No Supabase session, looking for mock token");
-          
+
           const referer = context.request.headers.get("referer") || "";
           console.log("🔧 UPDATE DEBUG: Referer:", referer);
-          
+
           // Try to extract email from URL hash (e.g., #access_token=...&email=...)
-          let mockEmail = 'test@example.com'; // default fallback
-          
-          if (referer.includes('#')) {
-            const hashPart = referer.split('#')[1] || '';
+          let mockEmail = "test@example.com"; // default fallback
+
+          if (referer.includes("#")) {
+            const hashPart = referer.split("#")[1] || "";
             const params = new URLSearchParams(hashPart);
-            const emailFromHash = params.get('email');
-            
+            const emailFromHash = params.get("email");
+
             if (emailFromHash) {
               mockEmail = decodeURIComponent(emailFromHash);
               console.log("🔧 UPDATE DEBUG: Extracted email from hash:", mockEmail);
             }
           }
-          
+
           // Find user by email using admin client
-          const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-          
+          const {
+            data: { users },
+            error: listError,
+          } = await supabaseAdmin.auth.admin.listUsers();
+
           if (listError) {
             console.log("🔧 UPDATE DEBUG: Failed to list users:", listError);
             return errorResponse(500, "INTERNAL_ERROR", "Failed to verify user");
           }
-          
-          const foundUser = users?.find(u => u.email === mockEmail);
-          
+
+          const foundUser = users?.find((u) => u.email === mockEmail);
+
           if (!foundUser) {
             console.log("🔧 UPDATE DEBUG: User not found for email:", mockEmail);
             return errorResponse(404, "NOT_FOUND", `No user found with email: ${mockEmail}`);
           }
-          
+
           user = foundUser;
           isDevMockUser = true;
           console.log("🔧 UPDATE DEBUG: Using admin-found user:", user.email, user.id);
         }
-      } catch (error) {
-        console.log("🔧 UPDATE DEBUG: Error in auth check:", error);
+      } catch {
+        console.log("🔧 UPDATE DEBUG: Error in auth check");
         return errorResponse(500, "INTERNAL_ERROR", "Failed to authenticate user");
       }
     } else {
       // Production mode - require proper authentication
-      const { data: { user: supabaseUser }, error: authError } = await supabase.auth.getUser();
+      const {
+        data: { user: supabaseUser },
+        error: authError,
+      } = await supabase.auth.getUser();
 
       if (authError || !supabaseUser) {
         logger.warning("Unauthorized password update attempt", { error: authError?.message });
@@ -117,7 +126,7 @@ export async function POST(context: APIContext): Promise<Response> {
     let requestBody;
     try {
       requestBody = await context.request.json();
-    } catch (error) {
+    } catch {
       logger.info("Invalid JSON in request body");
       return errorResponse(400, "VALIDATION_ERROR", "Invalid request format");
     }
@@ -145,11 +154,8 @@ export async function POST(context: APIContext): Promise<Response> {
     // 5. Update password - use admin API in DEV for mock users
     if (import.meta.env.DEV && isDevMockUser) {
       console.log("🔧 UPDATE DEBUG: Updating password via Admin API for mock user");
-      
-      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-        user.id,
-        { password }
-      );
+
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user.id, { password });
 
       if (updateError) {
         logger.error("Failed to update password (admin)", updateError as Error, {
@@ -182,9 +188,9 @@ export async function POST(context: APIContext): Promise<Response> {
 
       // Sign out all sessions for security (only when user has session)
       await supabase.auth.signOut({ scope: "global" });
-      logger.info("All sessions invalidated after password change", { 
+      logger.info("All sessions invalidated after password change", {
         userId: user.id,
-        isDevMode: import.meta.env.DEV 
+        isDevMode: import.meta.env.DEV,
       });
     }
 
@@ -203,11 +209,10 @@ export async function POST(context: APIContext): Promise<Response> {
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   } catch (error) {
     logger.critical("Unexpected error in password update", error as Error);
     return errorResponse(500, "INTERNAL_ERROR", "An error occurred. Please try again later.");
   }
 }
-

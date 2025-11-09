@@ -40,22 +40,16 @@ export function UserDropdown({ user }: UserDropdownProps) {
 
   const handleLogout = async () => {
     try {
-      console.log("🔵 Starting logout process...");
-
       // Get session for auth token
       const { data: sessionData } = await supabaseClient.auth.getSession();
-      console.log("🔵 Session data:", sessionData);
       const token = sessionData.session?.access_token;
-      console.log("🔵 Token exists:", !!token);
 
       if (!token) {
-        console.log("🔴 No token found, redirecting to home");
         // If no token, just redirect to home
         window.location.href = "/";
         return;
       }
 
-      console.log("🔵 Calling /api/auth/logout...");
       // Call logout API endpoint to clear cookies
       const response = await fetch("/api/auth/logout", {
         method: "POST",
@@ -63,21 +57,17 @@ export function UserDropdown({ user }: UserDropdownProps) {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("🔵 Logout API response status:", response.status);
 
       if (!response.ok) {
         throw new Error("Nie udało się wylogować");
       }
 
-      console.log("🔵 Signing out from Supabase client...");
       // Sign out from Supabase client
       await supabaseClient.auth.signOut();
 
-      console.log("🔵 Redirecting to home page...");
       // Redirect to home page
       window.location.href = "/";
-    } catch (error) {
-      console.error("🔴 Logout error:", error);
+    } catch {
       toast({
         variant: "destructive",
         title: "Błąd",
@@ -121,7 +111,6 @@ export function UserDropdown({ user }: UserDropdownProps) {
       // Redirect to home page
       window.location.href = "/";
     } catch (error) {
-      console.error("Delete account error:", error);
       toast({
         variant: "destructive",
         title: "Błąd",

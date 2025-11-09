@@ -95,8 +95,8 @@ export async function POST(context: APIContext): Promise<Response> {
         userId: user.id,
         errorType: typeof error,
         errorName: error?.constructor?.name,
-        errorMessage: (error as any)?.message,
-        isDatabaseError: error instanceof DatabaseError
+        errorMessage: (error as { message?: string })?.message,
+        isDatabaseError: error instanceof DatabaseError,
       });
 
       if (error instanceof DatabaseError) {
@@ -106,7 +106,7 @@ export async function POST(context: APIContext): Promise<Response> {
       }
 
       // Handle other types of errors
-      const errorMessage = (error as any)?.message || "Failed to create flashcard (unknown error)";
+      const errorMessage = (error as { message?: string })?.message || "Failed to create flashcard (unknown error)";
       return errorResponse(500, "INTERNAL_ERROR", errorMessage);
     }
 

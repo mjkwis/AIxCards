@@ -8,6 +8,7 @@ import tailwindcss from "@tailwindcss/vite";
 import node from "@astrojs/node";
 
 // Load env variables - default to 'development' mode
+// eslint-disable-next-line no-undef
 const env = loadEnv(process.env.NODE_ENV || "development", process.cwd(), "");
 
 // https://astro.build/config

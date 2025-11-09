@@ -5,7 +5,6 @@
  */
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import type { GenerationStatistics } from "@/types";
 
 interface AcceptanceRateProps {
@@ -14,8 +13,6 @@ interface AcceptanceRateProps {
 
 export function AcceptanceRate({ statistics }: AcceptanceRateProps) {
   const approvalPercentage = Math.round(statistics.approval_rate * 100);
-  const rejectionPercentage =
-    statistics.total_generated > 0 ? Math.round((statistics.total_rejected / statistics.total_generated) * 100) : 0;
 
   return (
     <Card>

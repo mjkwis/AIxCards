@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -41,7 +41,7 @@ export function FlashcardList() {
       },
     ],
     queryFn: async () => {
-      const params: any = { sort, order, page, limit };
+      const params: Record<string, string | number> = { sort, order, page, limit };
       if (status !== "all") params.status = status;
       if (source !== "all") params.source = source;
 

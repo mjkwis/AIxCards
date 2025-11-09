@@ -247,7 +247,7 @@ export class GenerationRequestService {
       const generation_requests: GenerationRequestListItem[] = (requests || []).map((req) => {
         // flashcards can be an array with one object containing count: number
         let flashcard_count = 0;
-        
+
         if (Array.isArray(req.flashcards) && req.flashcards.length > 0) {
           // Supabase returns count as [{ count: number }]
           const countObj = req.flashcards[0] as { count?: number };

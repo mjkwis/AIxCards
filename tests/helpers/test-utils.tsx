@@ -1,7 +1,7 @@
-import { render, RenderOptions } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactElement, ReactNode } from 'react';
-import { AuthProvider } from '@/components/providers/AuthProvider';
+import { render, RenderOptions } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactElement, ReactNode } from "react";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 
 /**
  * Create a new QueryClient for each test to avoid state pollution
@@ -40,16 +40,12 @@ export function AllTheProviders({ children }: AllTheProvidersProps) {
 /**
  * Custom render function that includes all providers
  */
-export function renderWithProviders(
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-) {
+export function renderWithProviders(ui: ReactElement, options?: Omit<RenderOptions, "wrapper">) {
   return render(ui, { wrapper: AllTheProviders, ...options });
 }
 
 /**
  * Re-export everything from testing library
  */
-export * from '@testing-library/react';
+export * from "@testing-library/react";
 export { renderWithProviders as render };
-

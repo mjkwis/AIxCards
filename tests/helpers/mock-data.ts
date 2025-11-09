@@ -106,11 +106,7 @@ export const mockOpenRouterResponse = {
 /**
  * Generate realistic mock flashcards for E2E tests
  */
-export function generateMockFlashcardsFromAI(
-  userId: string,
-  generationRequestId: string,
-  count: number = 5
-): FlashcardDTO[] {
+export function generateMockFlashcardsFromAI(userId: string, generationRequestId: string, count = 5): FlashcardDTO[] {
   const baseFlashcards = [
     {
       front: "What is a React Hook?",

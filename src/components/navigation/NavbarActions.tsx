@@ -32,4 +32,3 @@ export function NavbarActions({ user, links }: NavbarActionsProps) {
     </>
   );
 }
-

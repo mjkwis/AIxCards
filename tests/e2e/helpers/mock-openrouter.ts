@@ -46,7 +46,7 @@ export async function mockOpenRouterAPI(page: Page) {
  */
 export async function mockOpenRouterAPIWithResponse(
   page: Page,
-  response: { flashcards: Array<{ front: string; back: string }> }
+  response: { flashcards: { front: string; back: string }[] }
 ) {
   await page.route("https://openrouter.ai/api/v1/chat/completions", async (route) => {
     const delay = Math.floor(Math.random() * 1000) + 500;
@@ -83,7 +83,7 @@ export async function mockOpenRouterAPIWithResponse(
 /**
  * Mock OpenRouter API with error response
  */
-export async function mockOpenRouterAPIError(page: Page, statusCode: number = 500) {
+export async function mockOpenRouterAPIError(page: Page, statusCode = 500) {
   await page.route("https://openrouter.ai/api/v1/chat/completions", async (route) => {
     await route.fulfill({
       status: statusCode,
@@ -131,4 +131,3 @@ export async function mockOpenRouterAPITimeout(page: Page) {
     await route.abort("timedout");
   });
 }
-

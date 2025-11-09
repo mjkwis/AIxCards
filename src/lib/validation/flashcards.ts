@@ -81,7 +81,10 @@ export const FlashcardsListQuerySchema = z.object({
   ),
   status: z.enum(["active", "pending_review", "rejected"]).nullable().optional(),
   source: z.enum(["manual", "ai_generated"]).nullable().optional(),
-  sort: z.preprocess((val) => (val === null || val === "" ? undefined : val), z.enum(["created_at", "updated_at", "next_review_at"]).default("created_at")),
+  sort: z.preprocess(
+    (val) => (val === null || val === "" ? undefined : val),
+    z.enum(["created_at", "updated_at", "next_review_at"]).default("created_at"),
+  ),
   order: z.preprocess((val) => (val === null || val === "" ? undefined : val), z.enum(["asc", "desc"]).default("desc")),
 });
 

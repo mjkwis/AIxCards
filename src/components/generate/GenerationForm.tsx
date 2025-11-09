@@ -73,12 +73,13 @@ export function GenerationForm({ onSuccess }: GenerationFormProps) {
       // Call onSuccess callback
       onSuccess?.(data);
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.error?.message || "Nie udało się wygenerować fiszek";
-      const isRateLimit = error.response?.status === 429;
+    onError: (error: unknown) => {
+      const axiosError = error as { response?: { data?: { error?: { message?: string; details?: { reset_at?: string } } }; status?: number } };
+      const message = axiosError.response?.data?.error?.message || "Nie udało się wygenerować fiszek";
+      const isRateLimit = axiosError.response?.status === 429;
 
       if (isRateLimit) {
-        const resetAt = error.response?.data?.error?.details?.reset_at;
+        const resetAt = axiosError.response?.data?.error?.details?.reset_at;
         const resetDate = resetAt ? new Date(resetAt) : null;
         const countdown = resetDate ? Math.ceil((resetDate.getTime() - Date.now()) / 1000 / 60) : null;
 

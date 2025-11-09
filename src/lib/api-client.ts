@@ -48,8 +48,8 @@ apiClient.interceptors.request.use(
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
-      } catch (error) {
-        console.error("Failed to get access token:", error);
+      } catch {
+        // Token retrieval failed, continue without auth header
       }
     }
 

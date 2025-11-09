@@ -86,7 +86,7 @@ export async function logoutUser(page: Page) {
   if (isMobile) {
     // Mobile: Open hamburger menu and click logout
     await mobileMenuTrigger.click();
-    
+
     // Wait for mobile menu to open and click logout
     const mobileLogoutButton = page.locator('[data-testid="mobile-logout-button"]');
     await mobileLogoutButton.waitFor({ state: "visible", timeout: 5000 });
@@ -125,4 +125,3 @@ export const test = base.extend<{
 });
 
 export { expect };
-

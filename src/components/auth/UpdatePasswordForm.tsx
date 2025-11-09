@@ -71,8 +71,9 @@ export function UpdatePasswordForm() {
       });
 
       // Redirect to login after successful password update
+      const redirectUrl = "/login";
       setTimeout(() => {
-        window.location.href = "/login";
+        window.location.href = redirectUrl;
       }, 2000);
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -239,4 +240,3 @@ export function UpdatePasswordForm() {
     </form>
   );
 }
-

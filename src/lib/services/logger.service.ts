@@ -35,6 +35,7 @@ export class Logger {
    * @param data - Optional additional data
    */
   info(message: string, data?: unknown): void {
+    // eslint-disable-next-line no-console
     console.log(`[${this.context}] INFO: ${message}`, data || "");
   }
 
@@ -46,6 +47,7 @@ export class Logger {
    * @param data - Optional additional data
    */
   warning(message: string, data?: unknown): void {
+    // eslint-disable-next-line no-console
     console.warn(`[${this.context}] WARNING: ${message}`, data || "");
   }
 
@@ -58,6 +60,7 @@ export class Logger {
    * @param data - Optional additional context data
    */
   error(message: string, error: Error, data?: unknown): void {
+    // eslint-disable-next-line no-console
     console.error(`[${this.context}] ERROR: ${message}`, {
       error: {
         name: error.name,
@@ -78,6 +81,7 @@ export class Logger {
    * @param data - Optional additional context data
    */
   critical(message: string, error: Error, data?: unknown): void {
+    // eslint-disable-next-line no-console
     console.error(`[${this.context}] CRITICAL: ${message}`, {
       error: {
         name: error.name,

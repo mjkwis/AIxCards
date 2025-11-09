@@ -1,5 +1,5 @@
-import { Page } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
+import { Page } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 
 /**
  * Run accessibility checks on a page
@@ -49,7 +49,7 @@ export async function assertNoAccessibilityViolations(
   });
 
   if (violations.length > 0) {
-    console.error('Accessibility violations found:');
+    console.error("Accessibility violations found:");
     violations.forEach((violation) => {
       console.error(`- ${violation.id}: ${violation.description}`);
       console.error(`  Impact: ${violation.impact}`);
@@ -59,4 +59,3 @@ export async function assertNoAccessibilityViolations(
 
   return violations;
 }
-

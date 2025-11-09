@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse } from "msw";
 
 /**
  * MSW handlers for mocking API calls in tests
@@ -6,23 +6,23 @@ import { http, HttpResponse } from 'msw';
  */
 export const handlers = [
   // Example: Mock OpenRouter API call
-  http.post('https://openrouter.ai/api/v1/chat/completions', async () => {
+  http.post("https://openrouter.ai/api/v1/chat/completions", async () => {
     return HttpResponse.json({
-      id: 'test-completion-id',
-      model: 'test-model',
+      id: "test-completion-id",
+      model: "test-model",
       choices: [
         {
           message: {
-            role: 'assistant',
+            role: "assistant",
             content: JSON.stringify([
               {
-                question: 'Test question?',
-                answer: 'Test answer',
-                difficulty: 'medium' as const,
+                question: "Test question?",
+                answer: "Test answer",
+                difficulty: "medium" as const,
               },
             ]),
           },
-          finish_reason: 'stop',
+          finish_reason: "stop",
         },
       ],
       usage: {
@@ -34,12 +34,11 @@ export const handlers = [
   }),
 
   // Example: Mock Supabase API calls
-  http.get('https://*.supabase.co/rest/v1/*', () => {
+  http.get("https://*.supabase.co/rest/v1/*", () => {
     return HttpResponse.json([]);
   }),
 
-  http.post('https://*.supabase.co/rest/v1/*', () => {
+  http.post("https://*.supabase.co/rest/v1/*", () => {
     return HttpResponse.json({ success: true });
   }),
 ];
-

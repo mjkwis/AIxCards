@@ -428,4 +428,3 @@ describe("DELETE /api/generation-requests/:id", () => {
     });
   });
 });
-

@@ -54,8 +54,7 @@ export function MobileDrawer({ links, user }: MobileDrawerProps) {
 
       // Redirect to home page
       window.location.href = "/";
-    } catch (error) {
-      console.error("Logout error:", error);
+    } catch {
       toast({
         variant: "destructive",
         title: "Błąd",
@@ -104,7 +103,7 @@ export function MobileDrawer({ links, user }: MobileDrawerProps) {
               {link.label}
             </a>
           ))}
-          
+
           {user && (
             <>
               <Separator className="my-2" />
