@@ -2,10 +2,17 @@
 
 Katalog zawiera wszystkie GitHub Actions workflows dla projektu AIxCards.
 
+## ⚡ Quick Start
+
+**Nowy użytkownik CI/CD?** → Zacznij tutaj: **[CI-CD-INDEX.md](./CI-CD-INDEX.md)** 📍
+
+**Chcę uruchomić CI/CD w 2 minuty?** → **[QUICKSTART-CI-CD.md](./QUICKSTART-CI-CD.md)** 🚀
+
 ## 📁 Struktura
 
 ```
 .github/workflows/
+├── ci-cd.yml                 # 🎯 Minimalny CI/CD dla master (manual + auto)
 ├── pull-request.yml          # ⭐ Główny workflow dla PR validation
 ├── test.yml                  # Testy (unit + e2e) - legacy
 ├── e2e.yml                   # E2E tests standalone
@@ -13,6 +20,16 @@ Katalog zawiera wszystkie GitHub Actions workflows dla projektu AIxCards.
 ├── e2e-tests.yml.example     # Przykład konfiguracji E2E
 │
 ├── README.md                         # Ten plik (overview)
+│
+├── CI-CD-INDEX.md                   # 📍 CI/CD - Index wszystkich dokumentów
+├── CI-CD-SUMMARY.md                 # 📝 Podsumowanie implementacji
+├── CI-CD-CHEATSHEET.md              # 📋 Cheatsheet - szybkie odniesienie
+├── QUICKSTART-CI-CD.md              # ⚡ Quick start CI/CD (2 min)
+├── CI-CD-README.md                  # 📖 Dokumentacja CI/CD workflow
+├── CI-CD-DIAGRAM.md                 # 📊 Diagramy przepływu CI/CD
+├── CI-CD-EXAMPLES.md                # 💡 Praktyczne przykłady użycia
+├── LOCAL-TESTING.md                 # 🧪 Testowanie CI lokalnie
+│
 ├── README-PR-WORKFLOW.md            # Quick reference dla PR workflow
 ├── PULL-REQUEST-WORKFLOW.md         # Szczegółowa dokumentacja PR workflow
 ├── SETUP-PR-WORKFLOW.md             # Przewodnik konfiguracji
@@ -23,7 +40,35 @@ Katalog zawiera wszystkie GitHub Actions workflows dla projektu AIxCards.
 
 ## 🚀 Workflows
 
-### 1. Pull Request Validation ⭐ (NOWY)
+### 0. CI/CD Pipeline 🎯 (MINIMALNY SETUP)
+
+**Plik:** `ci-cd.yml`
+
+**Trigger:** 
+- Manual (workflow_dispatch)
+- Push do `master`
+
+**Funkcjonalność:**
+- ✅ Testy jednostkowe z coverage
+- ✅ Build produkcyjny
+- ✅ Generowanie artifacts (7 dni)
+- ✅ Czytelne podsumowanie
+
+**Czas wykonania:** ~10 minut
+
+**Status:** ✅ Gotowy do użycia (REKOMENDOWANY dla master)
+
+**Dokumentacja:** [CI-CD-README.md](./CI-CD-README.md)
+
+**Użyj gdy:**
+- Chcesz szybko zweryfikować master branch
+- Potrzebujesz manualnego triggera
+- Hot-fix na master
+- Minimalny, szybki workflow bez E2E
+
+---
+
+### 1. Pull Request Validation ⭐
 
 **Plik:** `pull-request.yml`
 
@@ -137,19 +182,28 @@ Ustaw w: **Settings → Actions → General → Workflow permissions**
 
 ## 📊 Porównanie workflows
 
-| Feature | pull-request.yml | test.yml | e2e.yml |
-|---------|------------------|----------|---------|
-| Lint | ✅ | ❌ | ❌ |
-| Unit Tests | ✅ | ✅ | ❌ |
-| E2E Tests | ✅ | ✅ | ✅ |
-| Multi-browser | ✅ (3) | ❌ | ✅ (3) |
-| Coverage | ✅ | ✅ | ❌ |
-| Codecov | ✅ | ✅ | ❌ |
-| PR Comment | ✅ | ❌ | ❌ |
-| Parallel Jobs | ✅ | ❌ | ❌ |
-| Environment | ✅ | ❌ | ❌ |
+| Feature | ci-cd.yml | pull-request.yml | test.yml | e2e.yml | build.yml |
+|---------|-----------|------------------|----------|---------|-----------|
+| **Trigger: Manual** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Trigger: Push master** | ✅ | ❌ | ✅ | ✅ | ✅ |
+| **Trigger: PR** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Lint | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Unit Tests | ✅ | ✅ | ✅ | ❌ | ✅ |
+| E2E Tests | ❌ | ✅ | ✅ | ✅ | ❌ |
+| Build | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Multi-browser | ❌ | ✅ (3) | ❌ | ✅ (3) | ❌ |
+| Coverage | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Codecov | ❌ | ✅ | ✅ | ❌ | ❌ |
+| PR Comment | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Parallel Jobs | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Summary | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Czas** | ~10 min | ~40 min | ~25 min | ~20 min | ~10 min |
 
-**Rekomendacja:** Użyj `pull-request.yml` jako głównego workflow dla PRs.
+**Rekomendacje:**
+- **Pull Requests:** Użyj `pull-request.yml` (pełna walidacja)
+- **Push do master:** Użyj `ci-cd.yml` (szybka weryfikacja)
+- **Hot-fix:** Użyj `ci-cd.yml` manual trigger
+- **E2E only:** Użyj `e2e.yml`
 
 ---
 
