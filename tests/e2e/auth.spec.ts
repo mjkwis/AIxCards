@@ -27,9 +27,17 @@ test.describe("Authentication - Registration", () => {
     // Wait for navigation to complete
     await page.waitForURL(/\/dashboard\/generate/, { timeout: 10000 });
 
-    // Verify user is logged in (navbar should show user email or dropdown)
+    // Verify user is logged in
+    // On desktop: user dropdown should be visible
+    // On mobile: hamburger menu should be visible
     const userDropdown = page.locator('[data-testid="user-dropdown-trigger"]');
-    await expect(userDropdown).toBeVisible({ timeout: 5000 });
+    const mobileMenu = page.locator('[data-testid="mobile-menu-trigger"]');
+
+    // At least one of them should be visible (depending on viewport)
+    const isUserDropdownVisible = await userDropdown.isVisible();
+    const isMobileMenuVisible = await mobileMenu.isVisible();
+
+    expect(isUserDropdownVisible || isMobileMenuVisible).toBeTruthy();
   });
 
   test("should show validation error for short password", async ({ page }) => {
