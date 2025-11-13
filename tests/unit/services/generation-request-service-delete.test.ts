@@ -28,12 +28,14 @@ vi.mock("../../../src/lib/services/logger.service", () => ({
 describe("GenerationRequestService.delete()", () => {
   let mockSupabase: SupabaseClient<Database>;
   let service: GenerationRequestService;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockQuery: any;
 
   // Helper to create success mock
   const createSuccessMock = () => {
     mockQuery = {
       eq: vi.fn().mockReturnThis(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       then: (resolve: any) => Promise.resolve({ data: null, error: null }).then(resolve),
     };
     mockSupabase = {
@@ -45,9 +47,11 @@ describe("GenerationRequestService.delete()", () => {
   };
 
   // Helper to create error mock
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createErrorMock = (error: any) => {
     mockQuery = {
       eq: vi.fn().mockReturnThis(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       then: (resolve: any) => Promise.resolve({ data: null, error }).then(resolve),
     };
     mockSupabase = {
@@ -292,8 +296,10 @@ describe("GenerationRequestService.delete()", () => {
     it("should handle mixed success and failure in concurrent deletes", async () => {
       // Arrange
       let callCount = 0;
-      const originalThen = mockQuery.then;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const originalThen = mockQuery.then as any;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockQuery.then = (resolve: any) => {
         callCount++;
         if (callCount === 1) {

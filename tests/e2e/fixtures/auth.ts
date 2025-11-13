@@ -1,4 +1,6 @@
-import { test as base, Page, expect } from "@playwright/test";
+/* eslint-disable react-hooks/rules-of-hooks */
+import { test as base, expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 /**
  * Test user credentials from environment variables
@@ -119,7 +121,7 @@ export const test = base.extend<{
   },
 
   // Fixture providing test user credentials
-  testUser: async ({}, use) => {
+  testUser: async (_fixtures, use) => {
     await use(TEST_USER);
   },
 });

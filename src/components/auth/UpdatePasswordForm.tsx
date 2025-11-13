@@ -4,7 +4,7 @@
  * Form for setting a new password after clicking reset link
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -39,6 +39,7 @@ export function UpdatePasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   const {
     register,
@@ -60,6 +61,16 @@ export function UpdatePasswordForm() {
     hasNumber: /[0-9]/.test(password),
   };
 
+  // Handle redirect after successful password update
+  useEffect(() => {
+    if (shouldRedirect) {
+      const timer = setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldRedirect]);
+
   const onSubmit = async (data: UpdatePasswordFormData) => {
     setIsLoading(true);
     try {
@@ -70,11 +81,8 @@ export function UpdatePasswordForm() {
         description: "Twoje hasło zostało zaktualizowane. Przekierowujemy Cię do logowania...",
       });
 
-      // Redirect to login after successful password update
-      const redirectUrl = "/login";
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 2000);
+      // Trigger redirect after successful password update
+      setShouldRedirect(true);
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       const status = axiosError.response?.status;

@@ -104,7 +104,7 @@ export class AuthService {
         throw new AuthServiceError(
           "Registration failed",
           "REGISTRATION_FAILED",
-          error.message || JSON.stringify(error),
+          error.message || JSON.stringify(error)
         );
       }
 
@@ -144,11 +144,7 @@ export class AuthService {
           });
 
           if (signInError || !signInData.session) {
-            throw new AuthServiceError(
-              "User verified but sign in failed",
-              "SIGN_IN_FAILED",
-              signInError?.message,
-            );
+            throw new AuthServiceError("User verified but sign in failed", "SIGN_IN_FAILED", signInError?.message);
           }
 
           return {

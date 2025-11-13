@@ -74,7 +74,9 @@ export function GenerationForm({ onSuccess }: GenerationFormProps) {
       onSuccess?.(data);
     },
     onError: (error: unknown) => {
-      const axiosError = error as { response?: { data?: { error?: { message?: string; details?: { reset_at?: string } } }; status?: number } };
+      const axiosError = error as {
+        response?: { data?: { error?: { message?: string; details?: { reset_at?: string } } }; status?: number };
+      };
       const message = axiosError.response?.data?.error?.message || "Nie udało się wygenerować fiszek";
       const isRateLimit = axiosError.response?.status === 429;
 

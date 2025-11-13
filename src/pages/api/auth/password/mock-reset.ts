@@ -41,12 +41,12 @@ export async function POST(context: APIContext): Promise<Response> {
     return errorResponse(404, "NOT_FOUND", "Endpoint not found");
   }
 
-  console.log("🔧 MOCK RESET DEBUG: Endpoint called");
+  logger.info("Mock reset endpoint called");
 
   try {
     // 1. Get Supabase client
     const supabase = context.locals.supabase;
-    console.log("🔧 MOCK RESET DEBUG: Supabase client available:", !!supabase);
+    logger.info("Supabase client available", { available: !!supabase });
 
     if (!supabase) {
       logger.error("Supabase client not available", new Error("No supabase"));
@@ -63,13 +63,13 @@ export async function POST(context: APIContext): Promise<Response> {
     }
 
     // 3. Validate with Zod
-    console.log("🔧 MOCK RESET DEBUG: Request body:", requestBody);
+    logger.info("Validating request body", { body: requestBody });
     const validationResult = ResetPasswordRequestSchema.safeParse(requestBody);
-    console.log("🔧 MOCK RESET DEBUG: Validation result:", validationResult.success);
+    logger.info("Validation result", { success: validationResult.success });
 
     if (!validationResult.success) {
       const firstError = validationResult.error.errors[0];
-      console.log("🔧 MOCK RESET DEBUG: Validation failed:", firstError);
+      logger.info("Validation failed", { error: firstError });
       logger.info("Validation failed", {
         field: firstError.path.join("."),
         message: firstError.message,
@@ -81,7 +81,7 @@ export async function POST(context: APIContext): Promise<Response> {
     }
 
     const { email } = validationResult.data;
-    console.log("🔧 MOCK RESET DEBUG: Email extracted:", email);
+    logger.info("Email extracted", { email });
 
     logger.info("Generating mock password reset link", { email });
 
@@ -102,16 +102,10 @@ export async function POST(context: APIContext): Promise<Response> {
     // Construct the mock action link
     const actionLink = `${redirectUrl}#access_token=${mockToken}&type=recovery&email=${encodeURIComponent(email)}`;
 
-    console.log("🔧 MOCK RESET DEBUG: Generated mock link", {
+    logger.info("Generated mock link", {
       email,
       redirectUrl,
       tokenLength: mockToken.length,
-    });
-
-    console.log("🔧 MOCK RESET DEBUG: Link generated successfully", {
-      email,
-      linkLength: actionLink.length,
-      linkPreview: actionLink.substring(0, 100) + "...",
     });
 
     logger.info("Mock reset link generated successfully", {
@@ -126,12 +120,12 @@ export async function POST(context: APIContext): Promise<Response> {
       (context.request.headers.get("Accept") || "").includes("text/html");
 
     if (wantsRedirect) {
-      console.log("🔧 MOCK RESET DEBUG: Performing redirect to action link");
+      logger.info("Performing redirect to action link");
       return Response.redirect(actionLink, 302);
     }
 
     // 5. Return the reset link (in development only!)
-    console.log("🔧 MOCK RESET DEBUG: Returning success response");
+    logger.info("Returning success response with reset link");
     return new Response(
       JSON.stringify({
         success: true,

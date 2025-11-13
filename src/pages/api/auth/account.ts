@@ -19,7 +19,11 @@
 
 import type { APIRoute } from "astro";
 import { errorResponse } from "../../../lib/helpers/error-response";
+import { Logger } from "../../../lib/services/logger.service";
 import type { UserDTO } from "../../../types";
+
+const getLogger = new Logger("GET /api/auth/account");
+const deleteLogger = new Logger("DELETE /api/auth/account");
 
 /**
  * GET handler for retrieving current user account
@@ -62,8 +66,9 @@ export const GET: APIRoute = async ({ locals }) => {
     });
   } catch (error) {
     // Catch-all for unexpected errors
-    console.error("Unexpected error in account endpoint:", error);
-
+    getLogger.critical("Unexpected error in account endpoint", error as Error, {
+      userId: locals.user?.id,
+    });
     return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 };
@@ -141,14 +146,10 @@ export const DELETE: APIRoute = async ({ locals }) => {
       const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
       if (error) {
-        console.error("Failed to delete user account:", error);
         return errorResponse(500, "DELETION_FAILED", "Failed to delete account. Please try again later.");
       }
-
-      // Log successful deletion for audit trail
-      console.info("User account deleted successfully:", { userId });
-    } catch (error) {
-      console.error("Unexpected error during account deletion:", error);
+    } catch (deleteError) {
+      deleteLogger.error("Error deleting user account", deleteError as Error, { userId });
       return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred while deleting your account.");
     }
 
@@ -177,8 +178,9 @@ export const DELETE: APIRoute = async ({ locals }) => {
     return response;
   } catch (error) {
     // Catch-all for unexpected errors
-    console.error("Unexpected error in account deletion endpoint:", error);
-
+    deleteLogger.critical("Unexpected error in account deletion endpoint", error as Error, {
+      userId: locals.user?.id,
+    });
     return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 };

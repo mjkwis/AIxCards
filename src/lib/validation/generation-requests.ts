@@ -53,7 +53,7 @@ export const GenerationRequestListQuerySchema = z.object({
   ),
   sort: z.preprocess(
     (val) => (val === null || val === "" ? undefined : val),
-    z.enum(["created_at", "updated_at"]).default("created_at"),
+    z.enum(["created_at", "updated_at"]).default("created_at")
   ),
   order: z.preprocess((val) => (val === null || val === "" ? undefined : val), z.enum(["asc", "desc"]).default("desc")),
 });

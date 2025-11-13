@@ -23,6 +23,9 @@
 import type { APIRoute } from "astro";
 import { AuthService } from "../../../lib/services/auth.service";
 import { errorResponse } from "../../../lib/helpers/error-response";
+import { Logger } from "../../../lib/services/logger.service";
+
+const logger = new Logger("POST /api/auth/logout");
 
 /**
  * POST handler for user logout
@@ -55,7 +58,9 @@ export const POST: APIRoute = async ({ locals }) => {
     } catch (error) {
       // Log the error but don't fail the request
       // We still want to clear the client-side cookie even if server logout fails
-      console.error("Logout error (continuing anyway):", error);
+      logger.error("Logout error (continuing anyway)", error as Error, {
+        userId: locals.user?.id,
+      });
     }
 
     // 2. Create response with 204 No Content
@@ -85,7 +90,9 @@ export const POST: APIRoute = async ({ locals }) => {
   } catch (error) {
     // Catch-all for unexpected errors
     // Even in case of error, we try to clear the cookie
-    console.error("Unexpected error in logout endpoint:", error);
+    logger.error("Unexpected error in logout endpoint", error as Error, {
+      userId: locals.user?.id,
+    });
 
     // Create error response but still clear the cookie
     const errorResponseObj = errorResponse(500, "INTERNAL_ERROR", "Logout failed. Please try again.");

@@ -1,5 +1,6 @@
-import { Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import type { Result } from "axe-core";
 
 /**
  * Run accessibility checks on a page
@@ -44,17 +45,19 @@ export async function assertNoAccessibilityViolations(
     excludedRules?: string[];
   }
 ) {
-  const violations = await checkAccessibility(page, {
+  const violations = (await checkAccessibility(page, {
     excludedRules: options?.excludedRules,
-  });
+  })) as Result[];
 
   if (violations.length > 0) {
-    console.error("Accessibility violations found:");
-    violations.forEach((violation) => {
-      console.error(`- ${violation.id}: ${violation.description}`);
-      console.error(`  Impact: ${violation.impact}`);
-      console.error(`  Help: ${violation.helpUrl}`);
-    });
+    const violationDetails = violations
+      .map(
+        (violation: Result) =>
+          `- ${violation.id}: ${violation.description}\n  Impact: ${violation.impact}\n  Help: ${violation.helpUrl}`
+      )
+      .join("\n");
+
+    throw new Error(`Accessibility violations found:\n${violationDetails}`);
   }
 
   return violations;

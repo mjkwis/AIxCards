@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   rules: {
     // Allow console statements in tests for debugging
     "no-console": "off",
@@ -6,4 +6,3 @@ module.exports = {
     "react-hooks/rules-of-hooks": "off",
   },
 };
-

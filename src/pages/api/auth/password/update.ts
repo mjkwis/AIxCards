@@ -59,13 +59,13 @@ export async function POST(context: APIContext): Promise<Response> {
 
         if (supabaseUser && !authError) {
           user = supabaseUser;
-          console.log("🔧 UPDATE DEBUG: Using real Supabase user:", user.email);
+          logger.info("Using real Supabase user", { userId: user.id, email: user.email });
         } else {
           // Extract email from referer URL (it has the #access_token with email param)
-          console.log("🔧 UPDATE DEBUG: No Supabase session, looking for mock token");
+          logger.info("No Supabase session, looking for mock token");
 
           const referer = context.request.headers.get("referer") || "";
-          console.log("🔧 UPDATE DEBUG: Referer:", referer);
+          logger.info("Referer", { referer });
 
           // Try to extract email from URL hash (e.g., #access_token=...&email=...)
           let mockEmail = "test@example.com"; // default fallback
@@ -77,7 +77,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
             if (emailFromHash) {
               mockEmail = decodeURIComponent(emailFromHash);
-              console.log("🔧 UPDATE DEBUG: Extracted email from hash:", mockEmail);
+              logger.info("Extracted email from hash", { mockEmail });
             }
           }
 
@@ -88,23 +88,23 @@ export async function POST(context: APIContext): Promise<Response> {
           } = await supabaseAdmin.auth.admin.listUsers();
 
           if (listError) {
-            console.log("🔧 UPDATE DEBUG: Failed to list users:", listError);
+            logger.error("Failed to list users", listError as Error, { listError });
             return errorResponse(500, "INTERNAL_ERROR", "Failed to verify user");
           }
 
           const foundUser = users?.find((u) => u.email === mockEmail);
 
           if (!foundUser) {
-            console.log("🔧 UPDATE DEBUG: User not found for email:", mockEmail);
+            logger.error("User not found for email", { mockEmail });
             return errorResponse(404, "NOT_FOUND", `No user found with email: ${mockEmail}`);
           }
 
           user = foundUser;
           isDevMockUser = true;
-          console.log("🔧 UPDATE DEBUG: Using admin-found user:", user.email, user.id);
+          logger.info("Using admin-found user", { userId: user.id, email: user.email });
         }
       } catch {
-        console.log("🔧 UPDATE DEBUG: Error in auth check");
+        logger.error("Error in auth check");
         return errorResponse(500, "INTERNAL_ERROR", "Failed to authenticate user");
       }
     } else {
@@ -153,7 +153,7 @@ export async function POST(context: APIContext): Promise<Response> {
 
     // 5. Update password - use admin API in DEV for mock users
     if (import.meta.env.DEV && isDevMockUser) {
-      console.log("🔧 UPDATE DEBUG: Updating password via Admin API for mock user");
+      logger.info("Updating password via Admin API for mock user");
 
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(user.id, { password });
 
@@ -165,8 +165,8 @@ export async function POST(context: APIContext): Promise<Response> {
         return errorResponse(500, "INTERNAL_ERROR", "Failed to update password");
       }
 
-      console.log("🔧 UPDATE DEBUG: Password updated successfully via Admin API");
-      console.log("🔧 UPDATE DEBUG: User:", user.email, "can now login with new password");
+      logger.info("Password updated successfully via Admin API", { userId: user.id, email: user.email });
+      logger.info("User can now login with new password", { userId: user.id, email: user.email });
     } else {
       // Use standard API when user has active session (both DEV and PROD)
       const { error: updateError } = await supabase.auth.updateUser({
@@ -182,8 +182,8 @@ export async function POST(context: APIContext): Promise<Response> {
       }
 
       if (import.meta.env.DEV) {
-        console.log("🔧 UPDATE DEBUG: Password updated successfully via standard API");
-        console.log("🔧 UPDATE DEBUG: User:", user.email);
+        logger.info("Password updated successfully via standard API", { userId: user.id, email: user.email });
+        logger.info("User", { userId: user.id, email: user.email });
       }
 
       // Sign out all sessions for security (only when user has session)
@@ -209,10 +209,10 @@ export async function POST(context: APIContext): Promise<Response> {
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   } catch (error) {
-    logger.critical("Unexpected error in password update", error as Error);
+    logger.error("Unexpected error in password update", error as Error);
     return errorResponse(500, "INTERNAL_ERROR", "An error occurred. Please try again later.");
   }
 }

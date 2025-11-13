@@ -28,11 +28,14 @@ import { AuthService, InvalidCredentialsError, AuthServiceError } from "../../..
 import { errorResponse } from "../../../lib/helpers/error-response";
 import { RateLimitService } from "../../../lib/services/rate-limit.service";
 import { RateLimitError } from "../../../lib/errors/rate-limit.error";
+import { Logger } from "../../../lib/services/logger.service";
 import type { AuthResponse } from "../../../types";
 
 // Rate limiter for login: 10 requests per 15 minutes per IP+email combination
 // This aggressive rate limiting helps prevent brute force attacks
 const loginRateLimiter = new RateLimitService(10, 900000); // 15 minutes in milliseconds
+
+const logger = new Logger("POST /api/auth/login");
 
 /**
  * POST handler for user login
@@ -113,8 +116,11 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
 
       if (error instanceof AuthServiceError) {
         // Log the error for debugging (but don't expose to user)
-        console.error("Login error:", error.code, error.details);
-
+        logger.error("Login error", error as Error, {
+          email,
+          code: error.code,
+          details: error.details,
+        });
         return errorResponse(500, "LOGIN_FAILED", "Failed to log in. Please try again later.");
       }
 
@@ -128,7 +134,6 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
     });
 
     if (sessionError) {
-      console.error("Failed to set session:", sessionError);
       return errorResponse(500, "SESSION_ERROR", "Failed to establish session");
     }
 
@@ -144,9 +149,7 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
       },
     });
   } catch (error) {
-    // Catch-all for unexpected errors
-    console.error("Unexpected error in login endpoint:", error);
-
+    logger.error("Unexpected error during login", error as Error);
     return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }
 };

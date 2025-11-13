@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { render, screen, waitFor } from "../../helpers/test-utils";
 import userEvent from "@testing-library/user-event";
 import { LoginForm } from "../../../src/components/auth/LoginForm";

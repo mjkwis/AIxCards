@@ -4,7 +4,7 @@
  * Form for user authentication with email and password
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -28,6 +28,7 @@ export function LoginForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
 
   const {
     register,
@@ -37,6 +38,13 @@ export function LoginForm() {
     resolver: zodResolver(loginSchema),
   });
 
+  // Handle redirect after successful login
+  useEffect(() => {
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+    }
+  }, [redirectUrl]);
+
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
@@ -44,12 +52,8 @@ export function LoginForm() {
 
       // Redirect after successful login
       const params = new URLSearchParams(window.location.search);
-      const redirectUrl = params.get("redirect") || "/dashboard/generate";
-
-      // Small delay to ensure session is persisted
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 200);
+      const url = params.get("redirect") || "/dashboard/generate";
+      setRedirectUrl(url);
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       const status = axiosError.response?.status;

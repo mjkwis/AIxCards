@@ -682,6 +682,7 @@ describe("FlashcardCard", () => {
       const buttons = screen.getAllByRole("button");
       buttons.forEach((button) => {
         expect(button.textContent).toBeTruthy();
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         expect(button.textContent!.length).toBeGreaterThan(0);
       });
     });

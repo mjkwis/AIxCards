@@ -27,14 +27,17 @@ import { AuthService, EmailAlreadyRegisteredError, AuthServiceError } from "../.
 import { errorResponse } from "../../../lib/helpers/error-response";
 import { RateLimitService } from "../../../lib/services/rate-limit.service";
 import { RateLimitError } from "../../../lib/errors/rate-limit.error";
+import { Logger } from "../../../lib/services/logger.service";
 import type { AuthResponse } from "../../../types";
+
+const logger = new Logger("POST /api/auth/register");
 
 // Rate limiter for registration: 5 requests per hour per IP (production)
 // In test/dev environment, allow more requests (100 per hour)
 const isTestEnv = import.meta.env.MODE === "test" || import.meta.env.DEV;
 const registerRateLimiter = new RateLimitService(
   isTestEnv ? 100 : 5, // 100 requests in test/dev, 5 in production
-  3600000, // 1 hour in milliseconds
+  3600000 // 1 hour in milliseconds
 );
 
 /**
@@ -107,7 +110,10 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
 
       if (error instanceof AuthServiceError) {
         // Log the error for debugging
-        console.error("Registration error:", error.code, error.details);
+        logger.error("Registration error", error, {
+          code: error.code,
+          details: error.details,
+        });
 
         return errorResponse(500, "REGISTRATION_FAILED", "Failed to create account. Please try again later.");
       }
@@ -122,7 +128,7 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
     });
 
     if (sessionError) {
-      console.error("Failed to set session:", sessionError);
+      logger.error("Failed to set session", sessionError);
       return errorResponse(500, "SESSION_ERROR", "Failed to establish session");
     }
 
@@ -139,7 +145,7 @@ export const POST: APIRoute = async ({ request, locals, clientAddress }) => {
     });
   } catch (error) {
     // Catch-all for unexpected errors
-    console.error("Unexpected error in registration endpoint:", error);
+    logger.error("Unexpected error in registration endpoint", error as Error);
 
     return errorResponse(500, "INTERNAL_ERROR", "An unexpected error occurred. Please try again later.");
   }

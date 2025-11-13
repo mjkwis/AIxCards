@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { generateTestUser, loginUser, logoutUser, registerUser } from "./fixtures/auth";
+import { generateTestUser } from "./fixtures/auth";
 
 /**
  * E2E Tests for Authentication Flow

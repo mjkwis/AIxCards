@@ -84,6 +84,7 @@ describe("DELETE /api/generation-requests/:id", () => {
 
       vi.mocked(GenerationRequestService).mockImplementation(() => mockGenerationRequestService);
 
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       mockContext.locals.user!.id = "different-user-id";
       mockContext.params.id = "different-request-id";
 
@@ -118,6 +119,7 @@ describe("DELETE /api/generation-requests/:id", () => {
 
     it("should return 401 when user is null", async () => {
       // Arrange
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockContext.locals.user = null as any;
 
       // Act
@@ -196,9 +198,9 @@ describe("DELETE /api/generation-requests/:id", () => {
     it("should return 404 when request belongs to different user (RLS)", async () => {
       // Arrange
       // RLS will make the delete fail as if the record doesn't exist
-      const deleteSpy = vi
-        .spyOn(mockGenerationRequestService, "delete")
-        .mockRejectedValue(new DatabaseError("Failed to delete generation request", { code: "PGRST116" }));
+      vi.spyOn(mockGenerationRequestService, "delete").mockRejectedValue(
+        new DatabaseError("Failed to delete generation request", { code: "PGRST116" })
+      );
 
       vi.mocked(GenerationRequestService).mockImplementation(() => mockGenerationRequestService);
 
@@ -216,9 +218,9 @@ describe("DELETE /api/generation-requests/:id", () => {
   describe("Database error scenarios", () => {
     it("should return 404 for any DatabaseError", async () => {
       // Arrange
-      const deleteSpy = vi
-        .spyOn(mockGenerationRequestService, "delete")
-        .mockRejectedValue(new DatabaseError("Database connection failed", { code: "DB_ERROR" }));
+      vi.spyOn(mockGenerationRequestService, "delete").mockRejectedValue(
+        new DatabaseError("Database connection failed", { code: "DB_ERROR" })
+      );
 
       vi.mocked(GenerationRequestService).mockImplementation(() => mockGenerationRequestService);
 
@@ -236,9 +238,7 @@ describe("DELETE /api/generation-requests/:id", () => {
   describe("Unexpected error scenarios", () => {
     it("should return 500 for unexpected errors", async () => {
       // Arrange
-      const deleteSpy = vi
-        .spyOn(mockGenerationRequestService, "delete")
-        .mockRejectedValue(new Error("Unexpected error"));
+      vi.spyOn(mockGenerationRequestService, "delete").mockRejectedValue(new Error("Unexpected error"));
 
       vi.mocked(GenerationRequestService).mockImplementation(() => mockGenerationRequestService);
 
