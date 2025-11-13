@@ -4,26 +4,19 @@ Ten dokument opisuje jak skonfigurować GitHub Secrets wymagane do działania wo
 
 ## Wymagane Secrets
 
-### Build Workflow (`build.yml`)
+### Test Workflow (`test.yml`)
 
-Workflow dla testów jednostkowych i builda wymaga następujących secrets:
+Workflow dla testów jednostkowych i E2E wymaga następujących secrets:
 
-| Secret Name | Opis | Gdzie znaleźć |
-|-------------|------|---------------|
-| `SUPABASE_URL` | URL twojego projektu Supabase | Supabase Dashboard → Project Settings → API → Project URL |
-| `SUPABASE_KEY` | Anon/Public key Supabase | Supabase Dashboard → Project Settings → API → Project API keys → `anon` `public` |
-| `OPENROUTER_API_KEY` | Klucz API OpenRouter | https://openrouter.ai/ → Keys |
-
-### E2E Tests Workflow (`e2e.yml`)
-
-Workflow dla testów E2E wymaga następujących secrets:
-
-| Secret Name | Opis | Gdzie znaleźć |
-|-------------|------|---------------|
-| `TEST_SUPABASE_URL` | URL testowej instancji Supabase | Supabase Dashboard → Project Settings → API → Project URL |
-| `TEST_SUPABASE_KEY` | Anon key testowej instancji Supabase | Supabase Dashboard → Project Settings → API → Project API keys → `anon` `public` |
-| `E2E_USERNAME` | Email testowego użytkownika | Utwórz testowego użytkownika w Supabase Auth |
-| `E2E_PASSWORD` | Hasło testowego użytkownika | Hasło użyte przy tworzeniu testowego użytkownika |
+| Secret Name | Opis | Gdzie znaleźć | Wymagane dla |
+|-------------|------|---------------|--------------|
+| `SUPABASE_URL` | URL twojego projektu Supabase | Supabase Dashboard → Project Settings → API → Project URL | Testy jednostkowe i E2E |
+| `SUPABASE_KEY` | Anon/Public key Supabase | Supabase Dashboard → Project Settings → API → Project API keys → `anon` `public` | Testy jednostkowe i E2E |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service Role Key Supabase | Supabase Dashboard → Project Settings → API → Project API keys → `service_role` | Testy E2E (cleanup) |
+| `OPENROUTER_API_KEY` | Klucz API OpenRouter | https://openrouter.ai/ → Keys | Testy jednostkowe i E2E |
+| `E2E_USERNAME` | Email testowego użytkownika | Opcjonalny - testy generują automatycznie użytkowników | Testy E2E (opcjonalne) |
+| `E2E_PASSWORD` | Hasło testowego użytkownika | Opcjonalne - domyślnie: `TestPassword123!` | Testy E2E (opcjonalne) |
+| `CODECOV_TOKEN` | Token do uploadu pokrycia kodu | https://codecov.io/ → Settings → Tokens | Opcjonalne - dla code coverage |
 
 ## Jak dodać Secrets do GitHub
 
@@ -45,45 +38,82 @@ Workflow dla testów E2E wymaga następujących secrets:
 - Użyj darmowego planu
 - Dane testowe są odizolowane od produkcji
 
-**Opcja 2: Ten sam projekt z testowymi użytkownikami**
-- Utwórz dedykowanych użytkowników testowych
-- Używaj prefixów w emailach (np. `test-*@example.com`)
-- Ryzyko: testy mogą wpłynąć na dane produkcyjne
+**Opcja 2: Ten sam projekt z testowymi użytkownikami (używane obecnie)**
+- Testy automatycznie generują unikalnych użytkowników z losowymi emailami
+- Format: `test-{random}-{timestamp}@test-playwright.local`
+- Nie ma ryzyka konfliktów między testami
+- Możesz używać tej samej instancji Supabase co development
 
 ### Bezpieczeństwo
 
 - ⚠️ **NIGDY** nie commituj plików `.env` do repozytorium
-- ⚠️ Nie udostępniaj `SUPABASE_SERVICE_ROLE_KEY` w GitHub Secrets (ma pełny dostęp do bazy)
-- ✅ Używaj tylko `anon` key dla testów E2E
-- ✅ Dla testów E2E możesz użyć mock key dla OpenRouter (`OPENROUTER_API_KEY=mock-key`)
+- ⚠️ `SUPABASE_SERVICE_ROLE_KEY` ma pełny dostęp do bazy - używaj ostrożnie
+- ✅ W GitHub Actions przekazuj secrets przez workflow, nie hardcoduj ich
+- ✅ Używaj `anon` key dla większości operacji testowych
+- ✅ Service role key jest potrzebny tylko dla cleanup operacji w testach
 
 ### Testowanie konfiguracji
 
-Po dodaniu secrets:
+**Konfiguracja lokalna:**
 
-1. Sprawdź czy `.env.test` jest w `.gitignore` ✅
-2. Utwórz lokalny plik `.env.test` bazując na `.env.test.example`
-3. Uruchom testy lokalnie: `npm run test:e2e`
-4. Jeśli działają lokalnie, push do repozytorium uruchomi workflow
+1. Skopiuj plik `.env.test.example` do `.env.test`:
+   ```bash
+   cp .env.test.example .env.test
+   ```
+
+2. Wypełnij wartości w `.env.test` swoimi danymi testowymi
+
+3. Sprawdź czy `.env.test` jest w `.gitignore` ✅
+
+4. Uruchom testy lokalnie:
+   ```bash
+   npm run test        # Testy jednostkowe
+   npm run test:e2e    # Testy E2E
+   ```
+
+**Konfiguracja GitHub Actions:**
+
+1. Dodaj wymagane secrets do GitHub (patrz sekcja "Jak dodać Secrets")
+
+2. Push do repozytorium uruchomi workflow automatycznie
+
+3. Sprawdź logi w zakładce Actions na GitHub
+
+4. Jeśli testy przechodzą lokalnie ale nie w CI, sprawdź czy wszystkie secrets są dodane
 
 ## Troubleshooting
 
 ### "supabaseUrl is required" podczas testów E2E
 
-**Przyczyna:** Brak zmiennych środowiskowych dla Supabase
+**Przyczyna:** Brak pliku `.env.test` lub brak zmiennych środowiskowych dla Supabase
 
-**Rozwiązanie:**
+**Rozwiązanie lokalnie:**
+1. Upewnij się, że masz plik `.env.test` w głównym katalogu projektu
+2. Sprawdź czy plik zawiera `SUPABASE_URL` i `SUPABASE_KEY`
+
+**Rozwiązanie w CI:**
 1. Sprawdź czy dodałeś wszystkie wymagane secrets do GitHub
 2. Sprawdź czy nazwy secrets są dokładnie takie jak w workflow (wielkie litery!)
-3. Sprawdź czy workflow używa właściwych nazw w sekcji `env:`
+3. Sprawdź czy workflow ma krok "Create .env.test file"
 
-### Testy jednostkowe nie przechodzą w CI
+### Testy E2E nie mogą połączyć się z serwerem
 
-**Przyczyna:** Brak zmiennych środowiskowych podczas budowania
+**Przyczyna:** Nieprawidłowy port lub BASE_URL
 
 **Rozwiązanie:**
-- Dodaj wymagane secrets (`SUPABASE_URL`, `SUPABASE_KEY`, `OPENROUTER_API_KEY`) do GitHub
-- Upewnij się, że są przekazane w sekcji `env:` w kroku `Build application`
+- Sprawdź czy `astro.config.mjs` ma ustawiony port: `server: { port: 3000 }`
+- Sprawdź czy `playwright.config.ts` używa tego samego portu
+- W workflow BASE_URL powinien być: `http://localhost:3000`
+
+### Testy przechodzą lokalnie ale nie w CI
+
+**Przyczyna:** Różnice w konfiguracji środowiska
+
+**Rozwiązanie:**
+1. Sprawdź czy wszystkie secrets są dodane do GitHub Actions
+2. Sprawdź czy wersja Node.js w workflow (obecnie 20) odpowiada lokalnej
+3. Sprawdź logi w GitHub Actions aby znaleźć dokładny błąd
+4. Upewnij się że plik `.env.test` jest tworzony w workflow przed uruchomieniem testów
 
 ## Struktura plików env
 
@@ -96,8 +126,10 @@ Po dodaniu secrets:
 
 ## Dodatkowe informacje
 
-- Build workflow uruchamia się przy pushu/PR do `main` i `master`
-- E2E workflow uruchamia się przy pushu/PR do `main` i `master`
-- E2E testy działają na 3 przeglądarkach: Chromium, Firefox, WebKit
-- Raporty z testów są zapisywane jako artifacts przez 30 dni
+- Test workflow (`test.yml`) uruchamia się przy pushu/PR do `main`, `master` i `develop`
+- Workflow zawiera 2 joby: `unit-tests` i `e2e-tests`
+- E2E testy domyślnie działają na 5 przeglądarkach: Chromium, Firefox, WebKit, Mobile Chrome, Mobile Safari
+- Raporty z testów Playwright są zapisywane jako artifacts przez 30 dni
+- Coverage report jest uploadowany do Codecov (wymaga tokena)
+- Testy jednostkowe i E2E działają równolegle (można uruchamiać niezależnie)
 

@@ -52,13 +52,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Create .env.test file
+        run: |
+          cat > .env.test << EOF
+          SITE_URL=http://localhost:3000
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY=${{ secrets.SUPABASE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL=openai/gpt-4o-mini
+          E2E_USERNAME=${{ secrets.E2E_USERNAME }}
+          E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}
+          EOF
+      
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
       
       - name: Run E2E tests
         run: npm run test:e2e
         env:
-          BASE_URL: http://localhost:4321
+          BASE_URL: http://localhost:3000
       
       - name: Upload Playwright report
         if: always()
